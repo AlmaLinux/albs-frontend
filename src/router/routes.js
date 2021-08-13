@@ -15,7 +15,8 @@ const routes = [
             .then(next())
             .catch(next())
         }
-      }
+      },
+      { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildLogs.vue'), props: true}
     ]
   },
   // TODO: make this children

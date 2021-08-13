@@ -4,48 +4,93 @@
     </span>
     <!--<deploy-tool-link-window ref="deployToolWindow" :build_id="build_id"/>-->
 
-    <q-card flat bordered class="my-card">
+    <q-card flat>
       <q-card-section class="text-h6 text-center">
         <router-link :to="{path: `/build/${build.id}`}">
         Build {{ build.id }}
         </router-link>
           created by
           <a :href="`mailto:${build.user.email}`">{{ build.user.username }}</a>
-          at {{ build.created_at.split('T')[0] }}
+          at {{ buildCreatedTime }}
       </q-card-section>
 
-      <q-card-section>
-        <!--TODO: fix this table!-->
-       <table class="text-left q-table horizontal-separator build-info-table">
-        <thead>
-          <tr>
-            <th><td/></th>
-            <template v-for="platform in buildPlatforms">
-              <th v-for="arch in platform.arch_list" :key="arch" class="platform-name">
-                {{ platform.name }} {{ arch }}
-              </th>
-            </template>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="task in buildTasks" :key="task.id">
-            <td>
-              <b>{{ task.id }}</b>
-        <!--      <b>{{ project.name }}</b> --->
-        <!--      <build-reference :buildRef="project.build_ref" class='no-overflow'/>-->
-            </td>
-            <td v-for="target in getTaskTargets(task)" :key=target.id>
-              {{ target.textStatus }}
-        <!--    <td v-for="target in project.build_targets"-->
-        <!--        v-if="target.architecture !== 'src'"-->
-        <!--        :class="generateItemCSS(project, target)"-->
-        <!--        :key="target.id">-->
-        <!--      {{ formatItemStatus(project, target) }}-->
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      </q-card-section>
+    <q-card-section>
+
+      <q-tabs v-model="tab">
+        <q-tab name="summary" label="Summary"/>
+        <q-tab
+            v-for="target of buildTargets"
+            :name="target.key"
+            :label="target.key"
+            :key="target.key"
+        />
+      </q-tabs>
+
+      <q-tab-panels v-model="tab">
+        <q-tab-panel name="summary">
+           <table class="text-left q-table horizontal-separator build-info-table">
+            <thead>
+              <tr>
+                <th><td/></th>
+                <template v-for="platform in buildPlatforms">
+                  <th v-for="arch in platform.arch_list" :key="arch" class="platform-name">
+                    {{ platform.name }} {{ arch }}
+                  </th>
+                </template>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="task in buildTasks" :key="task.id">
+                <td>
+                  <buildRef :buildRef="task.ref"/>
+                </td>
+                <td v-for="target in getTaskTargets(task)" :key=target.id>
+                  <BuildStatusCircle :status="target.status" @click="openTaskLogs(task)"/>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </q-tab-panel>
+
+        <q-tab-panel
+            v-for="target of buildTargets"
+            :name="target.key"
+            :label="target.key"
+            :key="target.key"
+        >
+           <table class="text-left q-table horizontal-separator build-info-table">
+            <thead>
+              <tr>
+                <th><td/></th>
+                <th>Status</th>
+                <th>Packages</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="task in buildTasks" :key="task.id">
+                <td>
+                  <buildRef :buildRef="task.ref"/>
+                </td>
+                <td :class="getTaskCSS(task)">
+                  {{ getTextStatus(task) }}
+                </td>
+                <td>
+                  <div
+                    v-for="pkg in getTaskPackages(task, target.arch)"
+                    :key="pkg.name"
+                  >
+                    <a class="text-tertiary" :href="pkg.downloadUrl">
+                      {{ pkg.name }}
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </q-tab-panel>
+      </q-tab-panels>
+
+    </q-card-section>
 
     </q-card>
   </div>
@@ -54,6 +99,10 @@
 <script>
 
 import { defineComponent } from 'vue'
+import { exportFile } from 'quasar'
+import BuildRef from 'components/BuildRef.vue'
+import BuildStatusCircle from 'components/BuildStatusCircle.vue'
+import { BuildStatus } from '../constants.js'
 
 export default defineComponent({
   props: {
@@ -61,6 +110,7 @@ export default defineComponent({
   },
   data () {
     return {
+      tab: 'summary',
       build: null,
       reload: true,
       refreshTimer: null
@@ -78,6 +128,19 @@ export default defineComponent({
       }
       return platforms
     },
+    buildTargets () {
+      let targetsSet = new Set()
+      let targets = []
+      for (const task of this.build.tasks) {
+        const targetKey = `${task.platform.name}.${task.arch}`
+        if (targetsSet.has(targetKey)) {
+          continue
+        }
+        targetsSet.add(targetKey)
+        targets.push({name: task.platform.name, arch: task.arch, key: targetKey})
+      }
+      return targets
+    },
     sortedTasks () {
       return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) => (a.id > b.id) ? 1 : -1)
     },
@@ -92,6 +155,9 @@ export default defineComponent({
         tasks.push(task)
       }
       return tasks
+    },
+    buildCreatedTime () {
+      return new Date(this.build.created_at).toLocaleString()
     }
   },
   created () {
@@ -123,24 +189,62 @@ export default defineComponent({
           this.reload = true
         })
     },
-    getTaskTargets(task) {
-      let targets = []
-      // TODO: move to constants.js
-      let statusMapping = {
-        0: 'idle',
-        1: 'build started',
-        2: 'build done',
-        3: 'build failed'
-      }
-      for (const buildTask of this.sortedTasks) {
-        if (task.index === buildTask.index) {
-            targets.push(Object.assign({}, buildTask, {textStatus: statusMapping[buildTask.status]}))
+    getTextStatus (task) {
+      return BuildStatus.text[task.status]
+    },
+    getTaskPackages (task, arch) {
+      for (const buildTask of this.build.tasks) {
+        if (buildTask.arch === arch && buildTask.index === task.index) {
+          return buildTask.artifacts.filter(item => item.type === 'rpm').map(item => {
+            let arch = buildTask.arch
+            if (item.name.includes('.src.')) {
+              arch = 'src'
+            }
+            item.downloadUrl = `${window.origin}/pulp/content/builds/${buildTask.platform.name}-${arch}-${this.buildId}-br/${item.name}`
+            return item
+          })
         }
       }
-      return targets
+    },
+    getTaskLogs (task, arch) {
+      for (const buildTask of this.build.tasks) {
+        if (buildTask.arch === arch && buildTask.index === task.index) {
+          return buildTask.artifacts.filter(item => item.type === 'build_log')
+        }
+      }
+    },
+    getTaskTargets(task) {
+      return this.sortedTasks.filter(item => item.index === task.index)
+    },
+    getTaskCSS (task) {
+        let css = []
+        if (task.status === BuildStatus.FAILED) {
+          css.push('text-negative', 'bg-red-1')
+        }
+        else if (task.status === BuildStatus.IDLE) {
+          css.push('text-grey-6')
+        }
+        else if (task.status === BuildStatus.STARTED) {
+          css.push('text-black-6')
+        }
+        else if (task.status === BuildStatus.COMPLETED) {
+          css.push('text-green-7')
+        }
+        return css
+    },
+    downloadArtifact (artifact) {
+      this.$api.get(`/artifacts/${artifact.id}/`)
+        .then((response) => {
+          exportFile(artifact.name, response.data.content)
+        })
+    },
+    openTaskLogs (task) {
+      this.$router.push(`/build/${this.buildId}/logs/${task.id}`)
     }
   },
   components: {
+    BuildRef,
+    BuildStatusCircle
   }
 })
 </script>
@@ -163,5 +267,11 @@ export default defineComponent({
 
   .mock-options dd:last-child {
     padding-bottom: 0;
+  }
+
+  th.platform-name {
+    text-overflow: ellipsis;
+    overflow: hidden !important;
+    width: 60px;
   }
 </style>

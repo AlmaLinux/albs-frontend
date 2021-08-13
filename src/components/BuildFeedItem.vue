@@ -25,17 +25,14 @@
         <tbody>
           <tr v-for="task in buildTasks" :key="task.id">
             <td>
-              <b>{{ task.id }}</b>
-        <!--      <b>{{ project.name }}</b> --->
-        <!--      <build-reference :buildRef="project.build_ref" class='no-overflow'/>-->
+              <buildRef :buildRef="task.ref"/>
             </td>
-            <td v-for="target in getTaskTargets(task)" :key=target.id>
+            <td
+                v-for="target in getTaskTargets(task)"
+                :key=target.id
+                :class="getTaskCSS(target)"
+            >
               {{ target.textStatus }}
-        <!--    <td v-for="target in project.build_targets"-->
-        <!--        v-if="target.architecture !== 'src'"-->
-        <!--        :class="generateItemCSS(project, target)"-->
-        <!--        :key="target.id">-->
-        <!--      {{ formatItemStatus(project, target) }}-->
             </td>
           </tr>
         </tbody>
@@ -44,8 +41,7 @@
       <div class="col-2 text-tertiary creation-info">
         Created by <a :href="`mailto:${build.user.email}`">{{ build.user.username }}</a>
         <br/>
-        <!-- TODO: Format timestamp-->
-        at {{ build.created_at }}
+        at {{ buildCreatedTime }}
       </div>
     </q-card-section>
   </q-card>
@@ -53,6 +49,8 @@
 
 <script>
 import { defineComponent } from 'vue';
+import { BuildStatus } from '../constants.js'
+import BuildRef from 'components/BuildRef.vue';
 
 export default defineComponent({
   name: 'BuildFeedItem',
@@ -85,25 +83,40 @@ export default defineComponent({
         tasks.push(task)
       }
       return tasks
+    },
+    buildCreatedTime () {
+      return new Date(this.build.created_at).toLocaleString()
     }
   },
   methods: {
-    getTaskTargets(task) {
+    getTaskCSS (task) {
+        let css = []
+        if (task.status === BuildStatus.FAILED) {
+          css.push('text-negative', 'bg-red-1')
+        }
+        else if (task.status === BuildStatus.IDLE) {
+          css.push('text-grey-6')
+        }
+        else if (task.status === BuildStatus.STARTED) {
+          css.push('text-black-6')
+        }
+        else if (task.status === BuildStatus.COMPLETED) {
+          css.push('text-green-7')
+        }
+        return css
+    },
+    getTaskTargets (task) {
       let targets = []
-      // TODO: move to constants.js
-      let statusMapping = {
-        0: 'idle',
-        1: 'build started',
-        2: 'build done',
-        3: 'build failed'
-      }
       for (const buildTask of this.sortedTasks) {
         if (task.index === buildTask.index) {
-            targets.push(Object.assign({}, buildTask, {textStatus: statusMapping[buildTask.status]}))
+            targets.push(Object.assign({}, buildTask, {textStatus: BuildStatus.text[buildTask.status]}))
         }
       }
       return targets
     }
+  },
+  components: {
+    BuildRef
   }
 })
 </script>
