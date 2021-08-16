@@ -32,8 +32,7 @@ export default defineComponent({
     makeGithubAuthURL () {
       const baseUrl = 'https://github.com/login/oauth/authorize'
       const params = new URLSearchParams({
-        // TODO: move to config
-        client_id: 'e8c7ea050080aa97d5ee',
+        client_id: process.env.GITHUB_CLIENT,
         scope: 'read:user,user:email'
       })
       return `${baseUrl}?${params.toString()}`
