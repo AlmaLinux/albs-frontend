@@ -14,7 +14,16 @@
                   chips
                   label="Build platform(s):"
                   style="min-width: 250px; max-width: 300px"
-         />
+         >
+          <template v-slot:option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section>
+                <q-item-label v-html="scope.opt.label" />
+                <q-item-label caption>{{ scope.opt.description }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
 
         <!--<linked-build-selector v-model="buildPlan.linkedBuilds"-->
         <!--                       label="Linked builds:" :labelWidth="4"/>-->
@@ -73,7 +82,7 @@ export default defineComponent({
     buildPlatforms () {
       // TODO: add arch
       return this.$store.state.platforms.platforms.map(platform => {
-        return platform.name
+        return {label: platform.name, value: platform.name, description: platform.arch_list.join(', ')}
       })
     }
   },

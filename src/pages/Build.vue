@@ -17,12 +17,12 @@
     <q-card-section>
 
       <q-tabs v-model="tab">
-        <q-tab name="summary" label="Summary"/>
+       <q-tab name="summary" label="Summary"/>
         <q-tab
-            v-for="target of buildTargets"
-            :name="target.key"
-            :label="target.key"
-            :key="target.key"
+            v-for="target of Object.keys(buildTasks)"
+            :name="target"
+            :label="target"
+            :key="target"
         />
       </q-tabs>
 
@@ -32,31 +32,31 @@
             <thead>
               <tr>
                 <th><td/></th>
-                <template v-for="platform in buildPlatforms">
-                  <th v-for="arch in platform.arch_list" :key="arch" class="platform-name">
-                    {{ platform.name }} {{ arch }}
-                  </th>
-                </template>
+                <th v-for="targetName of Object.keys(buildTasks)" :key="targetName" class="platform-name">
+                  {{ targetName }}
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="task in buildTasks" :key="task.id">
+              <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
                 <td>
-                  <buildRef :buildRef="task.ref"/>
+                  <buildRef :buildRef="tasks[0].ref"/>
                 </td>
-                <td v-for="target in getTaskTargets(task)" :key=target.id>
-                  <BuildStatusCircle :status="target.status" @click="openTaskLogs(task)"/>
-                </td>
+                <template v-for="targetName of Object.keys(buildTasks)" :key="targetName">
+                  <td v-for="task in buildTasks[targetName][tasks[0].index]" :key=task.id>
+                    <BuildStatusCircle :status="task.status" @click="openTaskLogs(task)"/>
+                  </td>
+                </template>
               </tr>
             </tbody>
           </table>
         </q-tab-panel>
 
         <q-tab-panel
-            v-for="target of buildTargets"
-            :name="target.key"
-            :label="target.key"
-            :key="target.key"
+            v-for="target of Object.keys(buildTasks)"
+            :name="target"
+            :label="target"
+            :key="target"
         >
            <table class="text-left q-table horizontal-separator build-info-table">
             <thead>
@@ -67,23 +67,27 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="task in buildTasks" :key="task.id">
+              <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
                 <td>
-                  <buildRef :buildRef="task.ref"/>
+                  <buildRef :buildRef="tasks[0].ref"/>
                 </td>
-                <td :class="getTaskCSS(task)">
-                  {{ getTextStatus(task) }}
-                </td>
-                <td>
-                  <div
-                    v-for="pkg in getTaskPackages(task, target.arch)"
-                    :key="pkg.name"
+                <template v-for="task in buildTasks[target][tasks[0].index]" :key=task.id>
+                  <td :class="getTaskCSS(task)"
+                      @click="openTaskLogs(task)"
                   >
-                    <a class="text-tertiary" :href="pkg.downloadUrl">
-                      {{ pkg.name }}
-                    </a>
-                  </div>
-                </td>
+                    {{ getTextStatus(task) }}
+                  </td>
+                  <td>
+                    <div
+                      v-for="pkg in getTaskPackages(task)"
+                      :key="pkg.name"
+                    >
+                      <a class="text-tertiary" :href="pkg.downloadUrl">
+                        {{ pkg.name }}
+                      </a>
+                    </div>
+                  </td>
+                </template>
               </tr>
             </tbody>
           </table>
@@ -106,7 +110,7 @@ import { BuildStatus } from '../constants.js'
 
 export default defineComponent({
   props: {
-    buildId: Number
+    buildId: String
   },
   data () {
     return {
@@ -117,17 +121,6 @@ export default defineComponent({
     }
   },
   computed: {
-    buildPlatforms () {
-      let platformsNames = new Set()
-      let platforms = []
-      for (const task of this.build.tasks) {
-        if (!platformsNames.has(task.platform.name)) {
-          platformsNames.add(task.platform.name)
-          platforms.push(task.platform)
-        }
-      }
-      return platforms
-    },
     buildTargets () {
       let targetsSet = new Set()
       let targets = []
@@ -141,20 +134,28 @@ export default defineComponent({
       }
       return targets
     },
-    sortedTasks () {
-      return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) => (a.id > b.id) ? 1 : -1)
-    },
     buildTasks () {
-      let taskSet = new Set()
-      let tasks = []
-      for (const task of this.sortedTasks) {
-        if (taskSet.has(task.index)) {
-          continue
+      let response = {}
+      for (let task of this.build.tasks) {
+        const x = `${task.platform.name}.${task.arch}`
+        if (!response.hasOwnProperty(x)) {
+          response[x] = {}
         }
-        taskSet.add(task.index)
-        tasks.push(task)
+        const y = task.index
+        if (!response[x].hasOwnProperty(y)) {
+          response[x][y] = []
+        }
+        response[x][y].push(task)
       }
-      return tasks
+      for (let sortX in response) {
+        for (let sortY in response[sortX]) {
+          response[sortX][sortY].sort((a, b) => (a.id > b.id) ? 1: -1)
+        }
+      }
+      return response
+    },
+    buildTasksByIndex () {
+      return this.buildTasks[Object.keys(this.buildTasks)[0]]
     },
     buildCreatedTime () {
       return new Date(this.build.created_at).toLocaleString()
@@ -192,32 +193,8 @@ export default defineComponent({
     getTextStatus (task) {
       return BuildStatus.text[task.status]
     },
-    getTaskPackages (task, arch) {
-      for (const buildTask of this.build.tasks) {
-        if (buildTask.arch === arch && buildTask.index === task.index) {
-          return buildTask.artifacts.filter(item => item.type === 'rpm').map(item => {
-            let arch = buildTask.arch
-            if (item.name.includes('.src.')) {
-              arch = 'src'
-            }
-            item.downloadUrl = `${window.origin}/pulp/content/builds/${buildTask.platform.name}-${arch}-${this.buildId}-br/${item.name}`
-            return item
-          })
-        }
-      }
-    },
-    getTaskLogs (task, arch) {
-      for (const buildTask of this.build.tasks) {
-        if (buildTask.arch === arch && buildTask.index === task.index) {
-          return buildTask.artifacts.filter(item => item.type === 'build_log')
-        }
-      }
-    },
-    getTaskTargets(task) {
-      return this.sortedTasks.filter(item => item.index === task.index)
-    },
     getTaskCSS (task) {
-        let css = []
+        let css = ['cursor-pointer']
         if (task.status === BuildStatus.FAILED) {
           css.push('text-negative', 'bg-red-1')
         }
@@ -240,6 +217,16 @@ export default defineComponent({
     },
     openTaskLogs (task) {
       this.$router.push(`/build/${this.buildId}/logs/${task.id}`)
+    },
+    getTaskPackages (task) {
+      return task.artifacts.filter(item => item.type === 'rpm').map(item => {
+        let arch = task.arch
+        if (item.name.includes('.src.')) {
+          arch = 'src'
+        }
+        item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}-br/${item.name}`
+        return item
+      })
     }
   },
   components: {
