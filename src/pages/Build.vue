@@ -152,7 +152,16 @@ export default defineComponent({
           response[sortX][sortY].sort((a, b) => (a.id > b.id) ? 1: -1)
         }
       }
-      return response
+      // TODO: sort here should use platform arch build order, instead
+      //       of alphabetical.
+      const ordered = Object.keys(response).sort().reduce(
+        (obj, key) => {
+          obj[key] = response[key];
+          return obj;
+        },
+        {}
+      )
+      return ordered
     },
     buildTasksByIndex () {
       return this.buildTasks[Object.keys(this.buildTasks)[0]]

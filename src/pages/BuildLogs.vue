@@ -59,8 +59,9 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import axios from 'axios'
 import { exportFile } from 'quasar'
+import { defineComponent } from 'vue'
 import BuildLogLink from 'components/BuildLogLink.vue'
 
 export default defineComponent({
@@ -98,7 +99,10 @@ export default defineComponent({
       return window.innerHeight
     },
     logs () {
-      return this.build.tasks.filter(task => task.id === parseInt(this.taskId))[0].artifacts.filter(artifact => artifact.type == 'build_log')
+      return this.task.artifacts.filter(artifact => artifact.type == 'build_log')
+    },
+    task () {
+      return this.build.tasks.filter(task => task.id == parseInt(this.taskId))[0]
     }
   },
   methods: {
@@ -112,16 +116,18 @@ export default defineComponent({
         })
     },
     onDownload (artifact) {
-      this.$api.get(`/artifacts/${artifact.id}/`)
-        .then((response) => {
-          exportFile(artifact.name, response.data.content)
+      let artifactUrl = `${window.origin}/pulp/content/build_logs/${this.task.platform.name}-${this.task.arch}-${this.buildId}-artifacts/${artifact.name}`
+      axios.get(artifactUrl)
+        .then(response => {
+          exportFile(artifact.name, response.data)
         })
     },
     onView (artifact) {
+      let artifactUrl = `${window.origin}/pulp/content/build_logs/${this.task.platform.name}-${this.task.arch}-${this.buildId}-artifacts/${artifact.name}`
       this.selectedLog = artifact.name
-      this.$api.get(`/artifacts/${artifact.id}/`)
-        .then((response) => {
-          this.logText = response.data.content
+      axios.get(artifactUrl)
+        .then(response => {
+          this.logText = response.data
         })
     }
   },

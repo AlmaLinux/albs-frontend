@@ -80,7 +80,6 @@ export default defineComponent({
       return labelMap[this.currentStep]
     },
     buildPlatforms () {
-      // TODO: add arch
       return this.$store.state.platforms.platforms.map(platform => {
         return {label: platform.name, value: platform.name, description: platform.arch_list.join(', ')}
       })
@@ -98,6 +97,7 @@ export default defineComponent({
       this.$refs.buildWizzard.previous()
     },
     createBuild () {
+      this.buildPlan.platforms = this.buildPlan.platforms.map(item => item.value)
       this.$api.post('/builds/', this.buildPlan)
         .then(() => {
           console.log('done')
