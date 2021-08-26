@@ -14,87 +14,102 @@
           at {{ buildCreatedTime }}
       </q-card-section>
 
-    <q-card-section>
+      <q-card-section>
 
-      <q-tabs v-model="tab">
-       <q-tab name="summary" label="Summary"/>
-        <q-tab
-            v-for="target of Object.keys(buildTasks)"
-            :name="target"
-            :label="target"
-            :key="target"
-        />
-      </q-tabs>
+        <q-tabs v-model="tab">
+         <q-tab name="summary" label="Summary"/>
+          <q-tab
+              v-for="target of Object.keys(buildTasks)"
+              :name="target"
+              :label="target"
+              :key="target"
+          />
+        </q-tabs>
 
-      <q-tab-panels v-model="tab">
-        <q-tab-panel name="summary">
-           <table class="text-left q-table horizontal-separator build-info-table">
-            <thead>
-              <tr>
-                <th><td/></th>
-                <th v-for="targetName of Object.keys(buildTasks)" :key="targetName" class="platform-name">
-                  {{ targetName }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
-                <td>
-                  <buildRef :buildRef="tasks[0].ref"/>
-                </td>
-                <template v-for="targetName of Object.keys(buildTasks)" :key="targetName">
-                  <td v-for="task in buildTasks[targetName][tasks[0].index]" :key=task.id>
-                    <BuildStatusCircle :status="task.status" @click="openTaskLogs(task)"/>
-                  </td>
-                </template>
-              </tr>
-            </tbody>
-          </table>
-        </q-tab-panel>
-
-        <q-tab-panel
-            v-for="target of Object.keys(buildTasks)"
-            :name="target"
-            :label="target"
-            :key="target"
-        >
-           <table class="text-left q-table horizontal-separator build-info-table">
-            <thead>
-              <tr>
-                <th><td/></th>
-                <th>Status</th>
-                <th>Packages</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
-                <td>
-                  <buildRef :buildRef="tasks[0].ref"/>
-                </td>
-                <template v-for="task in buildTasks[target][tasks[0].index]" :key=task.id>
-                  <td :class="getTaskCSS(task)"
-                      @click="openTaskLogs(task)"
-                  >
-                    {{ getTextStatus(task) }}
-                  </td>
+        <q-tab-panels v-model="tab">
+          <q-tab-panel name="summary">
+             <table class="text-left q-table horizontal-separator build-info-table">
+              <thead>
+                <tr>
+                  <th><td/></th>
+                  <th v-for="targetName of Object.keys(buildTasks)" :key="targetName" class="platform-name">
+                    {{ targetName }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
                   <td>
-                    <div
-                      v-for="pkg in getTaskPackages(task)"
-                      :key="pkg.name"
-                    >
-                      <a class="text-tertiary" :href="pkg.downloadUrl">
-                        {{ pkg.name }}
-                      </a>
-                    </div>
+                    <buildRef :buildRef="tasks[0].ref"/>
                   </td>
-                </template>
-              </tr>
-            </tbody>
-          </table>
-        </q-tab-panel>
-      </q-tab-panels>
+                  <template v-for="targetName of Object.keys(buildTasks)" :key="targetName">
+                    <td v-for="task in buildTasks[targetName][tasks[0].index]" :key=task.id>
+                      <BuildStatusCircle :status="task.status" @click="openTaskLogs(task)"/>
+                    </td>
+                  </template>
+                </tr>
+              </tbody>
+            </table>
+          </q-tab-panel>
 
-    </q-card-section>
+          <q-tab-panel
+              v-for="target of Object.keys(buildTasks)"
+              :name="target"
+              :label="target"
+              :key="target"
+          >
+             <table class="text-left q-table horizontal-separator build-info-table">
+              <thead>
+                <tr>
+                  <th><td/></th>
+                  <th>Status</th>
+                  <th>Packages</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
+                  <td>
+                    <buildRef :buildRef="tasks[0].ref"/>
+                  </td>
+                  <template v-for="task in buildTasks[target][tasks[0].index]" :key=task.id>
+                    <td :class="getTaskCSS(task)"
+                        @click="openTaskLogs(task)"
+                    >
+                      {{ getTextStatus(task) }}
+                    </td>
+                    <td>
+                      <div
+                        v-for="pkg in getTaskPackages(task)"
+                        :key="pkg.name"
+                      >
+                        <a class="text-tertiary" :href="pkg.downloadUrl">
+                          {{ pkg.name }}
+                        </a>
+                      </div>
+                    </td>
+                  </template>
+                </tr>
+              </tbody>
+            </table>
+          </q-tab-panel>
+        </q-tab-panels>
+
+      </q-card-section>
+
+      <q-card-section>
+        <q-expansion-item label="Linked builds" expand-separator
+                          icon="link" v-if="linked_builds">
+          <q-card>
+            <q-card-section v-for="linked_build in linked_builds" :key="linked_build">
+              <q-item :to="`/build/${linked_build}`">
+                <q-item-section>
+                  {{ linked_build }}
+                </q-item-section>
+              </q-item>
+            </q-card-section>
+          </q-card>
+        </q-expansion-item>
+      </q-card-section>
 
     </q-card>
   </div>
@@ -103,7 +118,7 @@
 <script>
 
 import { defineComponent } from 'vue'
-import { exportFile } from 'quasar'
+import { exportFile , Loading} from 'quasar'
 import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import { BuildStatus } from '../constants.js'
@@ -117,7 +132,13 @@ export default defineComponent({
       tab: 'summary',
       build: null,
       reload: true,
-      refreshTimer: null
+      refreshTimer: null,
+      linked_builds: null
+    }
+  },
+  watch: {
+    $route (to, from) {
+      this.loadBuildInfo(to.params.buildId)
     }
   },
   computed: {
@@ -171,11 +192,11 @@ export default defineComponent({
     }
   },
   created () {
-    this.loadBuildInfo()
+    this.loadBuildInfo(this.buildId)
     // update the build state every minute
     this.refreshTimer = setInterval(() => {
       if (this.reload) {
-        this.loadBuildInfo()
+        this.loadBuildInfo(this.buildId)
       }
     }, 60000)
     // don't forget clear the timer while leaving the page
@@ -187,11 +208,17 @@ export default defineComponent({
     }
   },
   methods: {
-    loadBuildInfo () {
+    loadBuildInfo (buildId) {
       this.reload = false
-      this.$api.get(`/builds/${this.buildId}/`)
+      this.linked_builds = null
+      Loading.show()
+      this.$api.get(`/builds/${buildId}/`)
         .then(response => {
+          Loading.hide()
           this.build = response.data
+          if (this.build.linked_builds.length) {
+            this.linked_builds = this.build.linked_builds
+          }
           this.reload = true
         })
         .catch(error => {

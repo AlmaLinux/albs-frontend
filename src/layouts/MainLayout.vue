@@ -10,6 +10,7 @@
           aria-label="Menu"
           @click="toggleLeftDrawer"
         />
+        <q-btn flat dense round icon="navigate_before" @click="$router.go(-1)"/>
       </q-toolbar>
     </q-header>
 

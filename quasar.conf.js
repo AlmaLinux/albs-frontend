@@ -87,8 +87,8 @@ module.exports = configure(function (ctx) {
       config: {
         brand: {
           primary: '#0069da',
-          secondary: '#26A69A',
-          accent: '#9C27B0',
+          secondary: '#74a57b',
+          accent: '#722865',
 
           dark: '#082336',
 
@@ -110,7 +110,10 @@ module.exports = configure(function (ctx) {
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'Notify',
+        'Loading'
+      ]
     },
 
     // animations: 'all', // --- includes all animations

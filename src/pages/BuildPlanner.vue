@@ -25,6 +25,28 @@
           </template>
         </q-select>
 
+        <q-input label="Linked builds" v-model="linked_builds_input" clearable
+                 style="min-width: 250px; max-width: 300px;" autogrow hint="Enter builds' ids"
+                 :rules="[linked_builds_input => linked_builds_input.length < 1 || 'Please don\'t forget to add entered builds\'s ids']">
+          <template v-slot:append v-if="linked_builds_input">
+            <q-btn round dense flat icon="add" @click="addLinkedBuilds"/>
+          </template>
+        </q-input>
+
+        <q-list v-if="buildPlan.linked_builds.length" style="min-width: 250px; max-width: 300px;">
+          <q-item v-for="linkedBuild in buildPlan.linked_builds" :key="linkedBuild">
+            <q-item-section>
+              <router-link :to="`/build/${linkedBuild}`">
+                {{ linkedBuild }}
+              </router-link>
+            </q-item-section>
+            <q-item-section side>
+              <q-btn icon="delete" small round flat dense color="negative"
+                     @click="buildPlan.linked_builds.pop(linkedBuild)"/>
+            </q-item-section>
+          </q-item>
+        </q-list>
+
         <!--<linked-build-selector v-model="buildPlan.linkedBuilds"-->
         <!--                       label="Linked builds:" :labelWidth="4"/>-->
 
@@ -56,6 +78,7 @@
 
 <script>
 import { defineComponent } from 'vue';
+import {Loading, Notify} from 'quasar'
 import ProjectSelector from 'components/ProjectSelector.vue'
 
 export default defineComponent({
@@ -64,9 +87,12 @@ export default defineComponent({
     return {
       buildPlan: {
         platforms: [],
-        tasks: []
+        tasks: [],
+        linked_builds: []
+
       },
-      currentStep: 'buildEnvironment'
+      currentStep: 'buildEnvironment',
+      linked_builds_input: ''
     }
   },
   created () {
@@ -86,6 +112,43 @@ export default defineComponent({
     }
   },
   methods: {
+    addLinkedBuilds () {
+      let inputs = this.linked_builds_input.split(' ')
+        inputs.forEach(e => this.checkLinkedBuilds(e))
+    },
+    checkLinkedBuilds (linkedId) {
+      if (parseInt(linkedId)) {
+        Loading.show()
+        this.$api.get(`/builds/${parseInt(linkedId)}/`)
+          .then(response => {
+            Loading.hide()
+            let found_build = response.data
+            for (let i in found_build.tasks) {
+              // TODO: Ugly way to add only finished builds
+              if (found_build.tasks[i].status === 2 || found_build.tasks[i].status === 3) {
+                this.buildPlan.linked_builds.push(found_build.id)
+              }
+            }
+            this.buildPlan.linked_builds = this.buildPlan.linked_builds.filter((v, i, a) => a.indexOf(v) === i)
+          })
+          .catch(() => {
+            Loading.hide()
+            Notify.create({
+              type: 'negative',
+              message: `Build ${linkedId} not found`,
+              actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+            })
+          })
+      }
+      else {
+        Notify.create({
+          type: 'negative',
+          message: 'Not build\'s id entered',
+          actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+        })
+      }
+      this.linked_builds_input = ''
+    },
     onNextStep () {
       if (this.nextLabel === 'Create build') {
         this.createBuild()
@@ -98,12 +161,15 @@ export default defineComponent({
     },
     createBuild () {
       this.buildPlan.platforms = this.buildPlan.platforms.map(item => item.value)
+      Loading.show()
       this.$api.post('/builds/', this.buildPlan)
         .then(() => {
+          Loading.hide()
           console.log('done')
           this.$router.push('/')
         })
         .catch(() => {
+          Loading.hide()
           console.log('fail')
           this.$router.push('/')
         })
