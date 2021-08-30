@@ -19,7 +19,6 @@
 
           <template v-if="projectType === 'git_ref'">
             <q-input v-model="git.url" type="url" label="Git repo url"/>
-            <q-select v-model="git.ref_type" :options="refTypes" label="Ref type"/>
             <q-input v-model="git.git_ref" type="url" label="Reference (branch/tag name)"/>
           </template>
       </q-card-section>
@@ -38,6 +37,7 @@
 
 <script>
 import { defineComponent } from 'vue'
+import {Notify} from "quasar";
 
 export default defineComponent({
   props: {
@@ -49,8 +49,7 @@ export default defineComponent({
       srpmUrl: null,
       git: {
         git_ref: null,
-        url: null,
-        ref_type: null
+        url: null
       },
       opened: false,
       sourceTypes: [
@@ -79,7 +78,7 @@ export default defineComponent({
      *                      false otherwise.
      */
     isProjectSelected () {
-      return this.srpmUrl || (this.git.git_ref && this.git.url && this.git.ref_type)
+      return this.srpmUrl || (this.git.git_ref && this.git.url)
     }
   },
   methods: {
@@ -90,13 +89,12 @@ export default defineComponent({
       this.opened = false
       this.projectType = 'srpm_url'
       this.srpmUrl = null
-      this.git = { git_ref: null, url: null, ref_type: null }
+      this.git = { git_ref: null, url: null }
     },
     onSubmit () {
-      let ref = { ref_type: 'srpm', url: this.srpmUrl }
+      let ref = { url: this.srpmUrl }
       if (!this.srpmUrl) {
         ref = JSON.parse(JSON.stringify(this.git))
-        ref.ref_type = ref.ref_type.value
       }
 
       const alreadyExistsCheck = this.buildItems.filter(item => {
@@ -104,7 +102,7 @@ export default defineComponent({
       })
       if (alreadyExistsCheck.length) {
         const errorMsg = `Project "${ref.url}" was added earlier`
-        Alert.create({ html: errorMsg, icon: 'warning' })
+        Notify.create({ message: errorMsg, icon: 'warning', type: 'warning' })
         return
       }
       this.$emit('projectSelected', ref)
