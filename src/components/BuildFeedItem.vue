@@ -133,11 +133,6 @@ export default defineComponent({
     padding: 0 0.5em 0 0.5em;
   }
 
-  span.build-info-channel {
-    font-family: monospace;
-    font-size: small;
-  }
-
   .build-info-tag {
     text-overflow: ellipsis;
     overflow: hidden !important;
@@ -156,7 +151,7 @@ export default defineComponent({
     table-layout: fixed;
   }
 
-  /* First table header cell which contains "Show details" link and channel */
+  /* First table header cell which contains "Show details" link */
   table.build-info-table tr:first-child th:first-child {
     padding: 0.3em;
     width: 25%;
