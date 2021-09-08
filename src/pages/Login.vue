@@ -33,7 +33,7 @@ export default defineComponent({
       const baseUrl = 'https://github.com/login/oauth/authorize'
       const params = new URLSearchParams({
         client_id: process.env.GITHUB_CLIENT,
-        scope: 'read:user,user:email'
+        scope: 'read:user,user:email,read:org'
       })
       return `${baseUrl}?${params.toString()}`
     }

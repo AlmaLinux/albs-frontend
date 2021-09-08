@@ -32,6 +32,7 @@ export default defineComponent({
           this.builds = response.data
         })
         .catch(error => {
+          // TODO: add error here
         })
     }
   },

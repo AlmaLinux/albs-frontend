@@ -13,6 +13,25 @@
                           type="radio"
                           inline/>
 
+          <template v-if="projectType === 'alma_git'">
+            <q-select
+                v-model="almaGitRepo"
+                :options="almalinuxGitRepoNames"
+                label="git.almalinux.org repo"
+                use-input
+                input-debounce="0"
+                @update:model-value="onAlmalinuxRepoSelected"
+                @filter="almaGitSelectFilter"
+            />
+            <q-select
+                v-model="git.git_ref"
+                :options="almalinuxGitRepoRefs"
+                label="Tags/branches"
+                use-input
+                input-debounce="0"
+            />
+          </template>
+
           <template v-if="projectType === 'srpm_url'">
             <q-input v-model="srpmUrl" type="url"/>
           </template>
@@ -45,23 +64,25 @@ export default defineComponent({
   },
   data () {
     return {
-      projectType: 'srpm_url',
+      projectType: 'alma_git',
+      almaGitFilter: '',
       srpmUrl: null,
+      almalinuxGitRepos: [],
+      almaGitRepo: null,
       git: {
         git_ref: null,
         url: null
       },
       opened: false,
       sourceTypes: [
+        { label: 'git.almalinux.org', value: 'alma_git' },
         { label: 'Src-RPM URL', value: 'srpm_url' },
         { label: 'Git reference', value: 'git_ref' }
-      ],
-      refTypes: [
-
-        { label: 'tag', value: 'git_tag' },
-        { label: 'branch', value: 'git_branch' }
       ]
     }
+  },
+  created () {
+    this.loadAlmaGitRefs()
   },
   computed: {
     buildRefText () {
@@ -79,6 +100,22 @@ export default defineComponent({
      */
     isProjectSelected () {
       return this.srpmUrl || (this.git.git_ref && this.git.url)
+    },
+    almalinuxGitRepoNames () {
+      let value = this.almalinuxGitRepos.map(item => {
+        return {label: item.name, value: item.clone_url}
+      })
+      if (this.almaGitFilter !== '') {
+        return value.filter(item => item.label.indexOf(this.almaGitFilter) > -1)
+      }
+      return value
+    },
+    almalinuxGitRepoRefs () {
+      let repo = this.almalinuxGitRepos.filter(item => item.clone_url === this.git.url)
+      if (!repo.length) {
+        return []
+      }
+      return repo[0].tags.concat(repo[0].branches)
     }
   },
   methods: {
@@ -87,8 +124,9 @@ export default defineComponent({
     },
     close () {
       this.opened = false
-      this.projectType = 'srpm_url'
+      this.projectType = 'alma_git'
       this.srpmUrl = null
+      this.almaGitFilter = ''
       this.git = { git_ref: null, url: null }
     },
     onSubmit () {
@@ -96,7 +134,6 @@ export default defineComponent({
       if (!this.srpmUrl) {
         ref = JSON.parse(JSON.stringify(this.git))
       }
-
       const alreadyExistsCheck = this.buildItems.filter(item => {
         return item.url === ref.url && item.git_ref === ref.git_ref
       })
@@ -108,12 +145,23 @@ export default defineComponent({
       this.$emit('projectSelected', ref)
       this.close()
     },
-    getGitRefPrefix (refType) {
-      switch (refType) {
-        case 'git_tag': return '#'
-        case 'git_branch': return '⎇'
-        default: return ''
-      }
+    loadAlmaGitRefs () {
+      this.$api.get('/projects/alma')
+        .then(response => {
+          this.almalinuxGitRepos = response.data
+          this.almalinuxGitRepoNames = response.data.map(item => item.name)
+        })
+        .catch(error => {
+          // TODO: add error here
+        })
+    },
+    almaGitSelectFilter (value, update) {
+      this.almaGitFilter = value
+      update(() => {})
+    },
+    onAlmalinuxRepoSelected (value) {
+      this.git.url = value.value
+      this.git.git_ref = undefined
     }
   },
   components: {
