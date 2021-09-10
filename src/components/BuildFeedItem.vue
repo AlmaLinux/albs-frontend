@@ -100,6 +100,9 @@ export default defineComponent({
         else if (task.status === BuildStatus.STARTED) {
           css.push('text-black-6')
         }
+        else if (task.status === BuildStatus.EXCLUDED) {
+          css.push('text-black-6')
+        }
         else if (task.status === BuildStatus.COMPLETED) {
           css.push('text-green-7')
         }
