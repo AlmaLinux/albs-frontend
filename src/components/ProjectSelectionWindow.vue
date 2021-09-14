@@ -25,9 +25,10 @@
             />
             <q-select
                 v-model="git.git_ref"
-                :options="almalinuxGitRepoRefs"
+                :options="tagOptions.value"
                 label="Tags/branches"
                 use-input
+                @filter="GitRefFilter"
                 input-debounce="0"
             />
           </template>
@@ -55,8 +56,8 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
-import {Notify} from "quasar";
+import {defineComponent, ref} from 'vue'
+import {Notify} from "quasar"
 
 export default defineComponent({
   props: {
@@ -64,6 +65,7 @@ export default defineComponent({
   },
   data () {
     return {
+      tagOptions: [],
       projectType: 'alma_git',
       almaGitFilter: '',
       srpmUrl: null,
@@ -158,6 +160,13 @@ export default defineComponent({
     almaGitSelectFilter (value, update) {
       this.almaGitFilter = value
       update(() => {})
+    },
+    GitRefFilter (value, update) {
+      this.tagOptions = ref(this.almalinuxGitRepoRefs)
+      update(() => {
+          const needle = value.toLowerCase()
+          this.tagOptions.value = this.almalinuxGitRepoRefs.filter(v => v.toLowerCase().indexOf(needle) > -1)
+        })
     },
     onAlmalinuxRepoSelected (value) {
       this.git.url = value.value
