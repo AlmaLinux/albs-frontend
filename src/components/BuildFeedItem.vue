@@ -16,7 +16,7 @@
               />
             </th>
             <template v-for="platform in buildPlatforms">
-              <th v-for="arch in platform.arch_list" :key="arch" class="platform-name">
+              <th v-for="arch in platformArches[platform.name]" :key="arch" class="platform-name">
                 {{ platform.name }} {{ arch }}
               </th>
             </template>
@@ -66,6 +66,21 @@ export default defineComponent({
           platformsNames.add(task.platform.name)
           platforms.push(task.platform)
         }
+      }
+      return platforms
+    },
+    platformArches () {
+      let platforms = {}
+      for (const task of this.build.tasks) {
+        if (!platforms[task.platform.name]) {
+          platforms[task.platform.name] = new Set()
+        }
+        if (!platforms[task.platform.name].has(task.arch)) {
+          platforms[task.platform.name].add(task.arch)
+        }
+      }
+      for (let platform of Object.keys(platforms)) {
+        platforms[platform] = Array.from(platforms[platform]).sort()
       }
       return platforms
     },

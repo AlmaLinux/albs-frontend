@@ -260,7 +260,11 @@ export default defineComponent({
         if (item.name.includes('.src.')) {
           arch = 'src'
         }
-        item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}-br/${item.name}`
+        let debugSuffix = '-debug'
+        if (!item.name.match(/-debug(info|source)/)) {
+          debugSuffix = ''
+        }
+        item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}${debugSuffix}-br/Packages/${item.name[0]}/${item.name}`
         return item
       })
     }

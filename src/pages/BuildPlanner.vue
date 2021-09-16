@@ -25,6 +25,16 @@
           </template>
         </q-select>
 
+        <template v-for="platform in buildPlan.platforms" :key="platform.label">
+        <q-select v-model="platformArches[platform.label]"
+                  :options="platform.archList"
+                  multiple
+                  chips
+                  :label="`Build platform ${platform.label} selected architectures`"
+                  style="min-width: 250px; max-width: 300px"
+         />
+        </template>
+
         <q-input label="Linked builds" v-model="linked_builds_input" clearable
                  style="min-width: 250px; max-width: 300px;" autogrow hint="Enter builds' ids"
                  :rules="[linked_builds_input => linked_builds_input.length < 1 || 'Please don\'t forget to add entered builds\'s ids']">
@@ -46,9 +56,6 @@
             </q-item-section>
           </q-item>
         </q-list>
-
-        <!--<linked-build-selector v-model="buildPlan.linkedBuilds"-->
-        <!--                       label="Linked builds:" :labelWidth="4"/>-->
 
       </q-step>
 
@@ -84,18 +91,20 @@ import ProjectSelector from 'components/ProjectSelector.vue'
 export default defineComponent({
   name: 'BuildPlanner',
   data () {
+    let platformArches = {}
+    for (const platform of this.$store.state.platforms.platforms) {
+      platformArches[platform.name] = platform.arch_list
+    }
     return {
       buildPlan: {
         platforms: [],
         tasks: [],
         linked_builds: []
-
       },
+      platformArches: platformArches,
       currentStep: 'buildEnvironment',
       linked_builds_input: ''
     }
-  },
-  created () {
   },
   computed: {
     nextLabel () {
@@ -107,7 +116,7 @@ export default defineComponent({
     },
     buildPlatforms () {
       return this.$store.state.platforms.platforms.map(platform => {
-        return {label: platform.name, value: platform.name, description: platform.arch_list.join(', ')}
+        return {label: platform.name, value: platform.name, description: platform.arch_list.join(', '), archList: platform.arch_list}
       })
     }
   },
@@ -160,17 +169,19 @@ export default defineComponent({
       this.$refs.buildWizzard.previous()
     },
     createBuild () {
-      this.buildPlan.platforms = this.buildPlan.platforms.map(item => item.value)
+      let platforms = []
+      for (let platform of this.buildPlan.platforms) {
+        platforms.push({name: platform.value, arch_list: this.platformArches[platform.value]})
+      }
+      this.buildPlan.platforms = platforms
       Loading.show()
       this.$api.post('/builds/', this.buildPlan)
         .then(() => {
           Loading.hide()
-          console.log('done')
           this.$router.push('/')
         })
         .catch(() => {
           Loading.hide()
-          console.log('fail')
           this.$router.push('/')
         })
     }
