@@ -1,22 +1,19 @@
 const BuildStatus = {
   IDLE: 0,
-  EXCLUDED: 1,
-  STARTED: 2,
-  COMPLETED: 3,
-  FAILED: 4,
+  STARTED: 1,
+  COMPLETED: 2,
+  FAILED: 3,
   text: {
     0: 'idle',
-    1: 'excluded',
-    2: 'build started',
-    3: 'build done',
-    4: 'build failed'
+    1: 'build started',
+    2: 'build done',
+    3: 'build failed'
   },
   color: {
     0: 'faded',
     1: 'faded',
-    2: 'faded',
-    3: 'light-blue-9',
-    4: 'negative'
+    2: 'light-blue-9',
+    3: 'negative'
   }
 }
 
