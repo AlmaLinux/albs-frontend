@@ -2,6 +2,7 @@ import { store } from 'quasar/wrappers'
 import { createStore } from 'vuex'
 import { UsersModule } from './modules/users'
 import { PlatformsModule } from './modules/platforms'
+import { BuildsFeedModule } from './modules/builds'
 
 // import example from './module-example'
 
@@ -17,7 +18,8 @@ import { PlatformsModule } from './modules/platforms'
 export default store(createStore({
     modules: {
       users: UsersModule,
-      platforms: PlatformsModule
+      platforms: PlatformsModule,
+      buildsFeed: BuildsFeedModule
     },
 
     getters: {
