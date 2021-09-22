@@ -6,12 +6,13 @@
                style="min-height: 600px;">
       <q-step name="buildEnvironment"
               title="Build environment"
-              style="height: 25vw;">
+              style="height: 25vw;"
+              :error="buildPlan.platforms.length < 1" error-color="negative">
 
         <q-select v-model="buildPlan.platforms"
                   :options="buildPlatforms"
                   multiple
-                  chips
+                  use-chips
                   label="Build platform(s):"
                   style="min-width: 250px; max-width: 300px"
          >
@@ -59,8 +60,9 @@
 
       </q-step>
 
-      <q-step name="selectProjects"
-              title="Select projects">
+      <q-step name="selectProjects" :disable="buildPlan.platforms.length < 1"
+              title="Select projects" :error="buildPlan.tasks.length < 1"
+              error-color="negative">
         <ProjectSelector :buildItems="buildPlan.tasks"
                          @change="value => { buildPlan.tasks = value }"/>
       </q-step>
@@ -73,7 +75,7 @@
                  v-if="currentStep !== 'buildEnvironment'">
             Back
           </q-btn>
-          <q-btn @click="onNextStep"
+          <q-btn @click="onNextStep" :loading="loading"
                  icon-right="chevron_right" color="primary">
             {{ nextLabel }}
           </q-btn>
@@ -84,7 +86,7 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 import {Loading, Notify} from 'quasar'
 import ProjectSelector from 'components/ProjectSelector.vue'
 
@@ -103,7 +105,8 @@ export default defineComponent({
       },
       platformArches: platformArches,
       currentStep: 'buildEnvironment',
-      linked_builds_input: ''
+      linked_builds_input: '',
+      loading: false
     }
   },
   computed: {
@@ -169,20 +172,23 @@ export default defineComponent({
       this.$refs.buildWizzard.previous()
     },
     createBuild () {
+      this.loading = true
       let platforms = []
       for (let platform of this.buildPlan.platforms) {
         platforms.push({name: platform.value, arch_list: this.platformArches[platform.value]})
       }
       this.buildPlan.platforms = platforms
-      Loading.show()
       this.$api.post('/builds/', this.buildPlan)
-        .then(() => {
-          Loading.hide()
+        .then((response) => {
+          Notify.create({message: `Build ${response.data.id} created`, type: 'positive',
+            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+          this.loading = false
           this.$router.push('/')
         })
-        .catch(() => {
-          Loading.hide()
-          this.$router.push('/')
+        .catch((error) => {
+          Notify.create({message: 'Unable to create a build', type: 'negative',
+            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+          this.loading = false
         })
     }
   },

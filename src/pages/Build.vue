@@ -110,15 +110,69 @@
           </q-card>
         </q-expansion-item>
       </q-card-section>
+      <q-card-actions align="right">
+        <q-btn-dropdown label="Other Actions" color="primary" dropdown-icon="change_history"
+                        style="width: 200px; height: 40px;">
+          <q-list>
+            <q-item clickable v-close-popup @click="add_to_distro = true" v-if="allowDistroModify">
+              <q-item-section>
+                <q-item-label>Add to a distribution</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="remove_from_distro = true" v-if="allowDistroModify">
+              <q-item-section>
+                <q-item-label>Remove from a distribution</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+      </q-card-actions>
 
     </q-card>
+    <q-dialog v-model="add_to_distro">
+      <q-card style="width: 400px;">
+        <q-card-section>
+          <div class="text-h6">Add to a distribution</div>
+        </q-card-section>
+        <q-card-section>
+          <q-select v-model="current_distro" label="Choose distribution to add"
+                    :options="existingDistros"/>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat text-color="primary" label="Add" style="width: 150px"
+                 :loading="loading"
+                 @click="AddToDistribution">
+          </q-btn>
+          <q-btn :loading="loading" flat text-color="negative" label="Cancel"
+                 v-close-popup @click="current_distro = []"/>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+    <q-dialog v-model="remove_from_distro">
+      <q-card style="width: 400px;">
+        <q-card-section>
+          <div class="text-h6">Remove from a distribution</div>
+        </q-card-section>
+        <q-card-section>
+          <q-select v-model="current_distro" label="Choose distribution to add"
+                    :options="existingDistros"/>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat text-color="primary" label="Remove" style="width: 150px"
+                 :loading="loading"
+                 @click="RemoveFromDistribution"/>
+          <q-btn flat text-color="negative" label="Cancel" :loading="loading"
+                 v-close-popup @click="current_distro = []"/>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script>
 
-import { defineComponent } from 'vue'
-import { exportFile , Loading} from 'quasar'
+import { defineComponent, ref } from 'vue'
+import {exportFile, Loading, Notify} from 'quasar'
 import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import { BuildStatus } from '../constants.js'
@@ -133,7 +187,11 @@ export default defineComponent({
       build: null,
       reload: true,
       refreshTimer: null,
-      linked_builds: null
+      linked_builds: null,
+      add_to_distro: false,
+      remove_from_distro: false,
+      loading: false,
+      current_distro: []
     }
   },
   watch: {
@@ -142,6 +200,20 @@ export default defineComponent({
     }
   },
   computed: {
+    allowDistroModify () {
+      let allow_modify = true
+      for (let i=0; i < this.build.tasks.length; i++) {
+        if (this.build.tasks[i].status < 2) {
+          allow_modify = false
+        }
+      }
+      return allow_modify
+    },
+    existingDistros () {
+      return this.$store.state.distributions.distributions.map(distribution => {
+        return {label: distribution.name, value: distribution.name}
+      })
+    },
     buildTargets () {
       let targetsSet = new Set()
       let targets = []
@@ -208,6 +280,54 @@ export default defineComponent({
     }
   },
   methods: {
+    AddToDistribution () {
+      this.loading = true
+      this.$api.post(`/distro/add/${this.buildId}/${this.current_distro.label}/`)
+        .then(() => {
+          this.loading = false
+          Notify.create({
+            message: `Packages of build ${this.buildId} has been added to ${this.current_distro.label} distribution`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+          this.current_distro = []
+        })
+        .catch(error => {
+          this.loading = false
+          Notify.create({
+            message: error.response.data.detail,
+            type: 'negative',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
+    },
+    RemoveFromDistribution () {
+      this.loading = true
+      this.$api.post(`/distro/remove/${this.buildId}/${this.current_distro.label}/`)
+        .then(() => {
+          this.loading = false
+          Notify.create({
+            message: `Packages of build ${this.buildId} has been removed to ${this.current_distro.label} distribution`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+          this.current_distro = []
+        })
+        .catch(error => {
+          this.loading = false
+          Notify.create({
+            message: error.response.data.detail, type: 'negative',
+            actions: [
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]})
+        })
+    },
     loadBuildInfo (buildId) {
       this.reload = false
       this.linked_builds = null
