@@ -67,7 +67,7 @@ export default defineComponent({
     createNewDistro () {
       this.loading = true
       this.newDistro.platforms = this.newDistro.platforms.map(item => item.value)
-      this.$api.post('/distro/new/', this.newDistro)
+      this.$api.post('/distro/', this.newDistro)
         .then(() => {
           this.loading = false
           Notify.create({

@@ -115,11 +115,17 @@
                         style="width: 200px; height: 40px;">
           <q-list>
             <q-item clickable v-close-popup @click="add_to_distro = true" v-if="allowDistroModify">
+              <q-item-section avatar>
+                <q-avatar icon="playlist_add_check"/>
+              </q-item-section>
               <q-item-section>
                 <q-item-label>Add to a distribution</q-item-label>
               </q-item-section>
             </q-item>
             <q-item clickable v-close-popup @click="remove_from_distro = true" v-if="allowDistroModify">
+              <q-item-section avatar>
+                <q-avatar icon="delete_sweep"/>
+              </q-item-section>
               <q-item-section>
                 <q-item-label>Remove from a distribution</q-item-label>
               </q-item-section>
