@@ -3,6 +3,7 @@ import { createStore } from 'vuex'
 import { UsersModule } from './modules/users'
 import { PlatformsModule } from './modules/platforms'
 import { BuildsFeedModule } from './modules/builds'
+import { DistributionsModule } from './modules/distributions'
 
 // import example from './module-example'
 
@@ -19,7 +20,8 @@ export default store(createStore({
     modules: {
       users: UsersModule,
       platforms: PlatformsModule,
-      buildsFeed: BuildsFeedModule
+      buildsFeed: BuildsFeedModule,
+      distributions: DistributionsModule
     },
 
     getters: {

@@ -6,7 +6,13 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/BuildFeed.vue') },
-      { path: 'build/:buildId', component: () => import('pages/Build.vue'), props: true },
+      { path: 'build/:buildId', component: () => import('pages/Build.vue'), props: true,
+        beforeEnter (to, from, next) {
+          store.dispatch('distributions/loadDistributionsList')
+            .then(next())
+            .catch(next())
+        }
+      },
       {
         path: 'build/create',
         component: () => import('pages/BuildPlanner.vue'),
@@ -16,7 +22,19 @@ const routes = [
             .catch(next())
         }
       },
-      { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildLogs.vue'), props: true}
+      { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildLogs.vue'), props: true},
+      {
+        path: '/distro/new/',
+        component: () => import('pages/CreateDistro'),
+        beforeEnter (to, from, next) {
+          store.dispatch('platforms/loadPlatformList')
+            .then(next())
+            .catch(next())
+          store.dispatch('distributions/loadDistributionsList')
+            .then(next())
+            .catch(next())
+        }
+      }
     ]
   },
   // TODO: make this children

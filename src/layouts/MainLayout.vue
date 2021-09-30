@@ -56,6 +56,11 @@ const linksList = [
     title: 'New build',
     icon: 'create',
     link: '/build/create'
+  },
+  {
+    title: 'New distribution',
+    icon: 'earbuds',
+    link: '/distro/new'
   }
 ];
 
