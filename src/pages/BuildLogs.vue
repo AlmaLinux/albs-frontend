@@ -81,7 +81,7 @@ export default defineComponent({
   },
   computed: {
     buildSystemLogs () {
-      return this.filterLogs(/albs\.log$/)
+      return this.filterLogs(/albs\.log$|albs\.\d+\.log$/)
     },
     pbuilderLogs () {
       return this.filterLogs(/(apt|build)-[\w.]+\.(cfg|conf|log)$/)

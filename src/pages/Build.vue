@@ -143,6 +143,14 @@
         <q-btn-dropdown label="Other Actions" color="primary" dropdown-icon="change_history"
                         style="width: 200px; height: 40px;">
           <q-list>
+            <q-item clickable v-close-popup @click="onRebuildFailedItems" v-if="failedItems">
+              <q-item-section avatar>
+                <q-avatar icon="repeat"/>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Rebuild failed build items</q-item-label>
+              </q-item-section>
+            </q-item>
             <q-item clickable v-close-popup @click="add_to_distro = true" v-if="allowDistroModify">
               <q-item-section avatar>
                 <q-avatar icon="playlist_add_check"/>
@@ -249,6 +257,15 @@ export default defineComponent({
       return this.$store.state.distributions.distributions.map(distribution => {
         return {label: distribution.name, value: distribution.name}
       })
+    },
+    failedItems () {
+      let rebuilt = true
+      for (let task of this.build.tasks) {
+        if (task.status !== BuildStatus.FAILED) {
+          rebuilt = false
+        }
+      }
+      return rebuilt
     },
     buildTargets () {
       let targetsSet = new Set()
@@ -362,6 +379,32 @@ export default defineComponent({
             actions: [
                 { label: 'Dismiss', color: 'white', handler: () => {} }
               ]})
+        })
+    },
+    onRebuildFailedItems () {
+      Loading.show()
+      this.$api.patch(`/builds/${this.buildId}/`, {})
+        .then(() => {
+          Loading.hide()
+          Notify.create({
+            message: `Failed build items scheduled for rebuilding`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+          this.loadBuildInfo(this.buildId)
+        })
+        .catch(error => {
+          Loading.hide()
+          Notify.create({
+            message: error.response.data.detail,
+            type: 'negative',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+          this.reload = true
         })
     },
     loadBuildInfo (buildId) {
