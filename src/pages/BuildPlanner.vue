@@ -6,7 +6,7 @@
                style="min-height: 600px;">
       <q-step name="buildEnvironment"
               title="Build environment"
-              style="height: 25vw;"
+              style="height: auto;"
               :error="buildPlan.platforms.length < 1" error-color="negative">
 
         <q-select v-model="buildPlan.platforms"
@@ -58,6 +58,37 @@
           </q-item>
         </q-list>
 
+        <q-field borderless style="margin-left: -15px; padding-top: 10px;">
+          <q-btn label="Mock Options" flat icon-right="settings" color="grey-7"
+                 @click="onAddMockOptions"></q-btn>
+          <MockOptionsSelection ref="addMockOptions"
+                                :buildMockOpts="buildPlan.mock_options"
+                                @change="value => { buildPlan.mock_options = value }"/>
+        </q-field>
+        <q-expansion-item label="Added mock options" v-if="Object.keys(buildPlan.mock_options).length">
+          <q-list v-if="Object.keys(buildPlan.mock_options).length" dense highlight no-border>
+            <q-item-section v-if="buildPlan.mock_options.with" style="font-size: 12pt; letter-spacing: 1pt;">
+              --with '{{ buildPlan.mock_options.with.join(' ') }}'
+            </q-item-section>
+            <q-item-section v-if="buildPlan.mock_options.without" style="font-size: 12pt; letter-spacing: 1pt;">
+              --without '{{ buildPlan.mock_options.without.join(' ') }}'
+            </q-item-section>
+            <q-item-section v-if="buildPlan.mock_options.target_arch" style="font-size: 12pt; letter-spacing: 1pt;">
+              --target '{{ buildPlan.mock_options.target_arch }}'
+            </q-item-section>
+            <q-item-section v-if="buildPlan.mock_options.yum_exclude" style="font-size: 12pt; letter-spacing: 1pt;">
+              -x '{{ buildPlan.mock_options.yum_exclude.join(' ') }}'
+            </q-item-section>
+            <q-item-section v-if="buildPlan.mock_options.definitions" style="font-size: 12pt; letter-spacing: 1pt;">
+              <q-item-section v-for="name in Object.keys(buildPlan.mock_options.definitions)" :key="name">
+                --define '{{ name }} {{ buildPlan.mock_options.definitions[name] }}'
+              </q-item-section>
+            </q-item-section>
+            <q-item-section v-if="buildPlan.mock_options.module_enable" style="font-size: 12pt; letter-spacing: 1pt;">
+              enable modules: {{ mock_options.module_enable.join(' ') }}
+            </q-item-section>
+          </q-list>
+        </q-expansion-item>
       </q-step>
 
       <q-step name="selectProjects" :disable="buildPlan.platforms.length < 1"
@@ -89,6 +120,7 @@
 import { defineComponent } from 'vue'
 import {Loading, Notify} from 'quasar'
 import ProjectSelector from 'components/ProjectSelector.vue'
+import MockOptionsSelection from 'components/MockOptionsSelection.vue'
 
 export default defineComponent({
   name: 'BuildPlanner',
@@ -101,12 +133,14 @@ export default defineComponent({
       buildPlan: {
         platforms: [],
         tasks: [],
-        linked_builds: []
+        linked_builds: [],
+        mock_options: {}
       },
       platformArches: platformArches,
       currentStep: 'buildEnvironment',
       linked_builds_input: '',
-      loading: false
+      loading: false,
+      mock_options: false
     }
   },
   computed: {
@@ -124,6 +158,9 @@ export default defineComponent({
     }
   },
   methods: {
+    onAddMockOptions () {
+      this.$refs.addMockOptions.open()
+    },
     addLinkedBuilds () {
       let inputs = this.linked_builds_input.split(' ')
         inputs.forEach(e => this.checkLinkedBuilds(e))
@@ -193,7 +230,8 @@ export default defineComponent({
     }
   },
   components: {
-    ProjectSelector
+    ProjectSelector,
+    MockOptionsSelection
   }
 })
 </script>

@@ -110,6 +110,35 @@
           </q-card>
         </q-expansion-item>
       </q-card-section>
+      <q-card-section>
+        <q-expansion-item label="Mock Options" expand-separator
+                          icon="settings" v-if="mock_options">
+          <q-card>
+            <q-card-section>
+              <q-item-section v-if="mock_options.with" style="font-size: 12pt; letter-spacing: 1pt;">
+                --with '{{ mock_options.with.join(' ') }}'
+              </q-item-section>
+              <q-item-section v-if="mock_options.without" style="font-size: 12pt; letter-spacing: 1pt;">
+                --without '{{ mock_options.without.join(' ') }}'
+              </q-item-section>
+              <q-item-section v-if="mock_options.target_arch" style="font-size: 12pt; letter-spacing: 1pt;">
+                --target '{{ mock_options.target_arch }}'
+              </q-item-section>
+              <q-item-section v-if="mock_options.yum_exclude" style="font-size: 12pt; letter-spacing: 1pt;">
+                -x '{{ mock_options.yum_exclude.join(' ') }}'
+              </q-item-section>
+              <q-item-section v-if="mock_options.definitions" style="font-size: 12pt; letter-spacing: 1pt;">
+                <q-item-section v-for="name in Object.keys(mock_options.definitions)" :key="name">
+                  --define '{{ name }} {{ mock_options.definitions[name] }}'
+                </q-item-section>
+              </q-item-section>
+              <q-item-section v-if="mock_options.module_enable" style="font-size: 12pt; letter-spacing: 1pt;">
+                enabled modules : {{ mock_options.module_enable.join(' ') }}
+              </q-item-section>
+            </q-card-section>
+          </q-card>
+        </q-expansion-item>
+      </q-card-section>
       <q-card-actions align="right">
         <q-btn-dropdown label="Other Actions" color="primary" dropdown-icon="change_history"
                         style="width: 200px; height: 40px;">
@@ -197,7 +226,8 @@ export default defineComponent({
       add_to_distro: false,
       remove_from_distro: false,
       loading: false,
-      current_distro: []
+      current_distro: [],
+      mock_options: null
     }
   },
   watch: {
@@ -337,11 +367,15 @@ export default defineComponent({
     loadBuildInfo (buildId) {
       this.reload = false
       this.linked_builds = null
+      this.mock_options = null
       Loading.show()
       this.$api.get(`/builds/${buildId}/`)
         .then(response => {
           Loading.hide()
           this.build = response.data
+          if (this.build.mock_options) {
+            this.mock_options = this.build.mock_options
+          }
           if (this.build.linked_builds.length) {
             this.linked_builds = this.build.linked_builds
           }
