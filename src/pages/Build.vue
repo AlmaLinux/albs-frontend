@@ -128,8 +128,8 @@
                 -x '{{ mock_options.yum_exclude.join(' ') }}'
               </q-item-section>
               <q-item-section v-if="mock_options.definitions" style="font-size: 12pt; letter-spacing: 1pt;">
-                <q-item-section v-for="name in mock_options.definitions" :key="name">
-                  --define '{{ Object.keys(name)[0] }} {{ Object.values(name)[0]}}'
+                <q-item-section v-for="name in Object.keys(mock_options.definitions)" :key="name">
+                  --define '{{ name }} {{ mock_options.definitions[name] }}'
                 </q-item-section>
               </q-item-section>
               <q-item-section v-if="mock_options.module_enable" style="font-size: 12pt; letter-spacing: 1pt;">

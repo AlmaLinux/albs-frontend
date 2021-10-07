@@ -164,9 +164,9 @@ export default defineComponent({
         }
       }
       if (this.mock_options.definitions.length) {
-        value.definitions = []
+        value.definitions = {}
         for (let macro of this.mock_options.definitions) {
-          value.definitions.push({[macro.name]: macro.value})
+          value.definitions[macro.name] = macro.value
         }
       }
       if (this.mock_options.module_enable.length) {
