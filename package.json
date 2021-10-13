@@ -15,7 +15,7 @@
   "dependencies": {
     "@quasar/cli": "^1.2.1",
     "@quasar/extras": "^1.11.1",
-    "axios": "^0.21.2",
+    "axios": "^0.23.0",
     "core-js": "^3.18.1",
     "quasar": "^2.1.0",
     "vuex": "^4.0.1"
