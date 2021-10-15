@@ -259,10 +259,14 @@ export default defineComponent({
       })
     },
     failedItems () {
-      let rebuilt = true
+      let rebuilt = false
       for (let task of this.build.tasks) {
-        if (task.status !== BuildStatus.FAILED) {
+        if (task.status < BuildStatus.COMPLETED) {
           rebuilt = false
+          break
+        }
+        else if (task.status === BuildStatus.FAILED) {
+          rebuilt = true
         }
       }
       return rebuilt
@@ -383,7 +387,7 @@ export default defineComponent({
     },
     onRebuildFailedItems () {
       Loading.show()
-      this.$api.patch(`/builds/${this.buildId}/`, {})
+      this.$api.patch(`/builds/${this.buildId}/restart-failed`, {})
         .then(() => {
           Loading.hide()
           Notify.create({
