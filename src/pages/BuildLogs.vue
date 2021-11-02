@@ -4,7 +4,7 @@
       <q-item-section v-if="buildSystemLogs.length">
         build system logs:
       </q-item-section>
-      <build-log-link v-for="artifact in buildSystemLogs" :key="artifact.name"
+      <log-link v-for="artifact in buildSystemLogs" :key="artifact.name"
                       :artifact="artifact"
                       :selected="artifact.name===selectedLog"
                       @view="onView(artifact)"
@@ -13,7 +13,7 @@
       <q-item-section v-if="mockBinaryLogs.length">
         mock RPM logs:
       </q-item-section>
-      <build-log-link v-for="artifact in mockBinaryLogs" :key="artifact.name"
+      <log-link v-for="artifact in mockBinaryLogs" :key="artifact.name"
                       :artifact="artifact"
                       :selected="artifact.name===selectedLog"
                       @view="onView(artifact)"
@@ -22,7 +22,7 @@
       <q-item-section v-if="mockSrpmLogs.length">
         mock src-RPM logs:
       </q-item-section>
-      <build-log-link v-for="artifact in mockSrpmLogs" :key="artifact.name"
+      <log-link v-for="artifact in mockSrpmLogs" :key="artifact.name"
                       :artifact="artifact"
                       :selected="artifact.name===selectedLog"
                       @view="onView(artifact)"
@@ -31,7 +31,7 @@
       <q-item-section v-if="buildArtifacts.length">
         Build artifacts:
       </q-item-section>
-      <build-log-link v-for="artifact in buildArtifacts" :key="artifact.name"
+      <log-link v-for="artifact in buildArtifacts" :key="artifact.name"
                       :artifact="artifact"
                       :selected="artifact.name===selectedLog"
                       @view="onView(artifact)"
@@ -40,7 +40,7 @@
       <q-item-section v-if="pbuilderLogs.length">
         pbuilder logs:
       </q-item-section>
-      <build-log-link v-for="artifact in pbuilderLogs" :key="artifact.name"
+      <log-link v-for="artifact in pbuilderLogs" :key="artifact.name"
                       :artifact="artifact"
                       :selected="artifact.name===selectedLog"
                       @view="onView(artifact)"
@@ -62,7 +62,7 @@
 import axios from 'axios'
 import { exportFile } from 'quasar'
 import { defineComponent } from 'vue'
-import BuildLogLink from 'components/BuildLogLink.vue'
+import LogLink from 'src/components/LogLink.vue'
 
 export default defineComponent({
   data () {
@@ -131,7 +131,7 @@ export default defineComponent({
         })
     }
   },
-  components: { BuildLogLink }
+  components: { LogLink }
 })
 </script>
 

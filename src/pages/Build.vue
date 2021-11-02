@@ -63,7 +63,9 @@
                 <tr>
                   <th><td/></th>
                   <th>Status</th>
+                  <th>Test status</th>
                   <th>Packages</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -78,6 +80,14 @@
                       {{ getTextStatus(task) }}
                     </td>
                     <td>
+                      <tests-status-circle
+                        v-show="task.test_tasks"
+                        @click="openTestTaskLogs(buildId, task.id, test_task.revision)"
+                        v-for="test_task in task.test_tasks"
+                        :status="test_task.status"
+                        :key="test_task.id"/>
+                    </td>
+                    <td>
                       <div
                         v-for="pkg in getTaskPackages(task)"
                         :key="pkg.name"
@@ -86,6 +96,15 @@
                           {{ pkg.name }}
                         </a>
                       </div>
+                    </td>
+                    <td>
+                      <q-btn
+                        round
+                        color="primary"
+                        icon="restart_alt"
+                        size="sm"
+                        title="Restart build task tests"
+                        @click="RestartTestTask(task.id)"/>
                     </td>
                   </template>
                 </tr>
@@ -167,6 +186,14 @@
                 <q-item-label>Remove from a distribution</q-item-label>
               </q-item-section>
             </q-item>
+            <q-item clickable v-close-popup @click="RestartBuildTests()">
+              <q-item-section avatar>
+                <q-avatar icon="restart_alt"/>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Restart build tests</q-item-label>
+              </q-item-section>
+            </q-item>
           </q-list>
         </q-btn-dropdown>
       </q-card-actions>
@@ -218,6 +245,7 @@ import { defineComponent, ref } from 'vue'
 import {exportFile, Loading, Notify} from 'quasar'
 import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
+import TestsStatusCircle from 'components/TestsStatusCircle.vue'
 import { BuildStatus } from '../constants.js'
 
 export default defineComponent({
@@ -411,6 +439,30 @@ export default defineComponent({
           this.reload = true
         })
     },
+    RestartBuildTests () {
+      this.$api.put(`/tests/build/${this.buildId}/restart`)
+        .then(() =>{
+          Notify.create({
+            message: `Build tests for build ${this.buildId} has been restarted`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
+    },
+    RestartTestTask (taskId) {
+      this.$api.put(`/tests/build_task/${taskId}/restart`)
+        .then(() =>{
+          Notify.create({
+            message: `Build tests for build task ${taskId} has been restarted`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
+    },
     loadBuildInfo (buildId) {
       this.reload = false
       this.linked_builds = null
@@ -420,6 +472,9 @@ export default defineComponent({
         .then(response => {
           Loading.hide()
           this.build = response.data
+          this.build.tasks.forEach(task => {
+            this.loadTestsInfo(task)
+          });
           if (this.build.mock_options) {
             this.mock_options = this.build.mock_options
           }
@@ -431,6 +486,21 @@ export default defineComponent({
         .catch(error => {
           Loading.hide()
           this.reload = true
+        })
+    },
+    loadTestsInfo (task) {
+      this.$api.get(`tests/${task.id}/latest`)
+        .then(response => {
+          task["test_tasks"] = response.data
+        })
+        .catch(error =>{
+          Notify.create({
+            message: `Failed to load test_task for task ${taskId}`,
+            type: 'negative',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
         })
     },
     getTextStatus (task) {
@@ -461,6 +531,9 @@ export default defineComponent({
     openTaskLogs (task) {
       this.$router.push(`/build/${this.buildId}/logs/${task.id}`)
     },
+    openTestTaskLogs (buildId, taskId, revision) {
+      this.$router.push(`/build/${buildId}/test_logs/${taskId}/${revision}`)
+    },
     getTaskPackages (task) {
       return task.artifacts.filter(item => item.type === 'rpm').map(item => {
         let arch = task.arch
@@ -478,7 +551,8 @@ export default defineComponent({
   },
   components: {
     BuildRef,
-    BuildStatusCircle
+    BuildStatusCircle,
+    TestsStatusCircle
   }
 })
 </script>

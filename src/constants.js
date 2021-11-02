@@ -20,4 +20,23 @@ const BuildStatus = {
   }
 }
 
-export { BuildStatus }
+const TestStatus = {
+  CREATED: 1,
+  STARTED: 2,
+  COMPLETED: 3,
+  FAILED: 4,
+  text: {
+    1: 'tests created',
+    2: 'tests started',
+    2: 'tests completed',
+    3: 'tests failed'
+  },
+  color: {
+    1: 'faded',
+    2: 'faded',
+    3: 'light-blue-9',
+    4: 'negative'
+  }
+}
+
+export { BuildStatus, TestStatus }

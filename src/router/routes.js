@@ -23,6 +23,7 @@ const routes = [
         }
       },
       { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildLogs.vue'), props: true},
+      { path: '/build/:buildId/test_logs/:taskId/:revision', component: () => import('pages/TestLogs.vue'), props: true},
       {
         path: '/distro/new/',
         component: () => import('pages/CreateDistro'),
