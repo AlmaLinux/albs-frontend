@@ -28,8 +28,8 @@ const TestStatus = {
   text: {
     1: 'tests created',
     2: 'tests started',
-    2: 'tests completed',
-    3: 'tests failed'
+    3: 'tests completed',
+    4: 'tests failed'
   },
   color: {
     1: 'faded',
