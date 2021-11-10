@@ -185,6 +185,14 @@
                 <q-item-label>Restart build tests</q-item-label>
               </q-item-section>
             </q-item>
+            <q-item clickable v-close-popup @click="delete_build = true" v-if="allowDeleteBuild">
+              <q-item-section avatar>
+                <q-avatar icon="delete"/>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Delete build</q-item-label>
+              </q-item-section>
+            </q-item>
           </q-list>
         </q-btn-dropdown>
       </q-card-actions>
@@ -227,6 +235,22 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="delete_build">
+      <q-card style="width: 400px;">
+        <q-card-section>
+          <div class="text-h6">Warning</div>
+        </q-card-section>
+        <q-card-section>
+          You are going to delete {{build.id}} build, are you sure ?
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat text-color="primary" label="Ok" style="width: 150px"
+                 :loading="loading"
+                 @click="deleteBuild"/>
+          <q-btn flat text-color="negative" label="Cancel" v-close-popup/>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -252,6 +276,7 @@ export default defineComponent({
       linked_builds: null,
       add_to_distro: false,
       remove_from_distro: false,
+      delete_build: false,
       loading: false,
       current_distro: [],
       mock_options: null
@@ -289,6 +314,16 @@ export default defineComponent({
         }
       }
       return rebuilt
+    },
+    allowDeleteBuild () {
+      let allow_delete = true
+      for (let task of this.build.tasks) {
+        if (task.status < BuildStatus.COMPLETED) {
+          allow_delete = false
+          break
+        }
+      }
+      return allow_delete
     },
     buildTargets () {
       let targetsSet = new Set()
@@ -402,6 +437,31 @@ export default defineComponent({
             actions: [
                 { label: 'Dismiss', color: 'white', handler: () => {} }
               ]})
+        })
+    },
+    deleteBuild () {
+      this.loading = true
+      this.$api.delete(`/builds/${this.buildId}/remove`)
+        .then(() => {
+          this.loading = false
+          Notify.create({
+            message: `Build ${this.buildId} has been deleted`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+          this.$router.push('/')
+        })
+        .catch(error => {
+          this.loading = false
+          Notify.create({
+            message: error.response.data.detail,
+            type: 'negative',
+            actions: [
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
         })
     },
     onRebuildFailedItems () {
