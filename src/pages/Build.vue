@@ -32,7 +32,7 @@
               <thead>
                 <tr>
                   <th><td/></th>
-                  <th v-for="targetName of Object.keys(buildTasks)" :key="targetName" class="platform-name">
+                  <th v-for="targetName of Object.keys(buildTasks)" :key="targetName" class="platform-name text-center">
                     {{ targetName }}
                   </th>
                 </tr>
@@ -43,8 +43,8 @@
                     <buildRef :buildRef="tasks[0].ref"/>
                   </td>
                   <template v-for="targetName of Object.keys(buildTasks)" :key="targetName">
-                    <td v-for="task in buildTasks[targetName][tasks[0].index]" :key=task.id>
-                      <BuildStatusCircle :status="task.status" @click="openTaskLogs(task)"/>
+                    <td class="text-center" v-for="task in buildTasks[targetName][tasks[0].index]" :key=task.id>
+                      <build-status-circle :status="task.status" @click="openTaskLogs(task)"/>
                     </td>
                   </template>
                 </tr>
@@ -219,6 +219,7 @@ import {exportFile, Loading, Notify} from 'quasar'
 import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import { BuildStatus } from '../constants.js'
+import { TestStatus } from '../constants.js'
 
 export default defineComponent({
   props: {
@@ -420,6 +421,11 @@ export default defineComponent({
         .then(response => {
           Loading.hide()
           this.build = response.data
+          this.build.tasks.forEach(task => {
+            if (task.status === BuildStatus.COMPLETED) {
+              this.loadTestsInfo(task)
+            }
+          })
           if (this.build.mock_options) {
             this.mock_options = this.build.mock_options
           }
@@ -431,6 +437,44 @@ export default defineComponent({
         .catch(error => {
           Loading.hide()
           this.reload = true
+        })
+    },
+    loadTestsInfo (task) {
+      this.$api.get(`tests/${task.id}/latest`)
+        .then(response => {
+          task["test_tasks"] = response.data
+          let count_failed = 0
+          let tests_failed = false
+          task.test_tasks.forEach(test => {
+            switch (test.status) {
+              case TestStatus.STARTED:
+                task.status = BuildStatus.TEST_STARTED
+                break;
+              case TestStatus.FAILED:
+                count_failed += 1
+                tests_failed = true
+                break;
+              case TestStatus.COMPLETED:
+                task.status = BuildStatus.TEST_COMPLETED
+                break;
+            }
+          })
+          if (tests_failed) {
+             if (count_failed === task.test_tasks.length) {
+              task.status = BuildStatus.ALL_TESTS_FAILED
+             } else {
+              task.status = BuildStatus.TEST_FAILED
+             }
+          }
+        })
+        .catch(error =>{
+          Notify.create({
+            message: `Failed to load test_task for task ${task.id}`,
+            type: 'negative',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
         })
     },
     getTextStatus (task) {

@@ -106,21 +106,32 @@ export default defineComponent({
   methods: {
     getTaskCSS (task) {
         let css = []
-        if (task.status === BuildStatus.FAILED) {
-          css.push('text-negative', 'bg-red-1')
-        }
-        else if (task.status === BuildStatus.IDLE) {
-          css.push('text-grey-6')
-        }
-        else if (task.status === BuildStatus.STARTED) {
-          css.push('text-black-6')
-        }
-        else if (task.status === BuildStatus.EXCLUDED) {
-          css.push('text-black-6')
-        }
-        else if (task.status === BuildStatus.COMPLETED) {
-          css.push('text-green-7')
-        }
+        switch (task.status) {
+          case BuildStatus.FAILED:
+            css.push('text-negative', 'bg-red-1')
+            break;
+          case BuildStatus.IDLE:
+            css.push('text-grey-6')
+            break;
+          case BuildStatus.STARTED:
+            css.push('text-black-6')
+            break;
+          case BuildStatus.EXCLUDED:
+            css.push('text-black-6')
+            break;
+          case BuildStatus.COMPLETED:
+            css.push('text-green-7')
+            break;
+          case BuildStatus.TEST_FAILED:
+            css.push('text-negative')
+            break;
+          case BuildStatus.ALL_TESTS_FAILED:
+            css.push('text-negative')
+            break;
+          case BuildStatus.TEST_COMPLETED:
+            css.push('text-green-7')
+            break;
+        }        
         return css
     },
     getTaskTargets (task) {

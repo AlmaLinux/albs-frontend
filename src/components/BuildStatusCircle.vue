@@ -1,6 +1,6 @@
 <template>
   <q-icon :name="statusIcon" :color="statusColor" :class="statusClass"
-          @click="onClick">
+          @click="onClick" size="23px">
     <q-tooltip anchor="bottom middle" self="top middle">
       {{ statusText }}
     </q-tooltip>
@@ -32,7 +32,8 @@ export default defineComponent({
     },
     statusClass () {
       let cls = 'cursor-pointer status-circle'
-      if (this.status === BuildStatus.STARTED) {
+      if (this.status === BuildStatus.STARTED ||
+          this.status === BuildStatus.TEST_STARTED) {
         cls = `${cls} status-circle-blink`
       }
       return cls
