@@ -544,8 +544,18 @@ export default defineComponent({
           exportFile(artifact.name, response.data.content)
         })
     },
+    getProjectName(task){
+      return task.ref.url.split('/').pop().split('.').shift()
+    },
     openTaskLogs (task) {
-      this.$router.push(`/build/${this.buildId}/logs/${task.id}`)
+      this.$router.push({ path:`/build/${this.buildId}/logs/${task.id}`,
+                          query: { 
+                                  project_name: this.getProjectName(task),
+                                  arch: task.arch
+                                  }})
+    },
+    openTestTaskLogs (buildId, taskId, revision) {
+      this.$router.push(`/build/${buildId}/test_logs/${taskId}/${revision}`)
     },
     getTaskPackages (task) {
       return task.artifacts.filter(item => item.type === 'rpm').map(item => {
