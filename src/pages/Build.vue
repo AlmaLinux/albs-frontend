@@ -241,7 +241,7 @@
           <div class="text-h6">Warning</div>
         </q-card-section>
         <q-card-section>
-          You are going to delete {{build.id}} build, are you sure ?
+          You are going to delete build {{build.id}}, are you sure ?
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat text-color="primary" label="Ok" style="width: 150px"
