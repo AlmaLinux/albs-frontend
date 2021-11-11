@@ -64,6 +64,7 @@
                   <th><td/></th>
                   <th>Status</th>
                   <th>Packages</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,6 +87,15 @@
                           {{ pkg.name }}
                         </a>
                       </div>
+                    </td>
+                    <td>
+                      <q-btn
+                        round
+                        color="primary"
+                        icon="restart_alt"
+                        size="sm"
+                        title="Restart build task tests"
+                        @click="RestartTestTask(task.id)"/>
                     </td>
                   </template>
                 </tr>
@@ -165,6 +175,14 @@
               </q-item-section>
               <q-item-section>
                 <q-item-label>Remove from a distribution</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="RestartBuildTests()">
+              <q-item-section avatar>
+                <q-avatar icon="restart_alt"/>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Restart build tests</q-item-label>
               </q-item-section>
             </q-item>
           </q-list>
@@ -410,6 +428,30 @@ export default defineComponent({
             ]
           })
           this.reload = true
+        })
+    },
+    RestartBuildTests () {
+      this.$api.put(`/tests/build/${this.buildId}/restart`)
+        .then(() =>{
+          Notify.create({
+            message: `Build tests for build ${this.buildId} has been restarted`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
+    },
+    RestartTestTask (taskId) {
+      this.$api.put(`/tests/build_task/${taskId}/restart`)
+        .then(() =>{
+          Notify.create({
+            message: `Build tests for build task ${taskId} has been restarted`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
         })
     },
     loadBuildInfo (buildId) {
