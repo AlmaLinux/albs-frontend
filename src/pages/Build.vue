@@ -32,7 +32,7 @@
               <thead>
                 <tr>
                   <th><td/></th>
-                  <th v-for="targetName of Object.keys(buildTasks)" :key="targetName" class="platform-name">
+                  <th v-for="targetName of Object.keys(buildTasks)" :key="targetName" class="platform-name text-center">
                     {{ targetName }}
                   </th>
                 </tr>
@@ -43,8 +43,8 @@
                     <buildRef :buildRef="tasks[0].ref"/>
                   </td>
                   <template v-for="targetName of Object.keys(buildTasks)" :key="targetName">
-                    <td v-for="task in buildTasks[targetName][tasks[0].index]" :key=task.id>
-                      <BuildStatusCircle :status="task.status" @click="openTaskLogs(task)"/>
+                    <td class="text-center" v-for="task in buildTasks[targetName][tasks[0].index]" :key=task.id>
+                      <build-status-circle :status="task.status" @click="openTaskLogs(task)"/>
                     </td>
                   </template>
                 </tr>
@@ -64,6 +64,7 @@
                   <th><td/></th>
                   <th>Status</th>
                   <th>Packages</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,6 +87,15 @@
                           {{ pkg.name }}
                         </a>
                       </div>
+                    </td>
+                    <td>
+                      <q-btn
+                        round
+                        color="primary"
+                        icon="restart_alt"
+                        size="sm"
+                        title="Restart build task tests"
+                        @click="RestartTestTask(task.id)"/>
                     </td>
                   </template>
                 </tr>
@@ -167,6 +177,14 @@
                 <q-item-label>Remove from a distribution</q-item-label>
               </q-item-section>
             </q-item>
+            <q-item clickable v-close-popup @click="RestartBuildTests()">
+              <q-item-section avatar>
+                <q-avatar icon="restart_alt"/>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Restart build tests</q-item-label>
+              </q-item-section>
+            </q-item>
           </q-list>
         </q-btn-dropdown>
       </q-card-actions>
@@ -219,6 +237,7 @@ import {exportFile, Loading, Notify} from 'quasar'
 import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import { BuildStatus } from '../constants.js'
+import { TestStatus } from '../constants.js'
 
 export default defineComponent({
   props: {
@@ -411,6 +430,30 @@ export default defineComponent({
           this.reload = true
         })
     },
+    RestartBuildTests () {
+      this.$api.put(`/tests/build/${this.buildId}/restart`)
+        .then(() =>{
+          Notify.create({
+            message: `Build tests for build ${this.buildId} has been restarted`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
+    },
+    RestartTestTask (taskId) {
+      this.$api.put(`/tests/build_task/${taskId}/restart`)
+        .then(() =>{
+          Notify.create({
+            message: `Build tests for build task ${taskId} has been restarted`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
+    },
     loadBuildInfo (buildId) {
       this.reload = false
       this.linked_builds = null
@@ -420,6 +463,11 @@ export default defineComponent({
         .then(response => {
           Loading.hide()
           this.build = response.data
+          this.build.tasks.forEach(task => {
+            if (task.status === BuildStatus.COMPLETED) {
+              this.loadTestsInfo(task)
+            }
+          })
           if (this.build.mock_options) {
             this.mock_options = this.build.mock_options
           }
@@ -431,6 +479,44 @@ export default defineComponent({
         .catch(error => {
           Loading.hide()
           this.reload = true
+        })
+    },
+    loadTestsInfo (task) {
+      this.$api.get(`tests/${task.id}/latest`)
+        .then(response => {
+          task["test_tasks"] = response.data
+          let count_failed = 0
+          let tests_failed = false
+          task.test_tasks.forEach(test => {
+            switch (test.status) {
+              case TestStatus.STARTED:
+                task.status = BuildStatus.TEST_STARTED
+                break;
+              case TestStatus.FAILED:
+                count_failed += 1
+                tests_failed = true
+                break;
+              case TestStatus.COMPLETED:
+                task.status = BuildStatus.TEST_COMPLETED
+                break;
+            }
+          })
+          if (tests_failed) {
+             if (count_failed === task.test_tasks.length) {
+              task.status = BuildStatus.ALL_TESTS_FAILED
+             } else {
+              task.status = BuildStatus.TEST_FAILED
+             }
+          }
+        })
+        .catch(error =>{
+          Notify.create({
+            message: `Failed to load test_task for task ${task.id}`,
+            type: 'negative',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
         })
     },
     getTextStatus (task) {
@@ -458,8 +544,18 @@ export default defineComponent({
           exportFile(artifact.name, response.data.content)
         })
     },
+    getProjectName(task){
+      return task.ref.url.split('/').pop().split('.').shift()
+    },
     openTaskLogs (task) {
-      this.$router.push(`/build/${this.buildId}/logs/${task.id}`)
+      this.$router.push({ path:`/build/${this.buildId}/logs/${task.id}`,
+                          query: { 
+                                  project_name: this.getProjectName(task),
+                                  arch: task.arch
+                                  }})
+    },
+    openTestTaskLogs (buildId, taskId, revision) {
+      this.$router.push(`/build/${buildId}/test_logs/${taskId}/${revision}`)
     },
     getTaskPackages (task) {
       return task.artifacts.filter(item => item.type === 'rpm').map(item => {

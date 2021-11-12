@@ -22,7 +22,7 @@ const routes = [
             .catch(next())
         }
       },
-      { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildLogs.vue'), props: true},
+      { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildItemInfo.vue'), props: true},
       {
         path: '/distro/new/',
         component: () => import('pages/CreateDistro'),

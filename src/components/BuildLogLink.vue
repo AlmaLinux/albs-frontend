@@ -12,21 +12,21 @@
 <script>
 import { defineComponent } from 'vue'
 
-  export default defineComponent({
-    props: {
-      selected: { type: Boolean, default: false },
-      artifact: Object
+export default defineComponent({
+  props: {
+    selected: { type: Boolean, default: false },
+    artifact: Object
+  },
+  methods: {
+    onView () {
+      this.$emit('view', this.artifact)
     },
-    methods: {
-      onView () {
-        this.$emit('view', this.artifact)
-      },
-      onDownload () {
-        this.$emit('download', this.artifact)
-      }
-    },
-    components: {}
-  })
+    onDownload () {
+      this.$emit('download', this.artifact)
+    }
+  },
+  components: {}
+})
 </script>
 
 <style scoped>
