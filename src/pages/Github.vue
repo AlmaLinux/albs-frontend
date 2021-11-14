@@ -6,7 +6,7 @@
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name: 'Github',
+  name: 'Github-page',
   props: {
     code: {
       type: String,

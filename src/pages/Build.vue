@@ -240,6 +240,7 @@ import { BuildStatus } from '../constants.js'
 import { TestStatus } from '../constants.js'
 
 export default defineComponent({
+  name: 'build-page',
   props: {
     buildId: String
   },
