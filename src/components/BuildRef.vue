@@ -1,21 +1,101 @@
 <template>
-  <a :href="buildRef.url" target="blank">
-    {{ text }}
-  </a>
+  <span :class="cssClass">
+    <span>{{ text }}</span><br>
+    <span>{{ isTagOrBranch }}</span>
+    <a v-if="hasUrl" :href="refUrl" target="_blank">{{ refText }}</a>
+    <span v-else>{{ refText }}</span>
+    <q-tooltip v-if="hasTooltip" class="text-body2"
+               anchor="bottom middle" self="top left">
+      {{ refTooltip }}
+    </q-tooltip>
+  </span>
 </template>
 
 <script>
+import { QTooltip } from 'quasar';
 import { defineComponent } from 'vue';
+import { BuildTaskRefType } from '../constants';
+import { buildRefText, splitRpmFileName } from '../utils';
+
+// Max length for build tasks refs
+const maxLengthRef = 20;
 
 export default defineComponent({
   name: 'BuildRef',
   props: {
-    buildRef: Object
+    buildRef: {type: Object, required: true},
+    cssClass: {type: String, default: 'text-tertiary'}
   },
   computed: {
+    hasTooltip () {
+      let gitRef = this.buildRef.git_ref
+      let refUrl = this.buildRef.url
+      if (refUrl.includes('.src.rpm') && !this.buildRef.ref_type) {
+        return refUrl
+      }
+      return gitRef && gitRef.length >= maxLengthRef ? true : false
+    },
+    refTooltip () {
+      return buildRefText(this.buildRef)
+    },
+    isTagOrBranch() {
+      switch (this.buildRef.ref_type) {
+        case BuildTaskRefType.GIT_BRANCH:
+          return `⎇ `
+        case BuildTaskRefType.GIT_TAG:
+          return `# `
+        default:
+          return ``
+      }
+    },
+    refText () {
+      let ref = buildRefText(this.buildRef)
+      return ref && ref.length >= maxLengthRef ? ref.slice(0, 17) + "..." : ref 
+    },
+    hasUrl () {
+      switch (this.buildRef.ref_type) {
+        case BuildTaskRefType.GIT_TAG:
+          return true
+        case BuildTaskRefType.GIT_BRANCH:
+          return true
+        case BuildTaskRefType.SRPM_URL:
+          return true
+        default:
+          return false
+      }
+    },
+    refUrl () {
+      let url = ''
+      let refUrl = this.buildRef.url
+      let pkgUrl = refUrl ? refUrl.replace(/\.git$/, "") : ''
+      switch (this.buildRef.ref_type) {
+        case BuildTaskRefType.SRPM_URL:
+          return refUrl
+        case BuildTaskRefType.GIT_BRANCH:
+          return `${pkgUrl}/src/branch/${this.buildRef.git_ref}`
+        case BuildTaskRefType.GIT_TAG:
+          return `${pkgUrl}/src/tag/${this.buildRef.git_ref}`
+        default:
+          return url
+      }
+    },
     text () {
-      return this.buildRef.url.split('/').pop()
+      let refUrl = this.buildRef.url
+      switch (this.buildRef.ref_type) {
+        case BuildTaskRefType.SRPM_URL:
+          const pkgInfo = splitRpmFileName(refUrl)
+          return pkgInfo ? `${pkgInfo.name}` : refUrl
+        default:
+          if (refUrl.includes('.src.rpm')) {
+            const pkgInfo = splitRpmFileName(refUrl)
+            return pkgInfo ? `${pkgInfo.name}` : refUrl
+          }
+          return refUrl.split('/').pop().replace(/\.git$/, "")
+      }
     }
+  },
+  components: {
+    QTooltip,
   },
   methods: {
   }

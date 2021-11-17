@@ -58,6 +58,7 @@
 <script>
 import {defineComponent, ref} from 'vue'
 import {Notify} from "quasar"
+import { BuildTaskRefType } from '../constants.js'
 
 export default defineComponent({
   props: {
@@ -135,6 +136,24 @@ export default defineComponent({
       let ref = { url: this.srpmUrl }
       if (!this.srpmUrl) {
         ref = JSON.parse(JSON.stringify(this.git))
+      }
+      switch (this.projectType) {
+        case 'alma_git':
+          let repo = this.almalinuxGitRepos.filter(
+            item => item.clone_url === this.git.url)
+          if (repo[0].tags.includes(ref.git_ref)) {
+            ref.ref_type = BuildTaskRefType.GIT_TAG
+          }
+          else if (repo[0].branches.includes(ref.git_ref)) {
+            ref.ref_type = BuildTaskRefType.GIT_BRANCH
+          }
+          break
+        case 'srpm_url':
+          ref.ref_type = BuildTaskRefType.SRPM_URL
+          break
+        case 'git_ref':
+          ref.ref_type = BuildTaskRefType.GIT_REF
+          break
       }
       const alreadyExistsCheck = this.buildItems.filter(item => {
         return item.url === ref.url && item.git_ref === ref.git_ref

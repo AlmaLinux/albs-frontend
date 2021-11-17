@@ -35,6 +35,19 @@ const BuildStatus = {
   }
 }
 
+const BuildTaskRefType = {
+  GIT_BRANCH: 1,
+  GIT_TAG: 2,
+  SRPM_URL: 3,
+  GIT_REF: 4,
+  text: {
+    1: 'git_branch',
+    2: 'git_tag',
+    3: 'srpm_url',
+    4: 'git_ref'
+  }
+}
+
 const TestStatus = {
   CREATED: 1,
   STARTED: 2,
@@ -54,4 +67,8 @@ const TestStatus = {
   }
 }
 
-export { BuildStatus, TestStatus }
+export { 
+  BuildStatus,
+  BuildTaskRefType,
+  TestStatus
+}
