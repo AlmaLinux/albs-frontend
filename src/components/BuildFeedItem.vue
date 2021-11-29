@@ -85,7 +85,7 @@ export default defineComponent({
       return platforms
     },
     sortedTasks () {
-      return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) => (a.id > b.id) ? 1 : -1)
+      return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) => (`${a.platform.name} ${a.arch}` > `${b.platform.name} ${b.arch}`) ? 1 : -1)
     },
     buildTasks () {
       let taskSet = new Set()
