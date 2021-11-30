@@ -32,7 +32,8 @@
                 :key=target.id
                 :class="getTaskCSS(target)"
             >
-              {{ target.textStatus }}
+              <q-skeleton v-if="loading" width="25%" type="text" />
+              <span v-else> {{ target.textStatus }} </span>
             </td>
           </tr>
         </tbody>
@@ -55,7 +56,8 @@ import BuildRef from 'components/BuildRef.vue';
 export default defineComponent({
   name: 'BuildFeedItem',
   props: {
-    build: Object
+    build: Object,
+    loading: Boolean
   },
   computed: {
     buildPlatforms () {
