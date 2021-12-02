@@ -131,6 +131,7 @@ export default defineComponent({
       this.srpmUrl = null
       this.almaGitFilter = ''
       this.git = { git_ref: null, url: null }
+      this.almaGitRepo = null
     },
     onSubmit () {
       let ref = { url: this.srpmUrl }
@@ -147,6 +148,7 @@ export default defineComponent({
           else if (repo[0].branches.includes(ref.git_ref)) {
             ref.ref_type = BuildTaskRefType.GIT_BRANCH
           }
+          this.almaGitRepo = null
           break
         case 'srpm_url':
           ref.ref_type = BuildTaskRefType.SRPM_URL

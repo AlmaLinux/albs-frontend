@@ -19,14 +19,9 @@
                 <q-icon name="arrow_drop_down"/>
               </q-btn>
             </td>
-            <td>{{ buildItem.url }}</td>
+            <td><build-ref :buildRef="buildItem"/></td>
             <td class="text-tertiary">
-            <!--  <build-reference :build-ref="buildItem.buildRef"/>-->
-            <!--</td>-->
-            <!--<td>-->
-              <q-btn @click="onDeleteBuildItem(buildItem)" flat small class="no-padding">
-                <q-icon name="delete"/>
-              </q-btn>
+              <q-btn @click="onDeleteBuildItem(buildItem)" flat small icon="delete" class="no-padding" /> 
             </td>
           </tr>
           </tbody>
@@ -49,6 +44,7 @@
 <script>
 import { defineComponent } from 'vue'
 import ProjectSelectionWindow from 'components/ProjectSelectionWindow.vue'
+import BuildRef from 'components/BuildRef.vue';
 
 export default defineComponent({
   model: {
@@ -84,7 +80,8 @@ export default defineComponent({
     }
   },
   components: {
-    ProjectSelectionWindow
+    ProjectSelectionWindow,
+    BuildRef
   }
 })
 </script>

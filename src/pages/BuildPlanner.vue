@@ -36,7 +36,7 @@
          />
         </template>
 
-        <q-input label="Linked builds" v-model="linked_builds_input" clearable
+        <q-input label="Linked builds" v-model="linked_builds_input" clearable @keydown.enter.prevent="addLinkedBuilds"
                  style="min-width: 250px; max-width: 300px;" autogrow hint="Enter builds' ids"
                  :rules="[linked_builds_input => linked_builds_input.length < 1 || 'Please don\'t forget to add entered builds\'s ids']">
           <template v-slot:append v-if="linked_builds_input">
@@ -65,7 +65,7 @@
                                 :buildMockOpts="buildPlan.mock_options"
                                 @change="value => { buildPlan.mock_options = value }"/>
         </q-field>
-        <q-expansion-item label="Added mock options" v-if="Object.keys(buildPlan.mock_options).length">
+        <q-expansion-item label="Added mock options" v-if="Object.keys(buildPlan.mock_options).length && buildPlan.mock_options.type != 'change'">
           <q-list v-if="Object.keys(buildPlan.mock_options).length" dense highlight no-border>
             <q-item-section v-if="buildPlan.mock_options.with" style="font-size: 12pt; letter-spacing: 1pt;">
               --with '{{ buildPlan.mock_options.with.join(' ') }}'
@@ -211,6 +211,7 @@ export default defineComponent({
     createBuild () {
       this.loading = true
       let platforms = []
+      let cachePlatforms = this.buildPlan.platforms
       for (let platform of this.buildPlan.platforms) {
         platforms.push({name: platform.value, arch_list: this.platformArches[platform.value]})
       }
@@ -223,6 +224,7 @@ export default defineComponent({
           this.$router.push('/')
         })
         .catch((error) => {
+          this.buildPlan.platforms = cachePlatforms
           Notify.create({message: 'Unable to create a build', type: 'negative',
             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
           this.loading = false

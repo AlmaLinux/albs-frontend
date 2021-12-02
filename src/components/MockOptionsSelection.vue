@@ -2,7 +2,7 @@
   <q-dialog persistent position="top" v-model="opened" full-height>
     <q-card style="width: 550px;">
       <q-form @submit="submitMockOpt">
-        <q-card-section class="bg-primary">
+        <q-card-section class="bg-primary shadow-2">
           <div class="text-h6 text-white" style="text-align: center;">Add mock options to the build</div>
         </q-card-section>
         <q-card-section style="width: 550px; padding-left: 25px; padding-right: 25px;">
