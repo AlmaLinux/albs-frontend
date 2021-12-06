@@ -44,7 +44,8 @@
                   </td>
                   <template v-for="targetName of Object.keys(buildTasks)" :key="targetName">
                     <td class="text-center" v-for="task in buildTasks[targetName][tasks[0].index]" :key=task.id>
-                      <build-status-circle :status="task.status" @click="openTaskLogs(task)"/>
+                      <q-skeleton style="margin-left: auto; margin-right: auto;" size="23px" type="circle" v-if="buildLoad"/>
+                      <build-status-circle v-else :status="task.status" @click="openTaskLogs(task)"/>
                     </td>
                   </template>
                 </tr>
@@ -279,6 +280,7 @@ export default defineComponent({
       remove_from_distro: false,
       delete_build: false,
       loading: false,
+      buildLoad: false,
       current_distro: [],
       mock_options: null
     }
@@ -519,10 +521,14 @@ export default defineComponent({
       this.reload = false
       this.linked_builds = null
       this.mock_options = null
+      this.buildLoad = true
       Loading.show()
       this.$api.get(`/builds/${buildId}/`)
         .then(response => {
-          Loading.hide()
+          setTimeout(() => {
+            Loading.hide()
+            this.buildLoad = false
+          }, 2000)
           this.build = response.data
           this.build.tasks.forEach(task => {
             if (task.status === BuildStatus.COMPLETED) {
@@ -539,6 +545,7 @@ export default defineComponent({
         })
         .catch(error => {
           Loading.hide()
+          this.buildLoad = false
           this.reload = true
         })
     },
@@ -548,10 +555,11 @@ export default defineComponent({
           task["test_tasks"] = response.data
           let count_failed = 0
           let tests_failed = false
+          let test_started = false
           task.test_tasks.forEach(test => {
             switch (test.status) {
               case TestStatus.STARTED:
-                task.status = BuildStatus.TEST_STARTED
+                test_started = true
                 break;
               case TestStatus.FAILED:
                 count_failed += 1
@@ -569,6 +577,7 @@ export default defineComponent({
               task.status = BuildStatus.TEST_FAILED
              }
           }
+          if (test_started) task.status = BuildStatus.TEST_STARTED
         })
         .catch(error =>{
           Notify.create({
@@ -585,17 +594,28 @@ export default defineComponent({
     },
     getTaskCSS (task) {
         let css = ['cursor-pointer']
-        if (task.status === BuildStatus.FAILED) {
-          css.push('text-negative', 'bg-red-1')
-        }
-        else if (task.status === BuildStatus.IDLE) {
-          css.push('text-grey-6')
-        }
-        else if (task.status === BuildStatus.STARTED) {
-          css.push('text-black-6')
-        }
-        else if (task.status === BuildStatus.COMPLETED) {
-          css.push('text-green-7')
+        switch (task.status) {
+          case BuildStatus.FAILED:
+            css.push('text-negative', 'bg-red-1')
+            break;
+          case BuildStatus.IDLE:
+            css.push('text-grey-6')
+            break;
+          case BuildStatus.STARTED:
+            css.push('text-black-6')
+            break;
+          case BuildStatus.COMPLETED:
+            css.push('text-green-7')
+            break;
+          case BuildStatus.TEST_FAILED:
+            css.push('text-negative')
+            break;
+          case BuildStatus.ALL_TESTS_FAILED:
+            css.push('text-negative')
+            break;
+          case BuildStatus.TEST_COMPLETED:
+            css.push('text-green-7')
+            break;
         }
         return css
     },
