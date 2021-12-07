@@ -138,9 +138,6 @@ export default defineComponent({
         .catch(error => {
           this.loading = false
           Loading.hide()
-          if (error.response.status === 403) {
-            this.$router.push('/auth/login')
-          }
           // TODO: add error here
         })
     }

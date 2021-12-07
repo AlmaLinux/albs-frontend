@@ -9,6 +9,15 @@ api.interceptors.request.use(config => {
     config.headers['authorization'] = `Bearer ${store.getters.accessToken}`;
   }
   return config;
+}, null, { synchronous: true })
+
+api.interceptors.response.use(response => {
+  return response
+}, error => {
+  if (error.response.status === 403) {
+    store.commit('users/onLogout')
+  }
+  return Promise.reject(error);
 });
 
 export default boot(({ app }) => {
