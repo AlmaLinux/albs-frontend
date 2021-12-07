@@ -5,7 +5,27 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/BuildFeed.vue') },
+      { 
+        path: '',
+        name: 'BuildFeed',
+        component: () => import('pages/BuildFeed.vue'),
+        beforeEnter (to, from, next) {
+          store.dispatch('users/loadUsersList')
+            .then(next())
+            .catch(next())
+          store.dispatch('platforms/loadPlatformList')
+            .then(next())
+            .catch(next())
+        },
+        children: [
+          {
+            path: '/search/:query',
+            name: 'BuildFeedSearch',
+            component: () => import('pages/BuildFeed.vue'),
+            props: true
+          }
+        ]
+      },
       { path: 'build/:buildId', component: () => import('pages/Build.vue'), props: true,
         beforeEnter (to, from, next) {
           store.dispatch('distributions/loadDistributionsList')

@@ -17,6 +17,7 @@
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
+      side="left"
       bordered
       class="bg-grey-1"
     >
@@ -36,15 +37,29 @@
           </q-item>
       </q-list>
     </q-drawer>
+    <q-drawer
+      v-if="onBuildFeed"
+      v-model="rightDrawerOpen"
+      show-if-above
+      bordered
+      class="bg-grey-1"
+      side="right"
+    >
+      <build-feed-search-form @hideSearchPanel="toggleRightDrawer"/>
+    </q-drawer>
 
     <q-page-container>
       <router-view />
+      <q-page-sticky v-if="onBuildFeed" position="top-right" :offset="[18, 18]">
+        <q-btn round color="primary" icon="search" @click="toggleRightDrawer"/>
+      </q-page-sticky>
     </q-page-container>
   </q-layout>
 </template>
 
 <script>
 import EssentialLink from 'components/EssentialLink.vue'
+import BuildFeedSearchForm from 'components/BuildFeedSearchForm.vue'
 
 const linksList = [
   {
@@ -69,16 +84,27 @@ import { defineComponent, ref } from 'vue'
 export default defineComponent({
   name: 'MainLayout',
   components: {
+    BuildFeedSearchForm,
     EssentialLink
+  },
+  computed: {
+    onBuildFeed () {
+      return this.$route.name && this.$route.name.startsWith('BuildFeed')
+    }
   },
   setup () {
     const leftDrawerOpen = ref(false)
+    const rightDrawerOpen = ref(false)
 
     return {
       essentialLinks: linksList,
       leftDrawerOpen,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
+      },
+      rightDrawerOpen,
+      toggleRightDrawer () {
+        rightDrawerOpen.value = !rightDrawerOpen.value
       }
     }
   },

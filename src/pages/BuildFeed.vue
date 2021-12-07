@@ -31,6 +31,7 @@ export default defineComponent({
     }
   },
   created () {
+    this.updateFilter()
     this.loadFeedPage()
   },
   computed: {
@@ -46,7 +47,44 @@ export default defineComponent({
       }
     }
   },
+  watch: {
+    buildFeedQuery () {
+      this.loadFeedPage()
+    },
+    'query': 'updateFilter'
+  },
   methods: {
+    updateFilter () {
+      this.$store.dispatch('buildsFeed/updateFilter', this.queryToFilter(this.query))
+    },
+    queryToFilter (query) {
+      if (!query) {
+        return undefined
+      }
+      var filter = {}
+      for (let item of query.split('&')) {
+        const name = item.split('=')[0]
+        const value = item.split('=')[1]
+        switch (name) {
+          case 'author':
+            filter.authorId = value
+            break
+          case 'tag':
+            filter.buildTag = value
+            break
+          case 'project_name':
+            filter.projectName = value
+            break
+          case 'ref':
+            filter.buildRef = value
+            break
+          case 'package':
+            filter.package = value
+            break
+        }
+      }
+      return filter
+    },
     loadTestsInfo (task) {
       this.$api.get(`tests/${task.id}/latest`)
         .then(response => {
