@@ -85,6 +85,9 @@ export default defineComponent({
       return platforms
     },
     sortedTasks () {
+      return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) => (a.id > b.id) ? 1 : -1)
+    },
+    sortedLines () {
       return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) => (`${a.platform.name} ${a.arch}` > `${b.platform.name} ${b.arch}`) ? 1 : -1)
     },
     buildTasks () {
@@ -136,7 +139,7 @@ export default defineComponent({
     },
     getTaskTargets (task) {
       let targets = []
-      for (const buildTask of this.sortedTasks) {
+      for (const buildTask of this.sortedLines) {
         if (task.index === buildTask.index) {
             targets.push(Object.assign({}, buildTask, {textStatus: BuildStatus.text[buildTask.status]}))
         }
