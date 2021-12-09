@@ -19,8 +19,9 @@
                 <q-icon name="arrow_drop_down"/>
               </q-btn>
             </td>
-            <td><build-ref :buildRef="buildItem"/></td>
+            <td class="cursor-pointer" @click="onModuleInfo"><build-ref :buildRef="buildItem"/></td>
             <td class="text-tertiary">
+              <q-btn @click="onModuleInfo" flat small icon="info" class="no-padding" />
               <q-btn @click="onDeleteBuildItem(buildItem)" flat small icon="delete" class="no-padding" /> 
             </td>
           </tr>
@@ -31,13 +32,15 @@
 
     <div class="group row justify-end">
       <q-btn @click="onAddProject" icon="add" color="secondary">
-        Add project
+        Add module
       </q-btn>
     </div>
 
     <ProjectSelectionWindow ref="addProjectWindow"
-                            :buildItems="buildItems" :modularity="false"
+                            :buildItems="buildItems" :modularity="true"
                             @projectSelected="addProjectToBuild"/>
+
+    <module-info ref="ModuleInfo"/>
   </div>
 </template>
 
@@ -45,6 +48,7 @@
 import { defineComponent } from 'vue'
 import ProjectSelectionWindow from 'components/ProjectSelectionWindow.vue'
 import BuildRef from 'components/BuildRef.vue';
+import ModuleInfo from 'components/ModuleInfo.vue'
 
 export default defineComponent({
   model: {
@@ -59,6 +63,9 @@ export default defineComponent({
     },
     onAddProject () {
       this.$refs.addProjectWindow.open()
+    },
+    onModuleInfo () {
+      this.$refs.ModuleInfo.open()
     },
     onDeleteBuildItem (buildItem) {
       this.$emit('change', this.buildItems.filter(el => {
@@ -81,6 +88,7 @@ export default defineComponent({
   },
   components: {
     ProjectSelectionWindow,
+    ModuleInfo,
     BuildRef
   }
 })

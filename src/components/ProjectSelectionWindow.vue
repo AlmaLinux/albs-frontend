@@ -4,7 +4,8 @@
             v-model="opened">
     <q-card>
       <q-card-section>
-        <div class="text-h6">Add a project to the build</div>
+        <div v-if="modularity" class="text-h6">Add a module to the build</div>
+        <div v-else class="text-h6">Add a project to the build</div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
@@ -62,7 +63,8 @@ import { BuildTaskRefType } from '../constants.js'
 
 export default defineComponent({
   props: {
-    buildItems: Array
+    buildItems: Array,
+    modularity: Boolean
   },
   data () {
     return {
@@ -131,6 +133,7 @@ export default defineComponent({
       this.srpmUrl = null
       this.almaGitFilter = ''
       this.git = { git_ref: null, url: null }
+      this.almaGitRepo = null
     },
     onSubmit () {
       let ref = { url: this.srpmUrl }
@@ -147,6 +150,7 @@ export default defineComponent({
           else if (repo[0].branches.includes(ref.git_ref)) {
             ref.ref_type = BuildTaskRefType.GIT_BRANCH
           }
+          this.almaGitRepo = null
           break
         case 'srpm_url':
           ref.ref_type = BuildTaskRefType.SRPM_URL
@@ -163,18 +167,30 @@ export default defineComponent({
         Notify.create({ message: errorMsg, icon: 'warning', type: 'warning' })
         return
       }
+      if (this.modularity) ref.is_module = true
       this.$emit('projectSelected', ref)
       this.close()
     },
     loadAlmaGitRefs () {
-      this.$api.get('/projects/alma')
-        .then(response => {
-          this.almalinuxGitRepos = response.data
-          this.almalinuxGitRepoNames = response.data.map(item => item.name)
-        })
-        .catch(error => {
-          // TODO: add error here
-        })
+      if (this.modularity){
+        this.$api.get('/projects/alma/modularity')
+          .then(response => {
+            this.almalinuxGitRepos = response.data
+            this.almalinuxGitRepoNames = response.data.map(item => item.name)
+          })
+          .catch(error => {
+            // TODO: add error here
+          })
+      } else {
+        this.$api.get('/projects/alma')
+          .then(response => {
+            this.almalinuxGitRepos = response.data
+            this.almalinuxGitRepoNames = response.data.map(item => item.name)
+          })
+          .catch(error => {
+            // TODO: add error here
+          })
+      }
     },
     almaGitSelectFilter (value, update) {
       this.almaGitFilter = value
