@@ -44,6 +44,13 @@
         <br/>
         at {{ buildCreatedTime }}
       </div>
+      <div class="q-pt-sm q-pl-md q-pb-md" v-if="build.releaseStatus">
+        <q-skeleton style="width: 100px" v-if="loading" type="text" />
+        <div v-else>
+          <span class="text-bold"> Release status: </span>
+          <span> {{ build.releaseStatus }} </span>
+        </div>
+      </div>
     </q-card-section>
   </q-card>
 </template>

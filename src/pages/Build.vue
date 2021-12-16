@@ -502,6 +502,9 @@ export default defineComponent({
     }
   },
   methods: {
+    changeStatus (task, status) {
+      if (task.status < status) task.status = status
+    },
     AddToDistribution () {
       this.loading = true
       this.$api.post(`/distro/add/${this.buildId}/${this.current_distro.label}/`)
@@ -734,18 +737,18 @@ export default defineComponent({
                 tests_failed = true
                 break;
               case TestStatus.COMPLETED:
-                task.status = BuildStatus.TEST_COMPLETED
+                this.changeStatus(task, BuildStatus.TEST_COMPLETED)
                 break;
             }
           })
           if (tests_failed) {
              if (count_failed === task.test_tasks.length) {
-              task.status = BuildStatus.ALL_TESTS_FAILED
+              this.changeStatus(task, BuildStatus.ALL_TESTS_FAILED)
              } else {
-              task.status = BuildStatus.TEST_FAILED
+               this.changeStatus(task, BuildStatus.TEST_FAILED)
              }
           }
-          if (test_started) task.status = BuildStatus.TEST_STARTED
+          if (test_started) this.changeStatus(task, BuildStatus.TEST_STARTED)
         })
         .catch(error =>{
           Notify.create({
