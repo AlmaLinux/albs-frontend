@@ -31,6 +31,9 @@ const routes = [
           store.dispatch('distributions/loadDistributionsList')
             .then(next())
             .catch(next())
+          store.dispatch('keys/loadKeysList')
+            .then(next())
+            .catch(next())
         }
       },
       {

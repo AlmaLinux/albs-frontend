@@ -67,8 +67,22 @@ const TestStatus = {
   }
 }
 
+const SignStatus = {
+  QUEUED: 1,
+  STARTED: 2,
+  DONE: 3,
+  FAILED: 4,
+  text: {
+    1: 'queued for sign',
+    2: 'being signed',
+    3: 'signed',
+    4: 'failed to be signed'
+  }
+}
+
 export { 
   BuildStatus,
   BuildTaskRefType,
-  TestStatus
+  TestStatus,
+  SignStatus
 }
