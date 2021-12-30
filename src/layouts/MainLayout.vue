@@ -1,19 +1,5 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
-        <q-btn flat dense round icon="navigate_before" @click="$router.go(-1)"/>
-      </q-toolbar>
-    </q-header>
-
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
@@ -50,7 +36,10 @@
 
     <q-page-container>
       <router-view />
-      <q-page-sticky v-if="onBuildFeed" position="top-right" :offset="[18, 18]">
+      <q-page-sticky position="top-left" :offset="[5, 10]">
+        <q-btn round color="primary" icon="menu" @click="toggleLeftDrawer"/>
+      </q-page-sticky>
+      <q-page-sticky v-if="onBuildFeed" position="top-right" :offset="[5, 10]">
         <q-btn round color="primary" icon="search" @click="toggleRightDrawer"/>
       </q-page-sticky>
     </q-page-container>
