@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh LpR lFf">
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
