@@ -9,10 +9,6 @@
               style="height: auto;"
               :error="buildPlan.platforms.length < 1" error-color="negative">
 
-        <q-checkbox :disable="buildPlan.tasks.length ? true : false"
-                    left-label class="text-grey-8 text-body1 q-pb-sm"
-                    v-model="modularity" label="Modularity" />
-
         <q-select v-model="buildPlan.platforms"
                   :options="buildPlatforms"
                   multiple
@@ -95,18 +91,12 @@
         </q-expansion-item>
       </q-step>
 
-      <q-step v-if="modularity" name="selectModules" :disable="buildPlan.platforms.length < 1"
-              title="Select modules" :error="buildPlan.tasks.length < 1"
-              error-color="negative">
-        <module-selector :buildItems="buildPlan.tasks"
-                    @change="value => { buildPlan.tasks = value }"/>
-      </q-step>
-
-      <q-step v-else name="selectProjects" :disable="buildPlan.platforms.length < 1"
+      <q-step name="selectProjects" :disable="buildPlan.platforms.length < 1"
               title="Select projects" :error="buildPlan.tasks.length < 1"
               error-color="negative">
         <project-selector :buildItems="buildPlan.tasks"
-                         @change="value => { buildPlan.tasks = value }"/>
+                          :platformName="buildPlan.platforms[0].value"
+                          @change="value => { buildPlan.tasks = value }"/>
       </q-step>
 
       <template v-slot:navigation>
@@ -131,7 +121,6 @@
 import { defineComponent } from 'vue'
 import {Loading, Notify} from 'quasar'
 import ProjectSelector from 'components/ProjectSelector.vue'
-import ModuleSelector from 'components/ModuleSelector.vue'
 import MockOptionsSelection from 'components/MockOptionsSelection.vue'
 
 export default defineComponent({
@@ -248,8 +237,7 @@ export default defineComponent({
   },
   components: {
     ProjectSelector,
-    MockOptionsSelection,
-    ModuleSelector
+    MockOptionsSelection
   }
 })
 </script>

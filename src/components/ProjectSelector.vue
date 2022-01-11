@@ -1,5 +1,6 @@
 <template>
-  <div class=" justify-center">
+  <div class="justify-center">
+
     <q-scroll-area style="height: 21vw;" class="row">
       <div class="row justify-center">
         <table class="q-table">
@@ -21,6 +22,7 @@
             </td>
             <td><build-ref :buildRef="buildItem"/></td>
             <td class="text-tertiary">
+              <q-btn @click="onChangeMockOptions(index)" flat small icon="settings" class="no-padding"/>
               <q-btn @click="onDeleteBuildItem(buildItem)" flat small icon="delete" class="no-padding" /> 
             </td>
           </tr>
@@ -35,8 +37,12 @@
       </q-btn>
     </div>
 
+    <MockOptionsSelection ref="addMockOptions"
+                          :buildMockOpts="selectedMockOptions"
+                          @change="mockOptionsSelected"/>
     <ProjectSelectionWindow ref="addProjectWindow"
-                            :buildItems="buildItems" :modularity="false"
+                            :buildItems="buildItems"
+                            :platformName="platformName"
                             @projectSelected="addProjectToBuild"/>
   </div>
 </template>
@@ -45,20 +51,42 @@
 import { defineComponent } from 'vue'
 import ProjectSelectionWindow from 'components/ProjectSelectionWindow.vue'
 import BuildRef from 'components/BuildRef.vue';
+import MockOptionsSelection from 'components/MockOptionsSelection.vue'
 
 export default defineComponent({
   model: {
     prop: 'buildItems', event: 'change'
   },
   props: {
-    buildItems: Array
+    buildItems: Array,
+    platformName: String
+  },
+  data () {
+    return {
+      selectedMockItem: undefined,
+      selectedMockOptions: {}
+    }
   },
   methods: {
     addProjectToBuild (buildItem) {
-      this.$emit('change', [...this.buildItems, buildItem])
+      if (buildItem.constructor.name !== 'Array') {
+        buildItem = [buildItem]
+      }
+      this.$emit('change', this.buildItems.concat(buildItem))
     },
     onAddProject () {
       this.$refs.addProjectWindow.open()
+    },
+    onChangeMockOptions (index) {
+      this.selectedMockItem = index
+      this.selectedMockOptions = this.buildItems[index].mock_options
+      console.log(this.selectedMockOptions)
+      this.$refs.addMockOptions.open(this.selectedMockOptions)
+    },
+    mockOptionsSelected (value) {
+      const items = this.buildItems
+      items[this.selectedMockItem].mock_options = value
+      this.$emit('change', items)
     },
     onDeleteBuildItem (buildItem) {
       this.$emit('change', this.buildItems.filter(el => {
@@ -81,6 +109,7 @@ export default defineComponent({
   },
   components: {
     ProjectSelectionWindow,
+    MockOptionsSelection,
     BuildRef
   }
 })

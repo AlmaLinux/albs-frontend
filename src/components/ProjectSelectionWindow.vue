@@ -2,17 +2,24 @@
   <q-dialog position="top"
             :content-css="{minWidth: '35vw'}"
             v-model="opened">
-    <q-card>
+
+    <q-card style="width: 700px; height: 320px; max-width: 80vw;">
       <q-card-section>
         <div v-if="modularity" class="text-h6">Add a module to the build</div>
         <div v-else class="text-h6">Add a project to the build</div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-          <q-option-group v-model="projectType"
-                          :options="sourceTypes"
-                          type="radio"
-                          inline/>
+
+          <div class="row">
+            <q-option-group v-model="projectType"
+                            :options="sourceTypes"
+                            type="radio"
+                            inline/>
+            <q-toggle class="text-grey-8 text-body1 q-pb-sm"
+                      v-model="modularity"
+                      :label="(modularity) ? 'Modules' : 'Projects'"/>
+          </div>
 
           <template v-if="projectType === 'alma_git'">
             <q-select
@@ -50,7 +57,12 @@
                label="Submit"
                color="primary"
                :disabled="!isProjectSelected"
-               @click="onSubmit"/>
+               :loading="moduleRefsLoading"
+               @click="onSubmit">
+          <template v-slot:loading>
+            <q-spinner-hourglass class="on-left" />
+          </template>
+        </q-btn>
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -64,16 +76,19 @@ import { BuildTaskRefType } from '../constants.js'
 export default defineComponent({
   props: {
     buildItems: Array,
-    modularity: Boolean
+    platformName: String
   },
   data () {
     return {
       tagOptions: [],
+      almaProjects: [],
+      almaModules: [],
+      modularity: false,
       projectType: 'alma_git',
       almaGitFilter: '',
       srpmUrl: null,
-      almalinuxGitRepos: [],
       almaGitRepo: null,
+      moduleRefsLoading: false,
       git: {
         git_ref: null,
         url: null
@@ -114,6 +129,13 @@ export default defineComponent({
         return value.filter(item => item.label.indexOf(this.almaGitFilter) > -1)
       }
       return value
+    },
+    almalinuxGitRepos () {
+      if (this.modularity) {
+        return this.almaModules
+      } else {
+        return this.almaProjects
+      }
     },
     almalinuxGitRepoRefs () {
       let repo = this.almalinuxGitRepos.filter(item => item.clone_url === this.git.url)
@@ -167,30 +189,50 @@ export default defineComponent({
         Notify.create({ message: errorMsg, icon: 'warning', type: 'warning' })
         return
       }
-      if (this.modularity) ref.is_module = true
-      this.$emit('projectSelected', ref)
-      this.close()
+      if (this.modularity) {
+        ref.is_module = true
+        this.onSubmitModule(ref)
+      }
+      else {
+        ref.mock_options = {}
+        this.$emit('projectSelected', ref)
+        this.close()
+      }
+    },
+    onSubmitModule (ref) {
+      let data = {
+        ref: ref,
+        platform_name: this.platformName
+      }
+      this.moduleRefsLoading = true
+      this.$api.post('/builds/get_module_preview/', data)
+        .then(response => {
+          this.$emit('projectSelected', response.data.refs)
+          this.moduleRefsLoading = false
+          this.close()
+        })
+        .catch(error => {
+          this.moduleRefsLoading = false
+          // TODO: show it to user
+          console.log(error)
+          this.close()
+        })
     },
     loadAlmaGitRefs () {
-      if (this.modularity){
-        this.$api.get('/projects/alma/modularity')
-          .then(response => {
-            this.almalinuxGitRepos = response.data
-            this.almalinuxGitRepoNames = response.data.map(item => item.name)
-          })
-          .catch(error => {
-            // TODO: add error here
-          })
-      } else {
-        this.$api.get('/projects/alma')
-          .then(response => {
-            this.almalinuxGitRepos = response.data
-            this.almalinuxGitRepoNames = response.data.map(item => item.name)
-          })
-          .catch(error => {
-            // TODO: add error here
-          })
-      }
+      this.$api.get('/projects/alma/modularity')
+        .then(response => {
+          this.almaModules = response.data
+        })
+        .catch(error => {
+          // TODO: add error here
+        })
+      this.$api.get('/projects/alma')
+        .then(response => {
+          this.almaProjects = response.data
+        })
+        .catch(error => {
+          // TODO: add error here
+        })
     },
     almaGitSelectFilter (value, update) {
       this.almaGitFilter = value

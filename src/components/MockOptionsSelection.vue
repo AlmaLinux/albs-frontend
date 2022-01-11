@@ -145,10 +145,14 @@ export default defineComponent({
       });
       return flag
     },
-    open() {
+    open (options) {
+      if (options && Object.keys(options).length > 0) {
+        console.log('TEST2:', options)
+        this.mock_options = JSON.parse(JSON.stringify(options))
+      }
       this.opened = true
     },
-    close() {
+    close () {
       this.opened = false
     },
     onAddMacro () {
