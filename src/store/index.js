@@ -4,6 +4,7 @@ import { UsersModule } from './modules/users'
 import { PlatformsModule } from './modules/platforms'
 import { BuildsFeedModule } from './modules/builds'
 import { DistributionsModule } from './modules/distributions'
+import { KeysModule } from './modules/keys'
 
 // import example from './module-example'
 
@@ -21,7 +22,8 @@ export default store(createStore({
       users: UsersModule,
       platforms: PlatformsModule,
       buildsFeed: BuildsFeedModule,
-      distributions: DistributionsModule
+      distributions: DistributionsModule,
+      keys: KeysModule
     },
 
     getters: {

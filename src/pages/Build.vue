@@ -108,6 +108,36 @@
       </q-card-section>
 
       <q-card-section>
+        <q-expansion-item label="Sign" expand-separator
+                          icon="lock" v-if="signs.length">
+          <q-card>
+            <q-card-section>
+              <q-item v-for="sign in this.signs" :key="sign.id">
+                <q-item-section lines="1">
+                  {{ signatureText(sign) }}
+                </q-item-section>
+                <q-item-section side lines="1">
+                  <div class="text-grey-8 q-gutter-xs">
+                    <q-btn v-if="sign.status === signStatus.FAILED" @click="showSignLog(sign)" icon="info" color="faded"
+                            round flat>
+                      <q-tooltip anchor="bottom right" self="top middle">
+                        Sign Log
+                      </q-tooltip>
+                    </q-btn>
+                    <q-btn v-if="sign.status === signStatus.FAILED" icon="cached" color="faded"
+                      round flat @click="repeatSign(sign)">
+                      <q-tooltip anchor="bottom right" self="top middle">
+                      Re-sign
+                      </q-tooltip>
+                    </q-btn>
+                  </div>
+                </q-item-section>
+              </q-item>
+            </q-card-section>
+          </q-card>
+        </q-expansion-item>
+      </q-card-section>
+      <q-card-section>
         <q-expansion-item label="Linked builds" expand-separator
                           icon="link" v-if="linked_builds">
           <q-card>
@@ -154,6 +184,14 @@
         <q-btn-dropdown label="Other Actions" color="primary" dropdown-icon="change_history"
                         style="width: 200px; height: 40px;">
           <q-list>
+            <q-item clickable v-close-popup @click="sign_build = true" v-if="allowSignBuild">
+              <q-item-section avatar>
+                <q-avatar icon="lock"/>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Sign</q-item-label>
+              </q-item-section>
+            </q-item>
             <q-item clickable v-close-popup @click="onRebuildFailedItems" v-if="failedItems">
               <q-item-section avatar>
                 <q-avatar icon="repeat"/>
@@ -178,7 +216,7 @@
                 <q-item-label>Remove from a distribution</q-item-label>
               </q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="RestartBuildTests()">
+            <q-item clickable v-close-popup @click="RestartBuildTests()" v-if="testingCompleted">
               <q-item-section avatar>
                 <q-avatar icon="restart_alt"/>
               </q-item-section>
@@ -252,17 +290,56 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="sign_build">
+      <q-card style="width: 400px;">
+        <q-card-section>
+          <div class="text-h6">Sign build</div>
+        </q-card-section>
+        <q-card-section>
+          <q-select v-model="current_sign" label="Choose PGP key"
+                    :options="existingKeys"/>
+        <span v-if="!testingCompleted" class="text-negative">
+        <br/>
+        <b>Warning:</b> the build testing is not finished yet. Are you sure you
+        want to sign it?
+      </span>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat text-color="primary" label="Sign" style="width: 150px"
+                 :loading="loading"
+                 @click="signBuild">
+          </q-btn>
+          <q-btn :loading="loading" flat text-color="negative" label="Cancel"
+                 v-close-popup @click="current_sign = []"/>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="sign_log">
+      <q-card style="width: 400px;">
+        <q-card-section>
+          <div class="text-h6">Sign log</div>
+        </q-card-section>
+          <q-infinite-scroll
+              ref="logContent"
+              :style="{height: innerHeight - 150 + 'px'}"
+              class="log-container" inline
+          >
+          <pre>{{ signLogText }}</pre>
+          </q-infinite-scroll>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script>
 
-import { defineComponent, ref } from 'vue'
+import { defineComponent } from 'vue'
 import {exportFile, Loading, Notify} from 'quasar'
 import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
-import { BuildStatus } from '../constants.js'
-import { TestStatus } from '../constants.js'
+import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
+import axios from 'axios'
 
 export default defineComponent({
   name: 'build-page',
@@ -273,16 +350,22 @@ export default defineComponent({
     return {
       tab: 'summary',
       build: null,
+      signs: [],
       reload: true,
       refreshTimer: null,
       linked_builds: null,
+      sign_build: false,
+      sign_log: false,
       add_to_distro: false,
       remove_from_distro: false,
       delete_build: false,
       loading: false,
       buildLoad: false,
+      current_sign: null,
       current_distro: [],
-      mock_options: null
+      mock_options: null,
+      signLogText: '',
+      signStatus: SignStatus 
     }
   },
   watch: {
@@ -303,6 +386,11 @@ export default defineComponent({
     existingDistros () {
       return this.$store.state.distributions.distributions.map(distribution => {
         return {label: distribution.name, value: distribution.name}
+      })
+    },
+    existingKeys () {
+      return this.$store.state.keys.keys.map(key => {
+        return {label: key.name, value: key.id}
       })
     },
     failedItems () {
@@ -327,6 +415,26 @@ export default defineComponent({
         }
       }
       return allow_delete
+    },
+    testingCompleted () {
+      let testing_completed = true
+      for (let task of this.build.tasks) {
+        if (task.status < BuildStatus.TEST_COMPLETED) {
+          testing_completed = false
+          break
+        }
+      }
+      return testing_completed
+    },
+    allowSignBuild () {
+      let allow_sign = true
+      for (let task of this.build.tasks) {
+        if (task.status < BuildStatus.COMPLETED) {
+          allow_sign = false
+          break
+        }
+      }
+      return allow_sign
     },
     buildTargets () {
       let targetsSet = new Set()
@@ -394,6 +502,9 @@ export default defineComponent({
     }
   },
   methods: {
+    changeStatus (task, status) {
+      if (task.status < status) task.status = status
+    },
     AddToDistribution () {
       this.loading = true
       this.$api.post(`/distro/add/${this.buildId}/${this.current_distro.label}/`)
@@ -517,6 +628,65 @@ export default defineComponent({
           })
         })
     },
+    signBuild () {
+      this.loading = true
+      let request_body = { build_id: this.buildId, sign_key_id: this.current_sign.value }
+      this.$api.post('/sign-tasks/', request_body)
+        .then(response => {
+          this.loading = false
+          this.signs = [response.data]
+          Notify.create({
+            message: `Build ${this.buildId} is queued for signing`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
+        .catch(error => {
+          this.loading = false
+          Notify.create({
+            message: error.response.data.detail,
+            type: 'negative',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })      
+    },
+    showSignLog (sign){
+      this.sign_log = true
+      axios.get(sign.log_href)
+        .then(response => {
+          this.signLogText = response.data
+        })
+    },
+    repeatSign (sign){
+      this.loading = true
+      let request_body = { build_id: this.buildId, sign_key_id: sign.sign_key.id }
+      this.$api.post('/sign-tasks/', request_body)
+        .then(response => {
+          this.loading = false
+          this.signs.push(response.data)
+          Notify.create({
+            message: `Build ${this.buildId} is queued for signing`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
+        .catch(error => {
+          this.loading = false
+          Notify.create({
+            message: error.response.data.detail,
+            type: 'negative',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
+    },
     loadBuildInfo (buildId) {
       this.reload = false
       this.linked_builds = null
@@ -535,6 +705,7 @@ export default defineComponent({
               this.loadTestsInfo(task)
             }
           })
+          this.loadSignInfo(buildId)
           if (this.build.mock_options) {
             this.mock_options = this.build.mock_options
           }
@@ -566,18 +737,18 @@ export default defineComponent({
                 tests_failed = true
                 break;
               case TestStatus.COMPLETED:
-                task.status = BuildStatus.TEST_COMPLETED
+                this.changeStatus(task, BuildStatus.TEST_COMPLETED)
                 break;
             }
           })
           if (tests_failed) {
              if (count_failed === task.test_tasks.length) {
-              task.status = BuildStatus.ALL_TESTS_FAILED
+              this.changeStatus(task, BuildStatus.ALL_TESTS_FAILED)
              } else {
-              task.status = BuildStatus.TEST_FAILED
+               this.changeStatus(task, BuildStatus.TEST_FAILED)
              }
           }
-          if (test_started) task.status = BuildStatus.TEST_STARTED
+          if (test_started) this.changeStatus(task, BuildStatus.TEST_STARTED)
         })
         .catch(error =>{
           Notify.create({
@@ -588,6 +759,17 @@ export default defineComponent({
             ]
           })
         })
+    },
+    loadSignInfo (buildId) {
+      this.$api.get(`sign-tasks/?build_id=${buildId}`)
+        .then(response => {
+          if (response.data.length) this.signs = response.data
+        })
+        .catch(error =>{})
+    },
+    signatureText (sign) {
+      let status = SignStatus.text[sign.status]
+      return `The build is ${status} with ${sign.sign_key.keyid} PGP key (${sign.sign_key.name})`
     },
     getTextStatus (task) {
       return BuildStatus.text[task.status]
@@ -684,5 +866,16 @@ export default defineComponent({
     text-overflow: ellipsis;
     overflow: hidden !important;
     width: 60px;
+  }
+
+  .log-container {
+    font-size: small;
+    overflow-y: auto;
+    padding-left: 2em;
+  }
+
+  .log-container pre {
+    white-space: pre-wrap;
+    word-break: break-all;
   }
 </style>

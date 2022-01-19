@@ -19,7 +19,7 @@
 import { defineComponent, ref } from 'vue'
 import BuildFeedItem from 'components/BuildFeedItem.vue'
 import { Loading } from 'quasar'
-import { BuildStatus, TestStatus } from 'src/constants'
+import { BuildStatus, SignStatus, TestStatus } from 'src/constants'
 
 export default defineComponent({
   name: 'BuildFeed',
@@ -85,6 +85,16 @@ export default defineComponent({
       }
       return filter
     },
+    loadSignInfo (build) {
+      this.$api.get(`sign-tasks/?build_id=${build.id}`)
+        .then(response => {
+          if (response.data.length) {
+            let signs = response.data
+            build.releaseStatus = SignStatus.text[signs[signs.length - 1].status]
+          }
+        })
+        .catch(error =>{})
+    },
     loadTestsInfo (task) {
       this.$api.get(`tests/${task.id}/latest`)
         .then(response => {
@@ -127,6 +137,7 @@ export default defineComponent({
           }, 2000)
           this.builds = response.data['builds']
           this.builds.forEach( build => {
+            this.loadSignInfo(build)
             build.tasks.forEach(task => {
               if (task.status === BuildStatus.COMPLETED) {
                 this.loadTestsInfo(task)
