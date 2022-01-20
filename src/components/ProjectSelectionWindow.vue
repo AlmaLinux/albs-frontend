@@ -16,7 +16,7 @@
                             :options="sourceTypes"
                             type="radio"
                             inline/>
-            <q-toggle class="text-grey-8 text-body1 q-pb-sm"
+            <q-toggle v-if="! moduleRefs" class="text-grey-8 text-body1 q-pb-sm"
                       v-model="modularity"
                       :label="(modularity) ? 'Modules' : 'Projects'"/>
           </div>
@@ -76,7 +76,8 @@ import { BuildTaskRefType } from '../constants.js'
 export default defineComponent({
   props: {
     buildItems: Array,
-    platformName: String
+    platformName: String,
+    moduleRefs: Boolean
   },
   data () {
     return {
