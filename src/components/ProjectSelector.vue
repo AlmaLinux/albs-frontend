@@ -22,6 +22,22 @@
             </td>
             <td v-if="buildItem.modules_yaml">
               {{ buildItem.module_name }}-{{ buildItem.module_stream }}
+              <span v-if="buildItem.module_version" class="row">version: {{ buildItem.module_version }}</span>
+              <span v-else class="row text-negative cursor-pointer" @click="onModuleVersionEditor(buildItem)">
+                version: -
+                <q-tooltip anchor="center left" self="center left"
+                          transition-show="scale" transition-hide="scale">
+                  Please select a version
+                </q-tooltip>
+              </span>
+              <span v-if="buildItem.module_platform_version" class="row">platform version: {{ buildItem.module_platform_version }}</span>
+              <span v-else class="row text-negative cursor-pointer" @click="onModuleVersionEditor(buildItem)">
+                platform version: -
+                <q-tooltip anchor="center left" self="center left"
+                          transition-show="scale" transition-hide="scale">
+                  Please select platform version
+                </q-tooltip>
+              </span>
               <q-scroll-area style="height: 200px; width: 300px">
                 <tr v-for="(moduleItem, i) in buildItem.refs" :key="moduleItem.uid">
                   <td class="no-padding">
@@ -52,6 +68,11 @@
             </td>
             <td v-else><build-ref :buildRef="buildItem"/></td>
             <td class="text-tertiary">
+              <q-btn v-if="buildItem.modules_yaml" @click="onModuleVersionEditor(buildItem)" flat small icon="edit" class="no-padding">
+                <q-tooltip>
+                  Edit module versions
+                </q-tooltip>
+              </q-btn>
               <q-btn v-if="buildItem.modules_yaml" @click="onModuleYaml(buildItem)" flat small icon="description" class="no-padding">
                 <q-tooltip>
                   View module yaml
@@ -81,6 +102,7 @@
     </div>
 
     <module-yaml ref="showModuleYaml"/>
+    <module-version-editor ref="editModuleVersion"/>
     <MockOptionsSelection ref="addMockOptions"
                           :buildMockOpts="selectedMockOptions"
                           @change="mockOptionsSelected"/>
@@ -97,6 +119,7 @@ import ProjectSelectionWindow from 'components/ProjectSelectionWindow.vue'
 import BuildRef from 'components/BuildRef.vue';
 import MockOptionsSelection from 'components/MockOptionsSelection.vue'
 import ModuleYaml from 'components/ModuleYaml.vue'
+import moduleVersionEditor from 'components/ModuleVersionEditor.vue'
 
 export default defineComponent({
   model: {
@@ -104,13 +127,15 @@ export default defineComponent({
   },
   props: {
     buildItems: Array,
-    platformName: String
+    platformName: String,
+    modularityVersions: Array
   },
   data () {
     return {
       selectedModule: null,
       selectedMockItem: undefined,
-      selectedMockOptions: {}
+      selectedMockOptions: {},
+      moduleVersion: '',
     }
   },
   methods: {
@@ -157,6 +182,9 @@ export default defineComponent({
       items.splice(idx + direction, 0, items.splice(idx, 1)[0])
       this.$emit('change', items)
     },
+    onModuleVersionEditor (moduleInfo) {
+      this.$refs.editModuleVersion.open(moduleInfo, this.modularityVersions)
+    },
     onModuleYaml (moduleInfo) {
       this.$refs.showModuleYaml.open(moduleInfo)
     },
@@ -187,6 +215,7 @@ export default defineComponent({
     MockOptionsSelection,
     BuildRef,
     ModuleYaml,
+    moduleVersionEditor
   }
 })
 </script>
