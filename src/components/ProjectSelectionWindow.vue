@@ -60,7 +60,7 @@
                :loading="moduleRefsLoading"
                @click="onSubmit">
           <template v-slot:loading>
-            <q-spinner-hourglass class="on-left" />
+            <q-spinner class="on-left" />
           </template>
         </q-btn>
       </q-card-actions>
@@ -190,7 +190,6 @@ export default defineComponent({
         return
       }
       if (this.modularity) {
-        ref.is_module = true
         this.onSubmitModule(ref)
       }
       else {
@@ -207,7 +206,7 @@ export default defineComponent({
       this.moduleRefsLoading = true
       this.$api.post('/builds/get_module_preview/', data)
         .then(response => {
-          this.$emit('projectSelected', response.data.refs)
+          this.$emit('projectSelected', response.data)
           this.moduleRefsLoading = false
           this.close()
         })
