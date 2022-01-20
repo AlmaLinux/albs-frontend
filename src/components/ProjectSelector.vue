@@ -52,6 +52,11 @@
             </td>
             <td v-else><build-ref :buildRef="buildItem"/></td>
             <td class="text-tertiary">
+              <q-btn v-if="buildItem.modules_yaml" @click="onModuleYaml(buildItem)" flat small icon="description" class="no-padding">
+                <q-tooltip>
+                  View module yaml
+                </q-tooltip>
+              </q-btn>
               <q-btn @click="onChangeMockOptions(buildItem,index)" flat small icon="settings" class="no-padding">
                 <q-tooltip>
                   Edit mock options
@@ -75,6 +80,7 @@
       </q-btn>
     </div>
 
+    <module-yaml ref="showModuleYaml"/>
     <MockOptionsSelection ref="addMockOptions"
                           :buildMockOpts="selectedMockOptions"
                           @change="mockOptionsSelected"/>
@@ -90,6 +96,7 @@ import { defineComponent } from 'vue'
 import ProjectSelectionWindow from 'components/ProjectSelectionWindow.vue'
 import BuildRef from 'components/BuildRef.vue';
 import MockOptionsSelection from 'components/MockOptionsSelection.vue'
+import ModuleYaml from 'components/ModuleYaml.vue'
 
 export default defineComponent({
   model: {
@@ -150,6 +157,9 @@ export default defineComponent({
       items.splice(idx + direction, 0, items.splice(idx, 1)[0])
       this.$emit('change', items)
     },
+    onModuleYaml (moduleInfo) {
+      this.$refs.showModuleYaml.open(moduleInfo)
+    },
     onDeleteModuleItem (moduleItem, items) {
       items.refs = items.refs.filter(el => {
         // TODO: we need a better way to check ref!
@@ -175,7 +185,8 @@ export default defineComponent({
   components: {
     ProjectSelectionWindow,
     MockOptionsSelection,
-    BuildRef
+    BuildRef,
+    ModuleYaml,
   }
 })
 </script>
