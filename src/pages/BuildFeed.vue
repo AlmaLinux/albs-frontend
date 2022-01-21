@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pl-lg q-pt-md q-pr-lg">
+  <q-page class="q-px-lg q-pt-lg">
     <div>
       <BuildFeedItem
         v-for="build in builds"

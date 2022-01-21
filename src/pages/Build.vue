@@ -142,10 +142,10 @@
                           icon="link" v-if="linked_builds">
           <q-card>
             <q-card-section v-for="linked_build in linked_builds" :key="linked_build">
-              <q-item :to="`/build/${linked_build}`">
-                <q-item-section>
-                  {{ linked_build }}
-                </q-item-section>
+              <q-item>
+                 <router-link :to="`/build/${linked_build}`">
+                  Build {{ linked_build }}
+                 </router-link>
               </q-item>
             </q-card-section>
           </q-card>
@@ -156,24 +156,24 @@
                           icon="settings" v-if="mock_options">
           <q-card>
             <q-card-section>
-              <q-item-section v-if="mock_options.with" style="font-size: 12pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.with" style="font-size: 10pt; letter-spacing: 1pt;">
                 --with '{{ mock_options.with.join(' ') }}'
               </q-item-section>
-              <q-item-section v-if="mock_options.without" style="font-size: 12pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.without" style="font-size: 10pt; letter-spacing: 1pt;">
                 --without '{{ mock_options.without.join(' ') }}'
               </q-item-section>
-              <q-item-section v-if="mock_options.target_arch" style="font-size: 12pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.target_arch" style="font-size: 10pt; letter-spacing: 1pt;">
                 --target '{{ mock_options.target_arch }}'
               </q-item-section>
-              <q-item-section v-if="mock_options.yum_exclude" style="font-size: 12pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.yum_exclude" style="font-size: 10pt; letter-spacing: 1pt;">
                 -x '{{ mock_options.yum_exclude.join(' ') }}'
               </q-item-section>
-              <q-item-section v-if="mock_options.definitions" style="font-size: 12pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.definitions" style="font-size: 10pt; letter-spacing: 1pt;">
                 <q-item-section v-for="name in Object.keys(mock_options.definitions)" :key="name">
                   --define '{{ name }} {{ mock_options.definitions[name] }}'
                 </q-item-section>
               </q-item-section>
-              <q-item-section v-if="mock_options.module_enable" style="font-size: 12pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.module_enable" style="font-size: 10pt; letter-spacing: 1pt;">
                 enabled modules : {{ mock_options.module_enable.join(' ') }}
               </q-item-section>
             </q-card-section>

@@ -26,7 +26,6 @@
     <q-drawer
       v-if="onBuildFeed"
       v-model="rightDrawerOpen"
-      show-if-above
       bordered
       class="bg-grey-1"
       side="right"
