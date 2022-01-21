@@ -81,10 +81,16 @@
                     </td>
                     <td>
                       <div
-                        v-for="pkg in getTaskPackages(task)"
+                        v-for="pkg in sortTaskPackage(getTaskPackages(task))"
                         :key="pkg.name"
                       >
-                        <a class="text-tertiary" :href="pkg.downloadUrl">
+                        <div v-if="pkgNameSrc(pkg.name)" class="q-pb-sm q-pt-md">
+                          <a class="text-tertiary" :href="pkg.downloadUrl">
+                            {{ pkg.name }}
+                          </a>
+                          <q-separator/>
+                        </div>
+                        <a v-else class="text-tertiary" :href="pkg.downloadUrl">
                           {{ pkg.name }}
                         </a>
                       </div>
@@ -833,6 +839,18 @@ export default defineComponent({
         item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}${debugSuffix}-br/Packages/${item.name[0]}/${item.name}`
         return item
       })
+    },
+    sortTaskPackage (tasks) {
+      tasks.sort((x,y) => { 
+        return x.name.indexOf('src.rpm') !== -1 ? -1 : y.name.indexOf('src.rpm') !== -1 ? 1 : 0; 
+      })
+      return tasks
+    },
+    pkgNameSrc(name) {
+      if (name.indexOf('src.rpm') === -1){
+        return false
+      }
+      return true
     }
   },
   components: {
