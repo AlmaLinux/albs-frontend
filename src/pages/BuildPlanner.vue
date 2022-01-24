@@ -9,6 +9,9 @@
               style="height: auto;"
               :error="buildPlan.platforms.length < 1" error-color="negative">
 
+        <q-checkbox left-label class="text-grey-8 text-body1 q-pb-sm"
+                    v-model="buildPlan.is_secure_boot" label="Secure Boot"/>
+
         <q-select v-model="buildPlan.platforms"
                   :options="buildPlatforms"
                   multiple
@@ -136,6 +139,7 @@ export default defineComponent({
         platforms: [],
         tasks: [],
         linked_builds: [],
+        is_secure_boot: false,
         mock_options: {}
       },
       platformArches: platformArches,
