@@ -45,6 +45,15 @@ const routes = [
             .catch(next())
         }
       },
+      {
+        path: 'release/create',
+        component: () => import('pages/CreateRelease.vue'),
+        beforeEnter (to, from, next) {
+          store.dispatch('platforms/loadPlatformList')
+          .then(next())
+          .catch(next())
+        }
+      },
       { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildItemInfo.vue'), props: true},
       {
         path: '/distro/new/',
