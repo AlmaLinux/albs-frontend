@@ -20,19 +20,27 @@
               </q-btn>
             </td>
             <td v-if="buildItem.modules_yaml">
-              {{ buildItem.module_name }}-{{ buildItem.module_stream }}
               <span class="row">
-                version: {{ buildItem.module_version }}
+                <b>Module:&nbsp;</b>{{ buildItem.module_name }}<br>
               </span>
               <span class="row">
-                platform version: {{ buildItem.module_platform_version }}
+                <b>Stream:&nbsp;</b>{{ buildItem.module_stream }}
+              </span>
+              <span v-if="buildItem.module_version" class="row">
+                <b>Custom module version:&nbsp;</b>{{ buildItem.module_version }}
+              </span>
+              <span class="row">
+                <b>Distribution:&nbsp;</b>{{ buildItem.module_platform_version }}
+              </span>
+              <span class="row">
+                <b>Packages:</b>
               </span>
               <q-scroll-area style="height: 160px; width: 300px">
                 <tr v-for="moduleItem in buildItem.refs" :key="moduleItem.uid">
                   <td :class="moduleItemExist(moduleItem) ? null : 'text-negative'">
                     <build-ref :buildRef="moduleItem"/>
                     <q-tooltip v-if="!moduleItemExist(moduleItem)">
-                      Package does not exist
+                      Ref does not exist
                     </q-tooltip>
                   </td>
                 </tr>
