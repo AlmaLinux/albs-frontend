@@ -229,12 +229,6 @@ export default defineComponent({
       }
       this.buildPlan.platforms = platforms
       let cacheTasks = JSON.parse(JSON.stringify(this.buildPlan.tasks))
-      this.buildPlan.tasks.forEach ( task => {
-        if (task.modules_yaml) {
-          delete task.module_name
-          delete task.module_stream
-        }
-      })
       this.$api.post('/builds/', this.buildPlan)
         .then((response) => {
           Notify.create({message: `Build ${response.data.id} created`, type: 'positive',
