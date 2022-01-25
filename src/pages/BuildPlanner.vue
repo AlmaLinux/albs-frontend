@@ -96,7 +96,7 @@
               error-color="negative">
         <project-selector :buildItems="buildPlan.tasks"
                           :platformName="buildPlan.platforms[0].value"
-                          :modularityVersions="modularityVersions"
+                          :modularityVersions="modularityVersions()"
                           @change="value => { buildPlan.tasks = value }"/>
       </q-step>
 
@@ -128,10 +128,8 @@ export default defineComponent({
   name: 'BuildPlanner',
   data () {
     let platformArches = {}
-    let modularityVersions = []
     for (const platform of this.$store.state.platforms.platforms) {
       platformArches[platform.name] = platform.arch_list
-      modularityVersions = platform.modularity.versions
     }
     return {
       buildPlan: {
@@ -145,8 +143,7 @@ export default defineComponent({
       linked_builds_input: '',
       loading: false,
       mock_options: false,
-      modularity: false,
-      modularityVersions: modularityVersions
+      modularity: false
     }
   },
   computed: {
@@ -161,7 +158,7 @@ export default defineComponent({
     },
     buildPlatforms () {
       return this.$store.state.platforms.platforms.map(platform => {
-        return {label: platform.name, value: platform.name, description: platform.arch_list.join(', '), archList: platform.arch_list}
+        return {label: platform.name, value: platform.name, description: platform.arch_list.join(', '), archList: platform.arch_list, modularityVersions: platform.modularity.versions }
       })
     }
   },
@@ -216,9 +213,15 @@ export default defineComponent({
     onPreviousStep () {
       this.$refs.buildWizzard.previous()
     },
+    modularityVersions (){
+      if (this.buildPlan.platforms[0].modularityVersions) {
+        return this.buildPlan.platforms[0].modularityVersions.map (version => {
+          return version.name
+        })
+      }
+    },
     createBuild () {
       this.loading = true
-      let err = false
       let platforms = []
       let cachePlatforms = this.buildPlan.platforms
       for (let platform of this.buildPlan.platforms) {
@@ -230,32 +233,22 @@ export default defineComponent({
         if (task.modules_yaml) {
           delete task.module_name
           delete task.module_stream
-
-          if (!task.module_version || !task.module_platform_version) err = true
         }
       })
-      if (err){
-        this.buildPlan.platforms = cachePlatforms
-        this.buildPlan.tasks = cacheTasks
-        Notify.create({message: 'Please select module versions', type: 'negative',
+      this.$api.post('/builds/', this.buildPlan)
+        .then((response) => {
+          Notify.create({message: `Build ${response.data.id} created`, type: 'positive',
             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
-        this.loading = false
-      } else {
-        this.$api.post('/builds/', this.buildPlan)
-          .then((response) => {
-            Notify.create({message: `Build ${response.data.id} created`, type: 'positive',
-              actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
-            this.loading = false
-            this.$router.push('/')
-          })
-          .catch((error) => {
-            this.buildPlan.platforms = cachePlatforms
-            this.buildPlan.tasks = cacheTasks
-            Notify.create({message: 'Unable to create a build', type: 'negative',
-              actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
-            this.loading = false
-          })
-      }
+          this.loading = false
+          this.$router.push('/')
+        })
+        .catch((error) => {
+          this.buildPlan.platforms = cachePlatforms
+          this.buildPlan.tasks = cacheTasks
+          Notify.create({message: 'Unable to create a build', type: 'negative',
+            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+          this.loading = false
+        })
     }
   },
   components: {

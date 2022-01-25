@@ -2,11 +2,11 @@
   <q-dialog position="top"
             :content-css="{minWidth: '35vw'}"
             v-model="opened">          
-    <q-card style="width: 450px; max-height: 650px; max-width: 80vw;">
+    <q-card style="width: 400px; max-height: 750px; max-width: 80vw;">
       <q-card-section>
         <div class="text-h6">{{ moduleInfo.module_name }}-{{ moduleInfo.module_stream }}</div>
       </q-card-section>
-        <div class="q-gutter-y-md" style="max-width: 900px">
+        <div>
           <q-tabs
             v-model="tab"
             class="text-primary"
@@ -21,7 +21,7 @@
                 <div class="row justify-center">
                   <table class="q-table">
                     <tbody>
-                    <q-scroll-area style="height: 36vw;" class="row">
+                    <q-scroll-area style="height: 27vw;" class="row">
                       <tr v-for="(moduleItem, index) in moduleInfo.refs" :key="moduleItem.uid">
                         <td class="no-padding">
                           <q-btn @click="onMoveModuleItemUp(moduleItem)"
@@ -52,33 +52,33 @@
                         </td>
                       </tr>
                     </q-scroll-area>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="group row justify-end">
-                  <q-btn @click="onAddRef" icon="add" color="secondary">
-                    Add ref
-                  </q-btn>
-                </div>
-              </q-card-section>
+                  </tbody>
+                </table>
+              </div>
+              <div class="group row justify-end">
+                <q-btn @click="onAddRef" icon="add" color="secondary">
+                  Add ref
+                </q-btn>
+              </div>
+            </q-card-section>
 
-              <project-selection-window ref="addRefWindow"
+            <project-selection-window ref="addRefWindow"
                                 :buildItems="moduleInfo.refs"
                                 :platformName="platformName"
                                 :moduleRefs="true"
                                 @projectSelected="addProjectToModule"/>
-            </q-tab-panel>
+          </q-tab-panel>
 
-            <q-tab-panel name="versions">
-              <q-card-section class="q-pt-none">
-                <div>
-                  <q-input v-model="moduleInfo.module_version" label="Module version" />
-                  <q-select v-model="moduleInfo.module_platform_version" :options="options" label="Module platform version" />
-                </div>
-              </q-card-section>
-            </q-tab-panel>
-          </q-tab-panels>
-        </div>
+          <q-tab-panel name="versions">
+            <q-card-section class="q-pt-none">
+              <div>
+                <q-input v-model="moduleInfo.module_version" label="Module version" />
+                <q-select v-model="moduleInfo.module_platform_version" :options="options" label="Module platform version" />
+              </div>
+            </q-card-section>
+          </q-tab-panel>
+        </q-tab-panels>
+      </div>
       <q-card-actions align="right">
         <q-btn label="ok" color="primary" v-close-popup />
       </q-card-actions>
@@ -108,10 +108,7 @@ export default defineComponent({
       this.tab = tab
       this.opened = true
       this.moduleInfo = moduleInfo
-      this.options = []
-      modularityVersions.forEach(version => {
-        this.options.push(version.name)
-      });
+      this.options = modularityVersions
     },
     close () {
       this.opened = false

@@ -21,21 +21,11 @@
             </td>
             <td v-if="buildItem.modules_yaml">
               {{ buildItem.module_name }}-{{ buildItem.module_stream }}
-              <span v-if="buildItem.module_version" class="row">version: {{ buildItem.module_version }}</span>
-              <span v-else class="row text-negative cursor-pointer" @click="onModuleEditor(buildItem, 'versions')">
-                version: -
-                <q-tooltip anchor="center left" self="center left"
-                          transition-show="scale" transition-hide="scale">
-                  Please select a version
-                </q-tooltip>
+              <span class="row">
+                version: {{ buildItem.module_version }}
               </span>
-              <span v-if="buildItem.module_platform_version" class="row">platform version: {{ buildItem.module_platform_version }}</span>
-              <span v-else class="row text-negative cursor-pointer" @click="onModuleEditor(buildItem, 'versions')">
-                platform version: -
-                <q-tooltip anchor="center left" self="center left"
-                          transition-show="scale" transition-hide="scale">
-                  Please select platform version
-                </q-tooltip>
+              <span class="row">
+                platform version: {{ buildItem.module_platform_version }}
               </span>
               <q-scroll-area style="height: 160px; width: 300px">
                 <tr v-for="moduleItem in buildItem.refs" :key="moduleItem.uid">
@@ -123,6 +113,9 @@ export default defineComponent({
   },
   methods: {
     addProjectToBuild (buildItem) {
+      if (buildItem.modules_yaml) {
+        buildItem.module_platform_version = this.modularityVersions[this.modularityVersions.length - 1]
+      }
       this.$emit('change', [...this.buildItems, buildItem])
     },
     onAddProject () {
