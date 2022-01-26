@@ -9,10 +9,6 @@
               style="height: auto;"
               :error="buildPlan.platforms.length < 1" error-color="negative">
 
-        <q-checkbox :disable="buildPlan.tasks.length ? true : false"
-                    left-label class="text-grey-8 text-body1 q-pb-sm"
-                    v-model="modularity" label="Modularity" />
-
         <q-select v-model="buildPlan.platforms"
                   :options="buildPlatforms"
                   multiple
@@ -95,18 +91,13 @@
         </q-expansion-item>
       </q-step>
 
-      <q-step v-if="modularity" name="selectModules" :disable="buildPlan.platforms.length < 1"
-              title="Select modules" :error="buildPlan.tasks.length < 1"
-              error-color="negative">
-        <module-selector :buildItems="buildPlan.tasks"
-                    @change="value => { buildPlan.tasks = value }"/>
-      </q-step>
-
-      <q-step v-else name="selectProjects" :disable="buildPlan.platforms.length < 1"
+      <q-step name="selectProjects" :disable="buildPlan.platforms.length < 1"
               title="Select projects" :error="buildPlan.tasks.length < 1"
               error-color="negative">
         <project-selector :buildItems="buildPlan.tasks"
-                         @change="value => { buildPlan.tasks = value }"/>
+                          :platformName="buildPlan.platforms[0].value"
+                          :modularityVersions="modularityVersions()"
+                          @change="value => { buildPlan.tasks = value }"/>
       </q-step>
 
       <template v-slot:navigation>
@@ -131,7 +122,6 @@
 import { defineComponent } from 'vue'
 import {Loading, Notify} from 'quasar'
 import ProjectSelector from 'components/ProjectSelector.vue'
-import ModuleSelector from 'components/ModuleSelector.vue'
 import MockOptionsSelection from 'components/MockOptionsSelection.vue'
 
 export default defineComponent({
@@ -168,13 +158,13 @@ export default defineComponent({
     },
     buildPlatforms () {
       return this.$store.state.platforms.platforms.map(platform => {
-        return {label: platform.name, value: platform.name, description: platform.arch_list.join(', '), archList: platform.arch_list}
+        return {label: platform.name, value: platform.name, description: platform.arch_list.join(', '), archList: platform.arch_list, modularityVersions: platform.modularity.versions }
       })
     }
   },
   methods: {
     onAddMockOptions () {
-      this.$refs.addMockOptions.open()
+      this.$refs.addMockOptions.open(this.buildPlan.mock_options)
     },
     addLinkedBuilds () {
       let inputs = this.linked_builds_input.split(' ')
@@ -223,6 +213,13 @@ export default defineComponent({
     onPreviousStep () {
       this.$refs.buildWizzard.previous()
     },
+    modularityVersions (){
+      if (this.buildPlan.platforms[0].modularityVersions) {
+        return this.buildPlan.platforms[0].modularityVersions.map (version => {
+          return version.name
+        })
+      }
+    },
     createBuild () {
       this.loading = true
       let platforms = []
@@ -231,6 +228,7 @@ export default defineComponent({
         platforms.push({name: platform.value, arch_list: this.platformArches[platform.value]})
       }
       this.buildPlan.platforms = platforms
+      let cacheTasks = JSON.parse(JSON.stringify(this.buildPlan.tasks))
       this.$api.post('/builds/', this.buildPlan)
         .then((response) => {
           Notify.create({message: `Build ${response.data.id} created`, type: 'positive',
@@ -240,6 +238,7 @@ export default defineComponent({
         })
         .catch((error) => {
           this.buildPlan.platforms = cachePlatforms
+          this.buildPlan.tasks = cacheTasks
           Notify.create({message: 'Unable to create a build', type: 'negative',
             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
           this.loading = false
@@ -248,8 +247,7 @@ export default defineComponent({
   },
   components: {
     ProjectSelector,
-    MockOptionsSelection,
-    ModuleSelector
+    MockOptionsSelection
   }
 })
 </script>
