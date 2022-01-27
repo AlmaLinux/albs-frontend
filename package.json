@@ -14,18 +14,18 @@
   },
   "dependencies": {
     "@quasar/cli": "^1.2.2",
-    "@quasar/extras": "^1.12.2",
+    "@quasar/extras": "^1.12.4",
     "axios": "^0.24.0",
     "core-js": "^3.19.3",
     "quasar": "^2.3.4",
     "vuex": "^4.0.1"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.16.3",
+    "@babel/eslint-parser": "^7.16.5",
     "@quasar/app": "^3.2.9",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-vue": "^8.2.0",
+    "eslint-plugin-vue": "^8.4.0",
     "eslint-webpack-plugin": "^3.1.1"
   },
   "browserslist": [
