@@ -47,7 +47,7 @@
         <q-list v-if="buildPlan.linked_builds.length" style="min-width: 250px; max-width: 300px;">
           <q-item v-for="linkedBuild in buildPlan.linked_builds" :key="linkedBuild">
             <q-item-section>
-              <router-link :to="`/build/${linkedBuild}`">
+              <router-link :to="`/build/${linkedBuild}`" target="_blank">
                 {{ linkedBuild }}
               </router-link>
             </q-item-section>
