@@ -110,7 +110,13 @@
             </table>
           </q-tab-panel>
         </q-tab-panels>
+      </q-card-section>
 
+      <q-card-section v-if="build.tasks[0].is_secure_boot">
+        <q-chip>
+          <q-avatar icon="shield" color="primary" text-color="white"/>
+          Secure boot build
+        </q-chip>
       </q-card-section>
 
       <q-card-section>
