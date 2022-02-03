@@ -733,44 +733,31 @@ export default defineComponent({
         })
     },
     loadTestsInfo (task) {
-      this.$api.get(`tests/${task.id}/latest`)
-        .then(response => {
-          task["test_tasks"] = response.data
-          let count_failed = 0
-          let tests_failed = false
-          let test_started = false
-          task.test_tasks.forEach(test => {
-            switch (test.status) {
-              case TestStatus.STARTED:
-                test_started = true
-                break;
-              case TestStatus.FAILED:
-                count_failed += 1
-                tests_failed = true
-                break;
-              case TestStatus.COMPLETED:
-                this.changeStatus(task, BuildStatus.TEST_COMPLETED)
-                break;
-            }
-          })
-          if (tests_failed) {
-             if (count_failed === task.test_tasks.length) {
-              this.changeStatus(task, BuildStatus.ALL_TESTS_FAILED)
-             } else {
-               this.changeStatus(task, BuildStatus.TEST_FAILED)
-             }
-          }
-          if (test_started) this.changeStatus(task, BuildStatus.TEST_STARTED)
-        })
-        .catch(error =>{
-          Notify.create({
-            message: `Failed to load test_task for task ${task.id}`,
-            type: 'negative',
-            actions: [
-              { label: 'Dismiss', color: 'white', handler: () => {} }
-            ]
-          })
-        })
+      let count_failed = 0
+      let tests_failed = false
+      let test_started = false
+      task.test_tasks.forEach(test => {
+        switch (test.status) {
+          case TestStatus.STARTED:
+            test_started = true
+            break;
+          case TestStatus.FAILED:
+            count_failed += 1
+            tests_failed = true
+            break;
+          case TestStatus.COMPLETED:
+            task.status = BuildStatus.TEST_COMPLETED
+            break;
+        }
+      })
+      if (tests_failed) {
+         if (count_failed === task.test_tasks.length) {
+          task.status = BuildStatus.ALL_TESTS_FAILED
+         } else {
+          task.status = BuildStatus.TEST_FAILED
+         }
+      }
+      if (test_started) task.status = BuildStatus.TEST_STARTED
     },
     loadSignInfo (buildId) {
       this.$api.get(`sign-tasks/?build_id=${buildId}`)

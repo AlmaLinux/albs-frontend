@@ -86,45 +86,37 @@ export default defineComponent({
       return filter
     },
     loadSignInfo (build) {
-      this.$api.get(`sign-tasks/?build_id=${build.id}`)
-        .then(response => {
-          if (response.data.length) {
-            let signs = response.data
-            build.releaseStatus = SignStatus.text[signs[signs.length - 1].status]
-          }
-        })
-        .catch(error =>{})
+      if (build.sign_tasks.length) {
+        let signs = build.sign_tasks
+        build.releaseStatus = SignStatus.text[signs[signs.length - 1].status]
+      }
     },
     loadTestsInfo (task) {
-      this.$api.get(`tests/${task.id}/latest`)
-        .then(response => {
-          task["test_tasks"] = response.data
-          let count_failed = 0
-          let tests_failed = false
-          let test_started = false
-          task.test_tasks.forEach(test => {
-            switch (test.status) {
-              case TestStatus.STARTED:
-                test_started = true
-                break;
-              case TestStatus.FAILED:
-                count_failed += 1
-                tests_failed = true
-                break;
-              case TestStatus.COMPLETED:
-                task.status = BuildStatus.TEST_COMPLETED
-                break;
-            }
-          })
-          if (tests_failed) {
-             if (count_failed === task.test_tasks.length) {
-              task.status = BuildStatus.ALL_TESTS_FAILED
-             } else {
-              task.status = BuildStatus.TEST_FAILED
-             }
-          }
-          if (test_started) task.status = BuildStatus.TEST_STARTED
-        })
+      let count_failed = 0
+      let tests_failed = false
+      let test_started = false
+      task.test_tasks.forEach(test => {
+        switch (test.status) {
+          case TestStatus.STARTED:
+            test_started = true
+            break;
+          case TestStatus.FAILED:
+            count_failed += 1
+            tests_failed = true
+            break;
+          case TestStatus.COMPLETED:
+            task.status = BuildStatus.TEST_COMPLETED
+            break;
+        }
+      })
+      if (tests_failed) {
+         if (count_failed === task.test_tasks.length) {
+          task.status = BuildStatus.ALL_TESTS_FAILED
+         } else {
+          task.status = BuildStatus.TEST_FAILED
+         }
+      }
+      if (test_started) task.status = BuildStatus.TEST_STARTED
     },
     loadFeedPage () {
       this.loading = true
