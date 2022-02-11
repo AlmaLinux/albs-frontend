@@ -46,6 +46,10 @@ const routes = [
         }
       },
       {
+        path: 'release-feed',
+        component: () => import('pages/ReleaseFeed.vue')
+      },
+      {
         path: 'release/create',
         component: () => import('pages/CreateRelease.vue'),
         beforeEnter (to, from, next) {
