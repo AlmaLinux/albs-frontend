@@ -707,10 +707,6 @@ export default defineComponent({
       Loading.show()
       this.$api.get(`/builds/${buildId}/`)
         .then(response => {
-          setTimeout(() => {
-            Loading.hide()
-            this.buildLoad = false
-          }, 2000)
           this.build = response.data
           this.build.tasks.forEach(task => {
             if (task.status === BuildStatus.COMPLETED) {
@@ -724,6 +720,8 @@ export default defineComponent({
           if (this.build.linked_builds.length) {
             this.linked_builds = this.build.linked_builds
           }
+          Loading.hide()
+          this.buildLoad = false
           this.reload = true
         })
         .catch(error => {
