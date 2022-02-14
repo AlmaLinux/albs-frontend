@@ -43,7 +43,6 @@ export default defineComponent({
       set (value) {
         this.loading = true
         this.$store.commit('buildsFeed/setPageNumber', value)
-        this.loadFeedPage()
       }
     }
   },
@@ -123,10 +122,6 @@ export default defineComponent({
       Loading.show()
       this.$api.get(`/builds/`, {params: this.buildFeedQuery})
         .then(response => {
-          setTimeout(() => {
-            Loading.hide()
-            this.loading = false
-          }, 2000)
           this.builds = response.data['builds']
           this.builds.forEach( build => {
             this.loadSignInfo(build)
@@ -137,6 +132,8 @@ export default defineComponent({
             })
           })
           this.totalPages = Math.ceil(response.data['total_builds'] / 10)
+          Loading.hide()
+          this.loading = false
         })
         .catch(error => {
           this.loading = false
