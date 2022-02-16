@@ -66,18 +66,13 @@ export default defineComponent({
         },
         loadFeedPage () {
             this.loading = true
-            //Loading.show()
             this.$api.get(`/releases/`)
                 .then(response => {
-                setTimeout(() => {
-                    //Loading.hide()
                     this.loading = false
-                }, 2000)
-                this.releases = response.data.reverse()
+                    this.releases = response.data.reverse()
                 })
             .catch(error => {
                 this.loading = false
-                //Loading.hide()
                 // TODO: add error here
             })
         },

@@ -130,7 +130,7 @@ export default defineComponent({
             this.releaseId = data.id
             this.orig_repos = data.plan.repositories
             this.packagesLocation = []
-            for(const item of packages) {
+            for (const item of packages) {
                 let pack = item.package
                 pack.trustRepos = item.repositories
                 pack.nevra = this.nevra(pack)

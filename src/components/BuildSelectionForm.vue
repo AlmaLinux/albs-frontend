@@ -99,7 +99,7 @@
                         <template v-slot:body="props">
                             <q-tr :props="props">
                                 <q-td auto-width>
-                                    <q-toggle v-model="props.row.selected" @click="jopa(props.row, activeBuild)"/>
+                                    <q-toggle v-model="props.row.selected" @click="selectProject(activeBuild)"/>
                                 </q-td>
                                 <q-td key="label" :props="props" >
                                     <build-ref :buildRef="props.row.ref" />
@@ -153,8 +153,7 @@ export default defineComponent({
         }
     },
     methods: {
-        // TODO: rename jopa
-        jopa (row, active) {
+        selectProject (active) {
             active.selected = []
             active.options.forEach( opt =>{
                 if (opt.selected) active.selected.push(opt)
