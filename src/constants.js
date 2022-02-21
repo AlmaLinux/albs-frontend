@@ -67,6 +67,25 @@ const TestStatus = {
   }
 }
 
+const TestTapStatus = {
+  FAILED: 1,
+  DONE: 2,
+  TODO: 3,
+  SKIPPED: 4,
+  text: {
+    1: 'failed',
+    2: 'done',
+    3: 'todo',
+    4: 'skipped'
+  },
+  color: {
+    1: 'negative',
+    2: 'green',
+    3: 'primary',
+    4: 'warning'
+  }
+}
+
 const SignStatus = {
   QUEUED: 1,
   STARTED: 2,
@@ -102,6 +121,7 @@ export {
   BuildStatus,
   BuildTaskRefType,
   TestStatus,
+  TestTapStatus,
   SignStatus,
   ReleaseStatus
 }

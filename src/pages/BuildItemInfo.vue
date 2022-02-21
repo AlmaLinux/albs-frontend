@@ -1,5 +1,5 @@
 <template>
-    <div class="text-left bg-grey-2 shadow-2" style="padding-left: 3em;">
+    <div class="text-left bg-grey-2 shadow-2" style="padding-left: 5em;">
         <p class="text-dark" style="font-size: 25px">
               {{`${project_name} ${arch}`}}
         </p>
@@ -18,8 +18,7 @@
         </q-tab-panel>
 
         <q-tab-panel name="test-tab">
-            <test-logs :buildId="buildId"
-                       :taskId="taskId">
+            <test-logs :taskId="taskId">
             </test-logs>
         </q-tab-panel>
     </q-tab-panels>

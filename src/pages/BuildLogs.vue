@@ -63,6 +63,7 @@ import axios from 'axios'
 import { exportFile } from 'quasar'
 import { defineComponent } from 'vue'
 import BuildLogLink from 'components/BuildLogLink.vue'
+import { Loading } from 'quasar'
 
 export default defineComponent({
   data () {
@@ -110,9 +111,11 @@ export default defineComponent({
       return this.logs.filter(artifact => regex.test(artifact.name))
     },
     loadLogsList () {
+      Loading.show()
       this.$api.get(`/builds/${this.buildId}/`)
         .then(response => {
           this.build = response.data
+          Loading.hide()
         })
     },
     onDownload (artifact) {
