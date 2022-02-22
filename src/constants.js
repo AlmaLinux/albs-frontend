@@ -80,9 +80,28 @@ const SignStatus = {
   }
 }
 
-export { 
+const ReleaseStatus = {
+  SCHEDULED: 1,
+  IN_PROGRESS: 2,
+  COMPLETED: 3,
+  FAILED: 4,
+  text: {
+    1: 'release scheduled',
+    2: 'release in progress',
+    3: 'release completed',
+    4: 'release failed'
+  },
+  color: {
+    1: 'faded',
+    2: 'faded',
+    3: 'primary',
+    4: 'negative'
+  }
+}
+export {
   BuildStatus,
   BuildTaskRefType,
   TestStatus,
-  SignStatus
+  SignStatus,
+  ReleaseStatus
 }
