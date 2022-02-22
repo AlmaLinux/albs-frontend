@@ -14,14 +14,14 @@
   },
   "dependencies": {
     "@quasar/cli": "^1.2.2",
-    "@quasar/extras": "^1.12.4",
-    "axios": "^0.25.0",
+    "@quasar/extras": "^1.12.5",
+    "axios": "^0.26.0",
     "core-js": "^3.20.3",
     "quasar": "^2.4.13",
     "vuex": "^4.0.1"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.16.5",
+    "@babel/eslint-parser": "^7.17.0",
     "@quasar/app": "^3.2.9",
     "eslint": "^8.7.0",
     "eslint-config-prettier": "^8.1.0",
