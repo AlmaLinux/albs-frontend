@@ -25,7 +25,7 @@
             <q-input v-model="textValue" label="Enter Build ID or Build link" style="width: 280px"
                     dense @keydown.enter.prevent="parseBuildId(textValue)">
                 <template v-slot:after>
-                    <q-btn round dense flat color="primary" icon="add" @click="parseBuildId(textValue)"/>
+                    <q-btn round dense flat color="primary" icon="add" @click="parseBuildId(textValue)" :loading="loading"/>
                 </template>
             </q-input>
         </div>
@@ -142,6 +142,7 @@ export default defineComponent({
     label: '',
     align: 'left',
     field: row => row.label,
+    loading: false
   }],
         }
     },
@@ -187,8 +188,12 @@ export default defineComponent({
                 })
                 return
             }
+            if (this.loading) return
+            
+            this.loading = true
             this.$api.get(`/builds/${buildId}/`)
                 .then(response => {
+                    this.loading = false
                     let build = response.data
                     this.uniqueBuildsId.add(+buildId)
                     
@@ -262,6 +267,7 @@ export default defineComponent({
                     this.textValue = ''
                 })
                 .catch(error => {
+                    this.loading = false
                     console.log(error)
                     if (error.response.status === 404) {
                         Notify.create({
