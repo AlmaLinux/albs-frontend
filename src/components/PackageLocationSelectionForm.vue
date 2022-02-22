@@ -100,10 +100,10 @@ export default defineComponent({
                 { name: 'i686', label: 'i686', field: 'i686', align: 'center' },
                 { name: 'x86_64', label: 'x86_64', field: 'x86_64', align: 'center' },
                 { name: 'aarch64', label: 'aarch64', field: 'aarch64', align: 'center' },
-                { name: 'ppcl64le', label: 'ppcl64le', field: 'ppcl64le', align: 'center' },
+                { name: 'ppc64le', label: 'ppc64le', field: 'ppc64le', align: 'center' },
                 { name: 'button', label: '', field: 'button', align: 'center'}
             ],
-            archs: ['src', 'i686', 'x86_64', 'aarch64', 'ppcl64le'],
+            archs: ['src', 'i686', 'x86_64', 'aarch64', 'ppc64le'],
             filter: '',
             loadingTable: true,
             packagesLocation: [],
@@ -141,7 +141,7 @@ export default defineComponent({
                         pack.i686 = true
                         pack.x86_64 = true
                         pack.aarch64 = true
-                        pack.ppcl64le = true
+                        pack.ppc64le = true
                         break;
                     case 'i686':
                         pack.i686 = true
