@@ -39,6 +39,11 @@
                 <q-tr :props="props">
                     <q-td key="nevra" :props="props">
                         {{ props.row.nevra }}
+                        <q-badge v-if="props.row.presenceInRepos" color="yellow">
+                            <q-tooltip>
+                                This package exists in {{ props.row.presenceInRepos }} repos
+                            </q-tooltip>
+                        </q-badge>
                     </q-td>
                     <q-td key="destination" :props="props">
                         <q-select v-model="props.row.destination" dense
@@ -134,6 +139,14 @@ export default defineComponent({
                 let pack = item.package
                 pack.trustRepos = item.repositories
                 pack.nevra = this.nevra(pack)
+                let existingRepoIds = data.plan.existing_packages[pack.full_name]
+                if (existingRepoIds !== undefined) {
+                    pack.presenceInRepos = this.orig_repos.map(repo => {
+                        if (existingRepoIds.includes(repo.id)) {
+                            return `${repo.name}-${repo.debug ? 'debug-': ''}${repo.arch}`
+                        }
+                    }).filter(value => value !== undefined).join(', ')
+                }
                 pack.destinationOptions = this.reposOptions(data.plan.repositories, pack.arch)
                 this.beholderRepo(item)
                 switch (pack.arch) {
