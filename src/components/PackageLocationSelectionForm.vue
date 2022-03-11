@@ -134,6 +134,7 @@ export default defineComponent({
             let packages = data.plan.packages
             this.releaseId = data.id
             this.orig_repos = data.plan.repositories
+            this.modules = data.plan.modules
             this.packagesLocation = []
             for (const item of packages) {
                 let pack = item.package
@@ -233,6 +234,7 @@ export default defineComponent({
         getPlan() {
             let plan = {
                 packages: [],
+                modules: this.modules,
                 repositories: this.orig_repos
             }
             this.packagesLocation.forEach(packLocation => {
