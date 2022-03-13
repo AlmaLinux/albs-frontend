@@ -44,6 +44,14 @@
                     </q-tooltip>
                   </td>
                 </tr>
+                <tr v-for="excludedComponent in buildItem.excluded_components" :key="excludedComponent">
+                  <td class="text-negative">
+                    <build-ref :buildRef="excludedComponent"/>
+                    <q-tooltip>
+                      Package not updated
+                    </q-tooltip>
+                  </td>
+                </tr>
               </q-scroll-area>
             </td>
             <td v-else><build-ref :buildRef="buildItem"/></td>
@@ -90,6 +98,7 @@
     <ProjectSelectionWindow ref="addProjectWindow"
                             :buildItems="buildItems"
                             :platformName="platformName"
+                            :platformArches="platformArches"
                             @projectSelected="addProjectToBuild"/>
   </div>
 </template>
@@ -109,6 +118,7 @@ export default defineComponent({
   props: {
     buildItems: Array,
     platformName: String,
+    platformArches: Object,
     modularityVersions: Array
   },
   data () {
