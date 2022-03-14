@@ -29,7 +29,7 @@
                     <td class="text-left">
                         <template v-for="project in getProjects(release.plan)" :key="project.name">
                             <span class="text-weight-small text-primary">{{project.name}}</span>
-                            <span class="text-grey-8"> #{{project.version}}.{{project.release}}</span>
+                            <span class="text-grey-8"> #{{project.version}}-{{project.release}}</span>
                             <br/>
                         </template>
                     </td>
