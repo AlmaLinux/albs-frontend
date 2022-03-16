@@ -41,7 +41,7 @@
                         {{ props.row.nevra }}
                         <q-badge v-if="props.row.takenFromRepo" color="yellow">
                             <q-tooltip>
-                                This package taken from "{{ props.row.takenFromRepo }}" repo
+                                This package will be taken from "{{ props.row.takenFromRepo }}" repo
                             </q-tooltip>
                         </q-badge>
                     </q-td>
