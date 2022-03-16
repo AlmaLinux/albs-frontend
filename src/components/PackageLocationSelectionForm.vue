@@ -7,6 +7,8 @@
         row-key="id"
         color="primary"
         :loading="loadingTable"
+        hide-pagination
+        :rows-per-page-options=[0]
         :filter="filter"
         >
             <template v-slot:top-right="props">
@@ -123,7 +125,6 @@ export default defineComponent({
     methods: {
         tableFullScreen(props){
             props.toggleFullscreen()
-            props.inFullscreen ? props.pagination.rowsPerPage = 7 : props.pagination.rowsPerPage = 0
         },
         nevra (pack) {
             return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
