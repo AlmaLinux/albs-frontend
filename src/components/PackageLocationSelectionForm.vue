@@ -55,6 +55,9 @@
                             transition-hide="scale">
                         </q-select>
                     </q-td>
+                    <q-td key="force" :props="props">
+                        <q-checkbox v-model="props.row.force" size="xs"/>
+                    </q-td>
                     <q-td key="trustness" :props="props">
                         <q-badge v-if="viewOnly" color="grey" />
                         <q-badge v-else :color="trustness(props.row) ? 'green': 'negative'" />
@@ -102,6 +105,7 @@ export default defineComponent({
                     sortable: true
                 },
                 { name: 'destination', align: 'left', label: 'Destination(s)', field: 'destination' },
+                { name: 'force', align: 'center', label: 'Force', field: 'force' },
                 { name: 'trustness', label: 'Trustness', field: 'trustness', align: 'center', sortable: true },
                 { name: 'src', label: 'src', field: 'src', align: 'center' },
                 { name: 'i686', label: 'i686', field: 'i686', align: 'center' },
@@ -246,6 +250,7 @@ export default defineComponent({
                     epoch: packLocation.epoch,
                     full_name: packLocation.full_name,
                     name: packLocation.name,
+                    force: packLocation.force,
                     release: packLocation.release,
                     version: packLocation.version
                 }
