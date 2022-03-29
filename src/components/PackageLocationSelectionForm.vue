@@ -38,24 +38,31 @@
                 </div>
             </template>
             <template v-slot:header="props">
-        <q-tr :props="props">
-          <q-th
-            v-for="col in props.cols"
-            :key="col.name"
-            :props="props"
-          >
-          <q-checkbox v-if="col.name === 'force'" v-model="forceAll" :disable="viewOnly" size="xs" @click="selectForceAll" />
-            {{ col.label }}
-          </q-th>
-        </q-tr>
-      </template>
+                <q-tr :props="props">
+                <q-th v-for="col in props.cols"
+                      :key="col.name" :props="props">
+                <q-checkbox v-if="col.name === 'force'"
+                            v-model="forceAll" :disable="viewOnly"
+                            size="xs" @click="selectForceAll"/>
+                    {{ col.label }}
+                </q-th>
+                </q-tr>
+            </template>
             <template v-slot:body="props">
                 <q-tr :props="props">
                     <q-td key="nevra" :props="props">
                         {{ props.row.nevra }}
-                        <q-badge v-if="props.row.takenFromRepo" color="yellow">
+                        <q-badge v-if="props.row.takenFromRepo || props.row.pkgInRepos" color="yellow">
                             <q-tooltip>
-                                This package will be taken from "{{ props.row.takenFromRepo }}" repo
+                                <span v-if="props.row.takenFromRepo">
+                                    This package will be taken from "{{ props.row.takenFromRepo }}" repo<br>
+                                </span>
+                                <span v-if="props.row.pkgInRepos">
+                                    This package exists in the following repos:<br>
+                                    <ul v-for="repo in props.row.pkgInRepos" :key="repo">
+                                        <li>{{ repo }}</li>
+                                    </ul>
+                                </span>
                             </q-tooltip>
                         </q-badge>
                     </q-td>
@@ -159,6 +166,7 @@ export default defineComponent({
                 let pack = item.package
                 pack.trustRepos = item.repositories
                 pack.nevra = this.nevra(pack)
+                let pkgInRepos = data.plan.packages_in_repos[pack.full_name]
                 let repoId = data.plan.packages_from_repos[pack.full_name]
                 if (repoId !== undefined) {
                     pack.takenFromRepo = this.orig_repos.map(repo => {
@@ -166,6 +174,13 @@ export default defineComponent({
                             return `${repo.name}-${repo.debug ? 'debug-': ''}${repo.arch}`
                         }
                     }).filter(value => value !== undefined).join()
+                }
+                if (pkgInRepos !== undefined) {
+                    pack.pkgInRepos = [...this.orig_repos.map(repo => {
+                        if (pkgInRepos.includes(repo.id)) {
+                            return `${repo.name}-${repo.debug ? 'debug-': ''}${repo.arch}`
+                        }
+                    }).filter(value => value !== undefined)]
                 }
                 pack.destinationOptions = this.reposOptions(data.plan.repositories, pack.arch)
                 this.beholderRepo(item)
@@ -286,6 +301,7 @@ export default defineComponent({
                 let pack = {
                     arch: packLocation.arch,
                     artifact_href: packLocation.artifact_href,
+                    href_from_repo: packLocation.href_from_repo,
                     epoch: packLocation.epoch,
                     full_name: packLocation.full_name,
                     name: packLocation.name,
