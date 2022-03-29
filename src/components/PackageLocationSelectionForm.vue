@@ -41,8 +41,8 @@
                 <q-tr :props="props">
                 <q-th v-for="col in props.cols"
                       :key="col.name" :props="props">
-                <q-checkbox v-if="col.name === 'force'"
-                            v-model="forceAll" :disable="viewOnly"
+                <q-checkbox v-if="col.name === 'force' && !viewOnly"
+                            v-model="forceAll" :disable="loadingTable"
                             size="xs" @click="selectForceAll"/>
                     {{ col.label }}
                 </q-th>
@@ -244,12 +244,16 @@ export default defineComponent({
             })
         },
         selectForceAll (){
+            if (this.viewOnly) return
+
             this.forceAll ? this.selected = this.packagesLocation : this.selected = []
             this.packagesLocation.forEach (pack => {
                 pack.force = this.forceAll
             })
         },
         selectForce (row) {
+            if (this.viewOnly) return
+
             if (row.force){
                 this.selected.push(row)
             } else {
