@@ -166,8 +166,8 @@ export default defineComponent({
                 let pack = item.package
                 pack.trustRepos = item.repositories
                 pack.nevra = this.nevra(pack)
-                let pkgInRepos = data.plan.packages_in_repos[pack.full_name]
-                let repoId = data.plan.packages_from_repos[pack.full_name]
+                let pkgInRepos = data.plan.packages_in_repos ? data.plan.packages_in_repos[pack.full_name]: undefined
+                let repoId = data.plan.packages_in_repos ? data.plan.packages_from_repos[pack.full_name]: undefined
                 if (repoId !== undefined) {
                     pack.takenFromRepo = this.orig_repos.map(repo => {
                         if (repoId === repo.id) {
