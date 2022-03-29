@@ -37,6 +37,18 @@
                     </template>
                 </div>
             </template>
+            <template v-slot:header="props">
+        <q-tr :props="props">
+          <q-th
+            v-for="col in props.cols"
+            :key="col.name"
+            :props="props"
+          >
+          <q-checkbox v-if="col.name === 'force'" v-model="forceAll" :disable="viewOnly" size="xs" @click="selectForceAll" />
+            {{ col.label }}
+          </q-th>
+        </q-tr>
+      </template>
             <template v-slot:body="props">
                 <q-tr :props="props">
                     <q-td key="nevra" :props="props">
@@ -56,7 +68,7 @@
                         </q-select>
                     </q-td>
                     <q-td key="force" :props="props">
-                        <q-checkbox v-model="props.row.force" size="xs"/>
+                        <q-checkbox v-model="props.row.force" :disable="viewOnly" size="xs" @click="selectForce(props.row)"/>
                     </q-td>
                     <q-td key="trustness" :props="props">
                         <q-badge v-if="viewOnly" color="grey" />
@@ -105,7 +117,7 @@ export default defineComponent({
                     sortable: true
                 },
                 { name: 'destination', align: 'left', label: 'Destination(s)', field: 'destination' },
-                { name: 'force', align: 'center', label: 'Force', field: 'force' },
+                { name: 'force', align: 'left', label: 'Force', field: 'force' },
                 { name: 'trustness', label: 'Trustness', field: 'trustness', align: 'center', sortable: true },
                 { name: 'src', label: 'src', field: 'src', align: 'center' },
                 { name: 'i686', label: 'i686', field: 'i686', align: 'center' },
@@ -120,7 +132,9 @@ export default defineComponent({
             packagesLocation: [],
             releaseId: null,
             repositories: {},
-            loading: false
+            loading: false,
+            selected: [],
+            forceAll: false
         }
     },
     created () {
@@ -213,6 +227,31 @@ export default defineComponent({
             return Array.from(reposNames, repName => {
                 return { label: repName, value: repName }
             })
+        },
+        selectForceAll (){
+            this.forceAll ? this.selected = this.packagesLocation : this.selected = []
+            this.packagesLocation.forEach (pack => {
+                pack.force = this.forceAll
+            })
+        },
+        selectForce (row) {
+            if (row.force){
+                this.selected.push(row)
+            } else {
+                let index = this.selected.indexOf(row)
+                this.selected = [ ...this.selected.slice(0, index), ...this.selected.slice(index + 1) ]
+            }
+            switch (this.selected.length) {
+                case this.packagesLocation.length:
+                    this.forceAll = true
+                    break;
+                case 0:
+                    this.forceAll = false
+                    break;
+                default:
+                    this.forceAll = null
+                    break;
+            }
         },
         trustness (pack) {
             let trustness = false
