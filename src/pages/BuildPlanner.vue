@@ -32,15 +32,6 @@
           </template>
         </q-select>
 
-        <q-select v-model="buildPlan.platform_flavors"
-                  :options="buildPlatformFlavors"
-                  multiple
-                  use-chips
-                  label="Build flavors:"
-                  style="min-width: 250px; max-width: 300px"
-        >
-        </q-select>
-
         <template v-for="platform in buildPlan.platforms" :key="platform.label">
         <q-select v-model="platformArches[platform.label]"
                   :options="platform.archList"
@@ -50,6 +41,15 @@
                   style="min-width: 250px; max-width: 300px"
          />
         </template>
+
+        <q-select v-model="buildPlan.platform_flavors"
+                  :options="buildPlatformFlavors"
+                  multiple
+                  use-chips
+                  label="Build flavors:"
+                  style="min-width: 250px; max-width: 300px"
+        >
+        </q-select>
 
         <q-input label="Linked builds" v-model="linked_builds_input" clearable @keydown.enter.prevent="addLinkedBuilds"
                  style="min-width: 250px; max-width: 300px;" autogrow hint="Enter builds' ids"
