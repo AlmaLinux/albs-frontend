@@ -5,6 +5,7 @@ import { PlatformsModule } from './modules/platforms'
 import { BuildsFeedModule } from './modules/builds'
 import { DistributionsModule } from './modules/distributions'
 import { KeysModule } from './modules/keys'
+import { PlatformFlavorsModule } from './modules/platform_flavors'
 
 // import example from './module-example'
 
@@ -23,7 +24,8 @@ export default store(createStore({
       platforms: PlatformsModule,
       buildsFeed: BuildsFeedModule,
       distributions: DistributionsModule,
-      keys: KeysModule
+      keys: KeysModule,
+      platform_flavors: PlatformFlavorsModule
     },
 
     getters: {

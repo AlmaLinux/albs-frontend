@@ -32,6 +32,15 @@
           </template>
         </q-select>
 
+        <q-select v-model="buildPlan.platform_flavors"
+                  :options="buildPlatformFlavors"
+                  multiple
+                  use-chips
+                  label="Build flavors:"
+                  style="min-width: 250px; max-width: 300px"
+        >
+        </q-select>
+
         <template v-for="platform in buildPlan.platforms" :key="platform.label">
         <q-select v-model="platformArches[platform.label]"
                   :options="platform.archList"
@@ -144,7 +153,8 @@ export default defineComponent({
         linked_builds: [],
         is_secure_boot: false,
         skip_module_checking: false,
-        mock_options: {}
+        mock_options: {},
+        platform_flavors: []
       },
       platformArches: platformArches,
       currentStep: 'buildEnvironment',
@@ -167,6 +177,11 @@ export default defineComponent({
     buildPlatforms () {
       return this.$store.state.platforms.platforms.map(platform => {
         return {label: platform.name, value: platform.name, description: platform.arch_list.join(', '), archList: platform.arch_list, modularityVersions: platform.modularity.versions }
+      })
+    },
+    buildPlatformFlavors () {
+      return this.$store.state.platform_flavors.flavors.map(flavour => {
+        return {label: flavour.name, value: flavour.name}
       })
     }
   },
