@@ -307,23 +307,26 @@
         <q-card-section>
           <div class="text-h6">Sign build</div>
         </q-card-section>
-        <q-card-section>
-          <q-select v-model="current_sign" label="Choose PGP key"
-                    :options="existingKeys"/>
-        <span v-if="!testingCompleted" class="text-negative">
-        <br/>
-        <b>Warning:</b> the build testing is not finished yet. Are you sure you
-        want to sign it?
-      </span>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat text-color="primary" label="Sign" style="width: 150px"
-                 :loading="loading"
-                 @click="signBuild">
-          </q-btn>
-          <q-btn :loading="loading" flat text-color="negative" label="Cancel"
-                 v-close-popup @click="current_sign = []"/>
-        </q-card-actions>
+        <q-form @submit="signBuild">
+          <q-card-section>
+            <q-select v-model="current_sign" label="Choose PGP key"
+                      :rules="[val => !!val || 'PGP key is required']"
+                      :options="existingKeys"/>
+          <span v-if="!testingCompleted" class="text-negative">
+          <br/>
+          <b>Warning:</b> the build testing is not finished yet. Are you sure you
+          want to sign it?
+        </span>
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat text-color="primary" label="Sign" style="width: 150px"
+                  :loading="loading"
+                  type="submit">
+            </q-btn>
+            <q-btn flat text-color="negative" label="Cancel"
+                  v-close-popup @click="current_sign = null"/>
+          </q-card-actions>
+        </q-form>
       </q-card>
     </q-dialog>
 
@@ -647,6 +650,7 @@ export default defineComponent({
         .then(response => {
           this.loading = false
           this.signs = [response.data]
+          this.sign_build = false
           Notify.create({
             message: `Build ${this.buildId} is queued for signing`,
             type: 'positive',
