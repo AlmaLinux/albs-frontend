@@ -38,16 +38,12 @@
               <q-scroll-area style="height: 160px; width: 300px">
                 <tr v-for="moduleItem in buildItem.refs" :key="moduleItem.uid">
                   <td :class="moduleItemExist(moduleItem) ? null : 'text-negative'">
-                    <build-ref :buildRef="moduleItem"/>
+                    <build-ref :buildRef="moduleItem"
+                               :class="!moduleItem.enabled ? 'text-grey': null"/>
                     <q-tooltip v-if="!moduleItemExist(moduleItem)">
                       Ref does not exist
                     </q-tooltip>
-                  </td>
-                </tr>
-                <tr v-for="excludedComponent in buildItem.excluded_components" :key="excludedComponent">
-                  <td class="text-negative">
-                    <build-ref :buildRef="excludedComponent"/>
-                    <q-tooltip>
+                    <q-tooltip v-if="!moduleItem.enabled">
                       Package not updated
                     </q-tooltip>
                   </td>

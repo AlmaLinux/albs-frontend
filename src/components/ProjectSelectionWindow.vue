@@ -52,8 +52,6 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-checkbox v-if="modularity" v-model="skipModuleChecking"
-                    label="Ignore not updated module streams"/>
         <q-btn flat label="Cancel" color="primary" @click="close" />
         <q-btn flat
                label="Submit"
@@ -93,7 +91,6 @@ export default defineComponent({
       srpmUrl: null,
       almaGitRepo: null,
       moduleRefsLoading: false,
-      skipModuleChecking: false,
       git: {
         git_ref: null,
         url: null
@@ -208,7 +205,6 @@ export default defineComponent({
         ref: ref,
         platform_name: this.platformName,
         platform_arches: [...this.platformArches[this.platformName]],
-        skip_module_checking: this.skipModuleChecking
       }
       this.moduleRefsLoading = true
       this.$api.post('/builds/get_module_preview/', data)

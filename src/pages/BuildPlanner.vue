@@ -150,7 +150,6 @@ export default defineComponent({
         tasks: [],
         linked_builds: [],
         is_secure_boot: false,
-        skip_module_checking: false,
         mock_options: {},
         platform_flavors: []
       },
