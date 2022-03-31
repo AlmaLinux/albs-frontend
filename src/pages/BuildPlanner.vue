@@ -181,7 +181,7 @@ export default defineComponent({
     },
     buildPlatformFlavors () {
       return this.$store.state.platform_flavors.flavors.map(flavour => {
-        return {label: flavour.name, value: flavour.name}
+        return {label: flavour.name, value: flavour.name, id: flavour.id}
       })
     }
   },
@@ -251,6 +251,11 @@ export default defineComponent({
         platforms.push({name: platform.value, arch_list: this.platformArches[platform.value]})
       }
       this.buildPlan.platforms = platforms
+      let flavors = []
+      for (let flavour of this.buildPlan.platform_flavors) {
+        flavors.push(flavour.id)
+      }
+      this.buildPlan.platform_flavors = flavors
       let cacheTasks = JSON.parse(JSON.stringify(this.buildPlan.tasks))
       this.$api.post('/builds/', this.buildPlan)
         .then((response) => {
