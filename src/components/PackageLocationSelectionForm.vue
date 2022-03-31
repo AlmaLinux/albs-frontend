@@ -184,6 +184,7 @@ export default defineComponent({
                 }
                 pack.destinationOptions = this.reposOptions(data.plan.repositories, pack.arch)
                 this.beholderRepo(item)
+                this.selectForce(pack)
                 switch (pack.arch) {
                     case 'noarch':
                         pack.i686 = true
@@ -246,7 +247,7 @@ export default defineComponent({
         selectForceAll (){
             if (this.viewOnly) return
 
-            this.forceAll ? this.selected = this.packagesLocation : this.selected = []
+            this.selected = this.forceAll ? this.packagesLocation : []
             this.packagesLocation.forEach (pack => {
                 pack.force = this.forceAll
             })
