@@ -7,6 +7,8 @@
         row-key="id"
         color="primary"
         :loading="loadingTable"
+        hide-pagination
+        :rows-per-page-options=[0]
         :filter="filter"
         >
             <template v-slot:top-right="props">
@@ -39,6 +41,11 @@
                 <q-tr :props="props">
                     <q-td key="nevra" :props="props">
                         {{ props.row.nevra }}
+                        <q-badge v-if="props.row.takenFromRepo" color="yellow">
+                            <q-tooltip>
+                                This package will be taken from "{{ props.row.takenFromRepo }}" repo
+                            </q-tooltip>
+                        </q-badge>
                     </q-td>
                     <q-td key="destination" :props="props">
                         <q-select v-model="props.row.destination" dense
@@ -118,7 +125,6 @@ export default defineComponent({
     methods: {
         tableFullScreen(props){
             props.toggleFullscreen()
-            props.inFullscreen ? props.pagination.rowsPerPage = 7 : props.pagination.rowsPerPage = 0
         },
         nevra (pack) {
             return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
@@ -129,11 +135,20 @@ export default defineComponent({
             let packages = data.plan.packages
             this.releaseId = data.id
             this.orig_repos = data.plan.repositories
+            this.modules = data.plan.modules
             this.packagesLocation = []
             for (const item of packages) {
                 let pack = item.package
                 pack.trustRepos = item.repositories
                 pack.nevra = this.nevra(pack)
+                let repoId = data.plan.packages_from_repos[pack.full_name]
+                if (repoId !== undefined) {
+                    pack.takenFromRepo = this.orig_repos.map(repo => {
+                        if (repoId === repo.id) {
+                            return `${repo.name}-${repo.debug ? 'debug-': ''}${repo.arch}`
+                        }
+                    }).filter(value => value !== undefined).join()
+                }
                 pack.destinationOptions = this.reposOptions(data.plan.repositories, pack.arch)
                 this.beholderRepo(item)
                 switch (pack.arch) {
@@ -220,6 +235,7 @@ export default defineComponent({
         getPlan() {
             let plan = {
                 packages: [],
+                modules: this.modules,
                 repositories: this.orig_repos
             }
             this.packagesLocation.forEach(packLocation => {

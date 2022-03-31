@@ -39,6 +39,15 @@
          />
         </template>
 
+        <q-select v-model="buildPlan.platform_flavors"
+                  :options="buildPlatformFlavors"
+                  multiple
+                  use-chips
+                  label="Build flavors:"
+                  style="min-width: 250px; max-width: 300px"
+        >
+        </q-select>
+
         <q-input label="Linked builds" v-model="linked_builds_input" clearable @keydown.enter.prevent="addLinkedBuilds"
                  style="min-width: 250px; max-width: 300px;" autogrow hint="Enter builds' ids"
                  :rules="[linked_builds_input => linked_builds_input.length < 1 || 'Please don\'t forget to add entered builds\'s ids']">
@@ -141,7 +150,9 @@ export default defineComponent({
         tasks: [],
         linked_builds: [],
         is_secure_boot: false,
-        mock_options: {}
+        skip_module_checking: false,
+        mock_options: {},
+        platform_flavors: []
       },
       platformArches: platformArches,
       currentStep: 'buildEnvironment',
@@ -164,6 +175,11 @@ export default defineComponent({
     buildPlatforms () {
       return this.$store.state.platforms.platforms.map(platform => {
         return {label: platform.name, value: platform.name, description: platform.arch_list.join(', '), archList: platform.arch_list, modularityVersions: platform.modularity.versions }
+      })
+    },
+    buildPlatformFlavors () {
+      return this.$store.state.platform_flavors.flavors.map(flavour => {
+        return {label: flavour.name, value: flavour.name, id: flavour.id}
       })
     }
   },
@@ -233,6 +249,11 @@ export default defineComponent({
         platforms.push({name: platform.value, arch_list: this.platformArches[platform.value]})
       }
       this.buildPlan.platforms = platforms
+      let flavors = []
+      for (let flavour of this.buildPlan.platform_flavors) {
+        flavors.push(flavour.id)
+      }
+      this.buildPlan.platform_flavors = flavors
       let cacheTasks = JSON.parse(JSON.stringify(this.buildPlan.tasks))
       this.$api.post('/builds/', this.buildPlan)
         .then((response) => {
