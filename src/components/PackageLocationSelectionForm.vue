@@ -37,13 +37,32 @@
                     </template>
                 </div>
             </template>
+            <template v-slot:header="props">
+                <q-tr :props="props">
+                <q-th v-for="col in props.cols"
+                      :key="col.name" :props="props">
+                <q-checkbox v-if="col.name === 'force' && !viewOnly"
+                            v-model="forceAll" :disable="loadingTable"
+                            size="xs" @click="selectForceAll"/>
+                    {{ col.label }}
+                </q-th>
+                </q-tr>
+            </template>
             <template v-slot:body="props">
                 <q-tr :props="props">
                     <q-td key="nevra" :props="props">
                         {{ props.row.nevra }}
-                        <q-badge v-if="props.row.takenFromRepo" color="yellow">
+                        <q-badge v-if="props.row.takenFromRepo || props.row.pkgInRepos" color="yellow">
                             <q-tooltip>
-                                This package will be taken from "{{ props.row.takenFromRepo }}" repo
+                                <span v-if="props.row.takenFromRepo">
+                                    This package will be taken from "{{ props.row.takenFromRepo }}" repo<br>
+                                </span>
+                                <span v-if="props.row.pkgInRepos">
+                                    This package exists in the following repos:<br>
+                                    <ul v-for="repo in props.row.pkgInRepos" :key="repo">
+                                        <li>{{ repo }}</li>
+                                    </ul>
+                                </span>
                             </q-tooltip>
                         </q-badge>
                     </q-td>
@@ -54,6 +73,9 @@
                             transition-show="scale"
                             transition-hide="scale">
                         </q-select>
+                    </q-td>
+                    <q-td key="force" :props="props">
+                        <q-checkbox v-model="props.row.force" :disable="viewOnly" size="xs" @click="selectForce(props.row)"/>
                     </q-td>
                     <q-td key="trustness" :props="props">
                         <q-badge v-if="viewOnly" color="grey" />
@@ -102,6 +124,7 @@ export default defineComponent({
                     sortable: true
                 },
                 { name: 'destination', align: 'left', label: 'Destination(s)', field: 'destination' },
+                { name: 'force', align: 'left', label: 'Force', field: 'force' },
                 { name: 'trustness', label: 'Trustness', field: 'trustness', align: 'center', sortable: true },
                 { name: 'src', label: 'src', field: 'src', align: 'center' },
                 { name: 'i686', label: 'i686', field: 'i686', align: 'center' },
@@ -116,7 +139,9 @@ export default defineComponent({
             packagesLocation: [],
             releaseId: null,
             repositories: {},
-            loading: false
+            loading: false,
+            selected: [],
+            forceAll: false
         }
     },
     created () {
@@ -141,7 +166,8 @@ export default defineComponent({
                 let pack = item.package
                 pack.trustRepos = item.repositories
                 pack.nevra = this.nevra(pack)
-                let repoId = data.plan.packages_from_repos[pack.full_name]
+                let pkgInRepos = data.plan.packages_in_repos ? data.plan.packages_in_repos[pack.full_name]: undefined
+                let repoId = data.plan.packages_in_repos ? data.plan.packages_from_repos[pack.full_name]: undefined
                 if (repoId !== undefined) {
                     pack.takenFromRepo = this.orig_repos.map(repo => {
                         if (repoId === repo.id) {
@@ -149,8 +175,16 @@ export default defineComponent({
                         }
                     }).filter(value => value !== undefined).join()
                 }
+                if (pkgInRepos !== undefined) {
+                    pack.pkgInRepos = [...this.orig_repos.map(repo => {
+                        if (pkgInRepos.includes(repo.id)) {
+                            return `${repo.name}-${repo.debug ? 'debug-': ''}${repo.arch}`
+                        }
+                    }).filter(value => value !== undefined)]
+                }
                 pack.destinationOptions = this.reposOptions(data.plan.repositories, pack.arch)
                 this.beholderRepo(item)
+                this.selectForce(pack)
                 switch (pack.arch) {
                     case 'noarch':
                         pack.i686 = true
@@ -210,6 +244,35 @@ export default defineComponent({
                 return { label: repName, value: repName }
             })
         },
+        selectForceAll (){
+            if (this.viewOnly) return
+
+            this.selected = this.forceAll ? this.packagesLocation : []
+            this.packagesLocation.forEach (pack => {
+                pack.force = this.forceAll
+            })
+        },
+        selectForce (row) {
+            if (this.viewOnly) return
+
+            if (row.force){
+                this.selected.push(row)
+            } else {
+                let index = this.selected.indexOf(row)
+                this.selected = [ ...this.selected.slice(0, index), ...this.selected.slice(index + 1) ]
+            }
+            switch (this.selected.length) {
+                case this.packagesLocation.length:
+                    this.forceAll = true
+                    break;
+                case 0:
+                    this.forceAll = false
+                    break;
+                default:
+                    this.forceAll = null
+                    break;
+            }
+        },
         trustness (pack) {
             let trustness = false
             if (pack.trustRepos.length) {
@@ -243,9 +306,11 @@ export default defineComponent({
                 let pack = {
                     arch: packLocation.arch,
                     artifact_href: packLocation.artifact_href,
+                    href_from_repo: packLocation.href_from_repo,
                     epoch: packLocation.epoch,
                     full_name: packLocation.full_name,
                     name: packLocation.name,
+                    force: packLocation.force,
                     release: packLocation.release,
                     version: packLocation.version
                 }
