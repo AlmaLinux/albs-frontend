@@ -135,15 +135,15 @@ export default defineComponent({
             activeBuild: null,
             textValue: null,
             tableselected: [],
+            loading: false,
             columns : [
-  {
-    name: 'label',
-    required: true,
-    label: '',
-    align: 'left',
-    field: row => row.label,
-    loading: false
-  }],
+            {
+                name: 'label',
+                required: true,
+                label: '',
+                align: 'left',
+                field: row => row.label
+            }],
         }
     },
     computed: {
