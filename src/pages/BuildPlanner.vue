@@ -111,6 +111,7 @@
               error-color="negative">
         <project-selector :buildItems="buildPlan.tasks"
                           :platformName="buildPlan.platforms[0].value"
+                          :flavors="buildPlan.platform_flavors"
                           :modularityVersions="modularityVersions()"
                           @change="value => { buildPlan.tasks = value }"/>
       </q-step>

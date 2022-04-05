@@ -90,6 +90,7 @@
     <ProjectSelectionWindow ref="addProjectWindow"
                             :buildItems="buildItems"
                             :platformName="platformName"
+                            :flavors="flavors"
                             @projectSelected="addProjectToBuild"/>
   </div>
 </template>
@@ -109,7 +110,8 @@ export default defineComponent({
   props: {
     buildItems: Array,
     platformName: String,
-    modularityVersions: Array
+    modularityVersions: Array,
+    flavors: Array
   },
   data () {
     return {
@@ -123,6 +125,12 @@ export default defineComponent({
     addProjectToBuild (buildItem) {
       if (buildItem.modules_yaml) {
         buildItem.module_platform_version = this.modularityVersions[this.modularityVersions.length - 1]
+      }
+      for (let flavorId of this.flavors) {
+        let flavor = this.$store.state.platform_flavors.flavors.filter(item => item.id == flavorId.id)[0]
+        if (flavor.modularity && flavor.modularity.versions) {
+          buildItem.module_platform_version = flavor.modularity.versions[flavor.modularity.versions.length - 1].name 
+        }
       }
       this.$emit('change', [...this.buildItems, buildItem])
     },

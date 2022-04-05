@@ -77,7 +77,8 @@ export default defineComponent({
   props: {
     buildItems: Array,
     platformName: String,
-    moduleRefs: Boolean
+    moduleRefs: Boolean,
+    flavors: Array
   },
   data () {
     return {
@@ -202,6 +203,7 @@ export default defineComponent({
     onSubmitModule (ref) {
       let data = {
         ref: ref,
+        flavors: this.flavors.map(item => item.id),
         platform_name: this.platformName
       }
       this.moduleRefsLoading = true
