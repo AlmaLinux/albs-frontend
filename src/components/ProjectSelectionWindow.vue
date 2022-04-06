@@ -78,7 +78,8 @@ export default defineComponent({
     buildItems: Array,
     platformName: String,
     platformArches: Object,
-    moduleRefs: Boolean
+    moduleRefs: Boolean,
+    flavors: Array
   },
   data () {
     return {
@@ -203,6 +204,7 @@ export default defineComponent({
     onSubmitModule (ref) {
       let data = {
         ref: ref,
+        flavors: this.flavors.map(item => item.id),
         platform_name: this.platformName,
         platform_arches: [...this.platformArches[this.platformName]],
       }

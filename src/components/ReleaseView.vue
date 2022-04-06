@@ -74,7 +74,7 @@
 
                         <q-tab-panel name="logs">
                             <div class="text-h6">Logs</div>
-                            Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                            {{ release.plan.last_log ? `${release.plan.last_log}`: '' }}
                         </q-tab-panel>
 
                     </q-tab-panels>

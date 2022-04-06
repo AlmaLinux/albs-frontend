@@ -109,6 +109,7 @@
         <project-selector :buildItems="buildPlan.tasks"
                           :platformName="buildPlan.platforms[0].value"
                           :platformArches="platformArches"
+                          :flavors="buildPlan.platform_flavors"
                           :modularityVersions="modularityVersions()"
                           @change="value => { buildPlan.tasks = value }"/>
       </q-step>
