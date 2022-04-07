@@ -116,7 +116,7 @@
 <script>
 import { defineComponent } from 'vue'
 import { Notify } from 'quasar'
-import { BuildStatus } from '../constants.js'
+import { BuildStatus, SignStatus } from '../constants.js'
 import BuildRef from 'components/BuildRef.vue'
 
 export default defineComponent({
@@ -201,6 +201,11 @@ export default defineComponent({
                     let failed = new Set()
                     let options = {}
                     let buildRunning = false
+                    let buildSigned = false
+                    if (build.sign_tasks.length) {
+                        buildSigned = build.sign_tasks[build.sign_tasks.length - 1].status === SignStatus.DONE
+                    }
+                    
                     build.tasks.forEach( task => {
                         switch (task.status) {
                             case BuildStatus.COMPLETED:
@@ -243,6 +248,15 @@ export default defineComponent({
                     } else if (Object.keys(options).length === 0 && options.constructor === Object) {
                         Notify.create({
                             message: `Build ${buildId} failed`,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                        this.uniqueBuildsId.delete(+buildId)
+                    } else if (!buildSigned) {
+                        Notify.create({
+                            message: `Build ${buildId} is not signed`,
                             type: 'negative',
                             actions: [
                                 { label: 'Dismiss', color: 'white', handler: () => {} }
