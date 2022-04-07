@@ -831,7 +831,7 @@ export default defineComponent({
         if (!item.name.match(/-debug(info|source)/)) {
           debugSuffix = ''
         }
-        item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}${debugSuffix}-br/Packages/${item.name[0]}/${item.name}`
+        item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}${debugSuffix}-br/Packages/${item.name[0].toLowerCase()}/${item.name}`
         return item
       })
     },
