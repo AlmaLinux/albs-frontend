@@ -43,6 +43,12 @@
                             Package does not exist
                           </q-tooltip>
                         </td>
+                        <td v-if="!moduleItem.enabled">
+                          <q-btn @click="addItemToBuild(moduleItem)" flat small
+                                 icon="add" class="no-padding">
+                            <q-tooltip>Add item to build</q-tooltip>
+                          </q-btn>
+                        </td>
                         <td class="text-tertiary">
                           <q-btn @click="onDeleteModuleItem(moduleItem)" flat small icon="delete" class="no-padding">
                             <q-tooltip>
@@ -118,6 +124,9 @@ export default defineComponent({
     },
     addProjectToModule (moduleItem) {
       this.moduleInfo.refs.push(moduleItem)
+    },
+    addItemToBuild(moduleItem) {
+      moduleItem.enabled = !moduleItem.enabled
     },
     onDeleteModuleItem (moduleItem) {
       this.moduleInfo.refs = this.moduleInfo.refs.filter(el => {

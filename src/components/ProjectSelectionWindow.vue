@@ -77,6 +77,7 @@ export default defineComponent({
   props: {
     buildItems: Array,
     platformName: String,
+    platformArches: Object,
     moduleRefs: Boolean,
     flavors: Array
   },
@@ -204,7 +205,8 @@ export default defineComponent({
       let data = {
         ref: ref,
         flavors: this.flavors.map(item => item.id),
-        platform_name: this.platformName
+        platform_name: this.platformName,
+        platform_arches: [...this.platformArches[this.platformName]],
       }
       this.moduleRefsLoading = true
       this.$api.post('/builds/get_module_preview/', data)

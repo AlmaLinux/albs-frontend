@@ -11,9 +11,6 @@
 
         <q-checkbox left-label class="text-grey-8 text-body1 q-pb-sm"
                     v-model="buildPlan.is_secure_boot" label="Secure Boot"/>
-        <q-checkbox class="text-grey-8 text-body1 q-pb-sm"
-                    v-model="buildPlan.skip_module_checking"
-                    left-label label="Ignore not updated module streams"/>
 
         <q-select v-model="buildPlan.platforms"
                   :options="buildPlatforms"
@@ -111,6 +108,7 @@
               error-color="negative">
         <project-selector :buildItems="buildPlan.tasks"
                           :platformName="buildPlan.platforms[0].value"
+                          :platformArches="platformArches"
                           :flavors="buildPlan.platform_flavors"
                           :modularityVersions="modularityVersions()"
                           @change="value => { buildPlan.tasks = value }"/>
@@ -153,7 +151,6 @@ export default defineComponent({
         tasks: [],
         linked_builds: [],
         is_secure_boot: false,
-        skip_module_checking: false,
         mock_options: {},
         platform_flavors: []
       },

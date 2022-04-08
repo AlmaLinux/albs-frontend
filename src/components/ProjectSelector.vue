@@ -38,9 +38,13 @@
               <q-scroll-area style="height: 160px; width: 300px">
                 <tr v-for="moduleItem in buildItem.refs" :key="moduleItem.uid">
                   <td :class="moduleItemExist(moduleItem) ? null : 'text-negative'">
-                    <build-ref :buildRef="moduleItem"/>
+                    <build-ref :buildRef="moduleItem"
+                               :class="!moduleItem.enabled ? 'text-grey': null"/>
                     <q-tooltip v-if="!moduleItemExist(moduleItem)">
                       Ref does not exist
+                    </q-tooltip>
+                    <q-tooltip v-if="!moduleItem.enabled">
+                      Package not updated
                     </q-tooltip>
                   </td>
                 </tr>
@@ -90,6 +94,7 @@
     <ProjectSelectionWindow ref="addProjectWindow"
                             :buildItems="buildItems"
                             :platformName="platformName"
+                            :platformArches="platformArches"
                             :flavors="flavors"
                             @projectSelected="addProjectToBuild"/>
   </div>
@@ -110,6 +115,7 @@ export default defineComponent({
   props: {
     buildItems: Array,
     platformName: String,
+    platformArches: Object,
     modularityVersions: Array,
     flavors: Array
   },
