@@ -28,7 +28,10 @@
                     </td>
                     <td class="text-left">
                         <template v-for="project in getProjects(release.plan)" :key="project.name">
-                            <span class="text-weight-small text-primary">{{project.name}}</span>
+                            <router-link v-if="project.buildId" class="text-weight-small cursor-pointer text-primary" :to="{path: `/build/${project.buildId}`}" target="_blank">
+                                {{project.name}}
+                            </router-link>
+                            <span v-else class="text-weight-small text-primary">{{project.name}}</span>
                             <span class="text-grey-8"> #{{project.version}}-{{project.release}}</span>
                             <br/>
                         </template>
@@ -97,9 +100,12 @@ export default defineComponent({
         getProjects(plan){
             let packages = []
             plan.packages.forEach(pack => {
-                if (pack.packages){ return }
                 if (pack.package.arch === 'src') {
-                    packages.push({name: pack.package.name, version: pack.package.version, release: pack.package.release})
+                    let buildId = null
+                    if (pack.package.build_id) {
+                        buildId = pack.package.build_id
+                    }
+                    packages.push({name: pack.package.name, version: pack.package.version, release: pack.package.release, buildId: buildId})
                 }
             });
             return packages
