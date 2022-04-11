@@ -263,7 +263,7 @@
                  :loading="loading"
                  @click="AddToDistribution">
           </q-btn>
-          <q-btn :loading="loading" flat text-color="negative" label="Cancel"
+          <q-btn flat text-color="negative" label="Cancel"
                  v-close-popup @click="current_distro = []"/>
         </q-card-actions>
       </q-card>
@@ -281,7 +281,7 @@
           <q-btn flat text-color="primary" label="Remove" style="width: 150px"
                  :loading="loading"
                  @click="RemoveFromDistribution"/>
-          <q-btn flat text-color="negative" label="Cancel" :loading="loading"
+          <q-btn flat text-color="negative" label="Cancel"
                  v-close-popup @click="current_distro = []"/>
         </q-card-actions>
       </q-card>
@@ -525,6 +525,7 @@ export default defineComponent({
       this.$api.post(`/distro/add/${this.buildId}/${this.current_distro.label}/`)
         .then(() => {
           this.loading = false
+          this.add_to_distro = false
           Notify.create({
             message: `Packages of build ${this.buildId} has been added to ${this.current_distro.label} distribution`,
             type: 'positive',
@@ -550,6 +551,7 @@ export default defineComponent({
       this.$api.post(`/distro/remove/${this.buildId}/${this.current_distro.label}/`)
         .then(() => {
           this.loading = false
+          this.remove_from_distro = false
           Notify.create({
             message: `Packages of build ${this.buildId} has been removed to ${this.current_distro.label} distribution`,
             type: 'positive',
