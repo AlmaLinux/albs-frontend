@@ -56,7 +56,7 @@
                         <q-icon v-else name="build_circle" color="black" size="30px" />
                     </q-item-section>
 
-                    <q-item-section middle class="col-2">
+                    <q-item-section middle class="col-2" style="width:100px">
                         <q-item-label lines="1">
                             <router-link class="q-mt-sm cursor-pointer text-black" :to="{path: `/build/${build.id}`}" target="_blank">
                                 Build {{ build.id }}
