@@ -264,7 +264,7 @@ export default defineComponent({
       }
     },
     onView (log, revision) {
-      let logUrl = `${window.origin}/pulp/content/test_logs/test_logs-btid-${this.taskId}-tr-${revision}/${log.name}`
+      let logUrl = `${window.origin}/pulp/content/build_logs/${this.buildId}-artifacts/${log.name}`
       this.selectedLog = log.name
       axios.get(logUrl)
         .then(response => {

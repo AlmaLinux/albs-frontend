@@ -119,14 +119,14 @@ export default defineComponent({
         })
     },
     onDownload (artifact) {
-      let artifactUrl = `${window.origin}/pulp/content/build_logs/${this.task.platform.name}-${this.task.arch}-${this.buildId}-artifacts-${this.taskId}/${artifact.name}`
+      let artifactUrl = `${window.origin}/pulp/content/build_logs/${this.buildId}-artifacts/${artifact.name}`
       axios.get(artifactUrl)
         .then(response => {
           exportFile(artifact.name, response.data)
         })
     },
     onView (artifact) {
-      let artifactUrl = `${window.origin}/pulp/content/build_logs/${this.task.platform.name}-${this.task.arch}-${this.buildId}-artifacts-${this.taskId}/${artifact.name}`
+      let artifactUrl = `${window.origin}/pulp/content/build_logs/${this.buildId}-artifacts/${artifact.name}`
       this.selectedLog = artifact.name
       axios.get(artifactUrl)
         .then(response => {
