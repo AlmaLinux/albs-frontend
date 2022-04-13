@@ -215,6 +215,7 @@ export default defineComponent({
                   for (const item in test.alts_response.result[opt]) {
                     res.success = test.alts_response.result[opt][item].success
                     res.short_name = item
+                    res.buildId = test.build_id
                     res.name = test_logs[item].name
                     res.tapFilter = 'failed'
                     res.tap = this.getTaps(test.id)
@@ -223,6 +224,7 @@ export default defineComponent({
                 } else {
                   res.success = test.alts_response.result[opt].success
                   res.short_name = opt
+                  res.buildId = test.build_id
                   res.name = test_logs[opt].name
                   parsed_test.result.push(res)
                 }
@@ -264,7 +266,7 @@ export default defineComponent({
       }
     },
     onView (log, revision) {
-      let logUrl = `${window.origin}/pulp/content/build_logs/${this.buildId}-artifacts/${log.name}`
+      let logUrl = `${window.origin}/pulp/content/build_logs/${log.buildId}-artifacts/${log.name}`
       this.selectedLog = log.name
       axios.get(logUrl)
         .then(response => {
