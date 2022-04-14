@@ -43,6 +43,9 @@
             </tbody>
         </q-markup-table>
     </div>
+    <div class="q-pa-lg flex flex-center">
+      <q-pagination input :max="totalPages" v-model="currentPage" :disable="loading"/>
+    </div>
   </q-page>
   <release-view ref="releaseView"/>  
 </template>
@@ -58,10 +61,24 @@ export default defineComponent({
             loading: false,
             releases: [],
             releaseStatus: ReleaseStatus,
+            totalPages: ref(1),
         }
     },
     created () {
         this.loadFeedPage()
+    },
+    computed: {
+        releaseFeedQuery () {
+            return this.$store.getters['releaseFeed/releaseFeedQuery']
+        },
+        currentPage: {
+            get () { return this.$store.state.releaseFeed.pageNumber },
+            set (value) {
+                this.loading = true
+                this.$store.commit('releaseFeed/setPageNumber', value)
+                this.loadFeedPage()
+            }
+        }
     },
     methods: {
         onReleaseView (release) {
@@ -69,10 +86,11 @@ export default defineComponent({
         },
         loadFeedPage () {
             this.loading = true
-            this.$api.get(`/releases/`)
+            this.$api.get(`/releases/`, {params: this.releaseFeedQuery})
                 .then(response => {
                     this.loading = false
-                    this.releases = response.data.reverse()
+                    this.releases = response.data.releases
+                    this.totalPages = Math.ceil(response.data['total_releases'] / 10)
                 })
             .catch(error => {
                 this.loading = false
