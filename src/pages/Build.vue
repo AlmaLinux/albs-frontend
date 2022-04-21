@@ -254,18 +254,20 @@
         <q-card-section>
           <div class="text-h6">Add to a distribution</div>
         </q-card-section>
-        <q-card-section>
-          <q-select v-model="current_distro" label="Choose distribution to add"
-                    :options="existingDistros"/>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat text-color="primary" label="Add" style="width: 150px"
-                 :loading="loading"
-                 @click="AddToDistribution">
-          </q-btn>
-          <q-btn flat text-color="negative" label="Cancel"
-                 v-close-popup @click="current_distro = []"/>
-        </q-card-actions>
+        <q-form @submit="AddToDistribution">
+          <q-card-section>
+            <q-select v-model="current_distro" label="Choose distribution to add to"
+                      :rules="[val => !!val || 'Distribution name is required']"
+                      :options="existingDistros"/>
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat text-color="primary" label="Add" style="width: 150px"
+                  :loading="loading" type="submit">
+            </q-btn>
+            <q-btn flat text-color="negative" label="Cancel"
+                  v-close-popup @click="current_distro = null"/>
+          </q-card-actions>
+        </q-form>
       </q-card>
     </q-dialog>
     <q-dialog v-model="remove_from_distro">
@@ -273,17 +275,19 @@
         <q-card-section>
           <div class="text-h6">Remove from a distribution</div>
         </q-card-section>
-        <q-card-section>
-          <q-select v-model="current_distro" label="Choose distribution to add"
-                    :options="existingDistros"/>
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat text-color="primary" label="Remove" style="width: 150px"
-                 :loading="loading"
-                 @click="RemoveFromDistribution"/>
-          <q-btn flat text-color="negative" label="Cancel"
-                 v-close-popup @click="current_distro = []"/>
-        </q-card-actions>
+        <q-form @submit="RemoveFromDistribution">
+          <q-card-section>
+            <q-select v-model="current_distro" label="Choose distribution to remove from"
+                      :rules="[val => !!val || 'Distribution name is required']"
+                      :options="existingDistros"/>
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat text-color="primary" label="Remove" style="width: 150px"
+                  :loading="loading" type="submit"/>
+            <q-btn flat text-color="negative" label="Cancel"
+                  v-close-popup @click="current_distro = null"/>
+          </q-card-actions>
+        </q-form>
       </q-card>
     </q-dialog>
     <q-dialog v-model="delete_build">
@@ -320,8 +324,7 @@
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat text-color="primary" label="Sign" style="width: 150px"
-                  :loading="loading"
-                  type="submit">
+                  :loading="loading" type="submit">
             </q-btn>
             <q-btn flat text-color="negative" label="Cancel"
                   v-close-popup @click="current_sign = null"/>
@@ -377,7 +380,7 @@ export default defineComponent({
       loading: false,
       buildLoad: false,
       current_sign: null,
-      current_distro: [],
+      current_distro: null,
       mock_options: null,
       signLogText: '',
       signStatus: SignStatus 
@@ -533,7 +536,7 @@ export default defineComponent({
               { label: 'Dismiss', color: 'white', handler: () => {} }
             ]
           })
-          this.current_distro = []
+          this.current_distro = null
         })
         .catch(error => {
           this.loading = false
@@ -559,7 +562,7 @@ export default defineComponent({
               { label: 'Dismiss', color: 'white', handler: () => {} }
             ]
           })
-          this.current_distro = []
+          this.current_distro = null
         })
         .catch(error => {
           this.loading = false
