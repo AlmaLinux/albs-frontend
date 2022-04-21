@@ -2,6 +2,14 @@
   <q-card square class="shadow-1">
     <q-card-section class="no-padding row">
       <div style="overflow: auto;" class="col-10">
+        <div class="q-pt-sm q-pl-md" v-if="rpm_module && Object.keys(rpm_module).length !== 0">
+        <span>
+          <b>Built modules:&nbsp;</b>
+        </span>
+        <span> 
+          <b class="text-body2"> {{ nsvca(rpm_module) }} </b> 
+        </span>
+      </div>
        <table class="text-left q-table horizontal-separator build-info-table">
         <thead>
           <tr>
@@ -9,7 +17,7 @@
               <q-btn
                   color="tertiary"
                   small flat
-                  class="no-padding no-margin"
+                  class="q-pl-sm no-margin"
                   icon="info"
                   :to="{path: `/build/${build.id}`}"
                   label="details"
@@ -113,6 +121,16 @@ export default defineComponent({
     },
     buildCreatedTime () {
       return new Date(this.build.created_at).toLocaleString()
+    },
+    rpm_module () {
+      let rpm_module = {}
+      this.build.tasks.forEach(task => {
+        if (task.rpm_module) {
+          rpm_module = task.rpm_module
+          return
+        }
+      })
+      return rpm_module
     }
   },
   methods: {
@@ -154,6 +172,9 @@ export default defineComponent({
         }
       }
       return targets
+    },
+    nsvca(module) {
+      return `${module.name}:${module.stream}:${module.version}:${module.context}`
     }
   },
   components: {
