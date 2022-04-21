@@ -82,7 +82,7 @@ export default defineComponent({
   },
   computed: {
     buildSystemLogs () {
-      return this.filterLogs(/albs\.log$|albs\.\d+\.log$/)
+      return this.filterLogs(/albs[.\w|\d]*?\.log$/)
     },
     pbuilderLogs () {
       return this.filterLogs(/(apt|build)-[\w.]+\.(cfg|conf|log)$/)
@@ -115,6 +115,9 @@ export default defineComponent({
       this.$api.get(`/builds/${this.buildId}/`)
         .then(response => {
           this.build = response.data
+          if (this.task.error) {
+            this.task.artifacts.push({type: 'build_log', name: 'albs_internal_error.log', text: this.task.error})
+          }
           Loading.hide()
         })
     },
@@ -128,6 +131,10 @@ export default defineComponent({
     onView (artifact) {
       let artifactUrl = `${window.origin}/pulp/content/build_logs/${this.task.platform.name}-${this.task.arch}-${this.buildId}-artifacts-${this.taskId}/${artifact.name}`
       this.selectedLog = artifact.name
+      if (artifact.text) {
+        this.logText = artifact.text
+        return
+      }
       axios.get(artifactUrl)
         .then(response => {
           this.logText = response.data
