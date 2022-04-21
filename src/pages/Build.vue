@@ -768,7 +768,15 @@ export default defineComponent({
         .then(response => {
           if (response.data.length) this.signs = response.data
         })
-        .catch(error =>{})
+        .catch(error => {
+          Notify.create({
+            message: `Failed to load sign info`,
+            type: 'negative',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        })
     },
     signatureText (sign) {
       let status = SignStatus.text[sign.status]
