@@ -25,9 +25,16 @@
               :key="target"
           />
         </q-tabs>
-
         <q-tab-panels v-model="tab">
           <q-tab-panel name="summary">
+            <div class="q-pl-md" v-if="rpm_module && Object.keys(rpm_module).length !== 0">
+              <span class="row">
+                <b>Built modules:&nbsp;</b>
+              </span>
+              <span class="row q-pl-sm"> 
+                <b class="text-body2"> {{ nsvca(rpm_module[Object.keys(rpm_module)[0]]) }} </b> 
+              </span>
+            </div>
              <table class="text-left q-table horizontal-separator build-info-table">
               <thead>
                 <tr>
@@ -59,6 +66,14 @@
               :label="target"
               :key="target"
           >
+            <div class="q-pl-md" v-if="rpm_module && Object.keys(rpm_module).length !== 0">
+              <span class="row">
+                <b>Built modules:&nbsp;</b>
+              </span>
+              <span class="row q-pl-sm"> 
+                <b class="text-body2"> {{ nsvca(rpm_module[target], target.split('.')[1]) }} </b> 
+              </span>
+            </div>
              <table class="text-left q-table horizontal-separator build-info-table">
               <thead>
                 <tr>
@@ -165,7 +180,7 @@
       </q-card-section>
       <q-card-section>
         <q-expansion-item label="Mock Options" expand-separator
-                          icon="settings" v-if="mock_options">
+                          icon="settings" v-if="mock_options && Object.keys(mock_options).length !== 0">
           <q-card>
             <q-card-section>
               <q-item-section v-if="mock_options.with" style="font-size: 10pt; letter-spacing: 1pt;">
@@ -365,6 +380,7 @@ export default defineComponent({
     return {
       tab: 'summary',
       build: null,
+      rpm_module: {},
       signs: [],
       reload: true,
       refreshTimer: null,
@@ -380,7 +396,7 @@ export default defineComponent({
       current_distro: [],
       mock_options: null,
       signLogText: '',
-      signStatus: SignStatus 
+      signStatus: SignStatus
     }
   },
   watch: {
@@ -715,6 +731,9 @@ export default defineComponent({
         .then(response => {
           this.build = response.data
           this.build.tasks.forEach(task => {
+            if (task.rpm_module) {
+              this.rpm_module[`${task.platform.name}.${task.arch}`] = task.rpm_module
+            }
             if (task.status === BuildStatus.COMPLETED) {
               this.loadTestsInfo(task)
             }
@@ -856,6 +875,13 @@ export default defineComponent({
         return false
       }
       return true
+    },
+    nsvca(module, arch = null) {
+      if (arch) {
+        return `${module.name}:${module.stream}:${module.version}:${module.context}:${module.arch}`
+      } else {
+        return `${module.name}:${module.stream}:${module.version}:${module.context}`
+      }
     }
   },
   components: {
