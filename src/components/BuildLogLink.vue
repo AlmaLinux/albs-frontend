@@ -3,7 +3,7 @@
     <q-item-section class="cursor-pointer" @click="onView">
       <a class="text-dark">{{ artifact.name }}</a>
     </q-item-section>
-    <q-item-section side class="cursor-pointer" @click="onDownload">
+    <q-item-section side class="cursor-pointer" @click="onDownload" v-if="!artifact.text">
       <q-icon name="file_download" color="tertiary" size="1.5em" class="text-dark"/>
     </q-item-section>
   </q-item>
