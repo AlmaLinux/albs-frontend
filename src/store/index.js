@@ -3,6 +3,7 @@ import { createStore } from 'vuex'
 import { UsersModule } from './modules/users'
 import { PlatformsModule } from './modules/platforms'
 import { BuildsFeedModule } from './modules/builds'
+import { ReleaseFeedModule } from './modules/release'
 import { DistributionsModule } from './modules/distributions'
 import { KeysModule } from './modules/keys'
 import { PlatformFlavorsModule } from './modules/platform_flavors'
@@ -23,6 +24,7 @@ export default store(createStore({
       users: UsersModule,
       platforms: PlatformsModule,
       buildsFeed: BuildsFeedModule,
+      releaseFeed: ReleaseFeedModule,
       distributions: DistributionsModule,
       keys: KeysModule,
       platform_flavors: PlatformFlavorsModule
