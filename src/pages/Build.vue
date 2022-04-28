@@ -123,6 +123,20 @@
                 </tr>
               </tbody>
             </table>
+            <q-card-section class="no-padding">
+              <q-expansion-item label="Repositories" expand-separator icon="storage">
+                <q-card>
+                  <q-card-section v-for="repo in buildRepos(target)" :key="repo"
+                                  class="no-padding">
+                    <q-item dense>
+                      <a :href="repo" target="_blank" class="q-pl-md">
+                        {{ repo }}
+                      </a>
+                    </q-item>
+                  </q-card-section>
+                </q-card>
+              </q-expansion-item>
+            </q-card-section>
           </q-tab-panel>
         </q-tab-panels>
       </q-card-section>
@@ -833,6 +847,15 @@ export default defineComponent({
             break;
         }
         return css
+    },
+    buildRepos (platform) {
+      let [platformName, arch] = platform.split('.')
+      let repos = [
+        `${window.origin}/pulp/content/builds/${platformName}-src-${this.buildId}-br/`,
+        `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-br/`,
+        `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-debug-br/`
+      ]
+      return repos
     },
     downloadArtifact (artifact) {
       this.$api.get(`/artifacts/${artifact.id}/`)
