@@ -123,6 +123,20 @@
                 </tr>
               </tbody>
             </table>
+            <q-card-section class="no-padding">
+              <q-expansion-item label="Repositories" expand-separator icon="storage">
+                <q-card>
+                  <q-card-section v-for="repo in buildRepos(target)" :key="repo"
+                                  class="no-padding">
+                    <q-item dense>
+                      <a :href="repo" target="_blank" class="q-pl-md">
+                        {{ repo }}
+                      </a>
+                    </q-item>
+                  </q-card-section>
+                </q-card>
+              </q-expansion-item>
+            </q-card-section>
           </q-tab-panel>
         </q-tab-panels>
       </q-card-section>
@@ -134,9 +148,9 @@
         </q-chip>
       </q-card-section>
 
-      <q-card-section>
+      <q-card-section v-if="signs.length">
         <q-expansion-item label="Sign" expand-separator
-                          icon="lock" v-if="signs.length">
+                          icon="lock">
           <q-card>
             <q-card-section>
               <q-item v-for="sign in this.signs" :key="sign.id">
@@ -164,9 +178,9 @@
           </q-card>
         </q-expansion-item>
       </q-card-section>
-      <q-card-section>
+      <q-card-section v-if="linked_builds">
         <q-expansion-item label="Linked builds" expand-separator
-                          icon="link" v-if="linked_builds">
+                          icon="link" >
           <q-card>
             <q-card-section v-for="linked_build in linked_builds" :key="linked_build">
               <q-item>
@@ -178,9 +192,9 @@
           </q-card>
         </q-expansion-item>
       </q-card-section>
-      <q-card-section>
+      <q-card-section v-if="mock_options && Object.keys(mock_options).length !== 0">
         <q-expansion-item label="Mock Options" expand-separator
-                          icon="settings" v-if="mock_options && Object.keys(mock_options).length !== 0">
+                          icon="settings">
           <q-card>
             <q-card-section>
               <q-item-section v-if="mock_options.with" style="font-size: 10pt; letter-spacing: 1pt;">
@@ -833,6 +847,15 @@ export default defineComponent({
             break;
         }
         return css
+    },
+    buildRepos (platform) {
+      let [platformName, arch] = platform.split('.')
+      let repos = [
+        `${window.origin}/pulp/content/builds/${platformName}-src-${this.buildId}-br/`,
+        `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-br/`,
+        `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-debug-br/`
+      ]
+      return repos
     },
     downloadArtifact (artifact) {
       this.$api.get(`/artifacts/${artifact.id}/`)
