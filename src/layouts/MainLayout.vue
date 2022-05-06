@@ -72,6 +72,11 @@ const linksList = [
     allow: store.getters.isAuthenticated
   },
   {
+    title: 'Errata',
+    icon: 'bug_report',
+    link: 'errata'
+  },
+  {
     title: 'Release Feed',
     icon: 'cloud',
     link: 'release-feed',

@@ -54,6 +54,15 @@ const routes = [
         }
       },
       {
+        path: 'errata',
+        component: () => import('pages/ErrataFeed.vue'),
+        beforeEnter (to, from, next) {
+          store.dispatch('platforms/loadPlatformList')
+            .then(next())
+            .catch(next())
+        }
+      },
+      {
         path: 'release-feed',
         meta: { requiresAuth: true },
         component: () => import('pages/ReleaseFeed.vue')
