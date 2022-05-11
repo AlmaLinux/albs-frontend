@@ -1,146 +1,198 @@
 <template>
-    <div class="q-pl-xl row">
-        <div class="q-pa-md">
-            <div class="q-gutter-md row items-start" style="max-width:600px">
+    <div class="q-pl-xl row" max-width>
+        <div class="q-pa-md" style="width: 35%">
+            <div class="q-gutter-md row items-start">
                 <q-select
                     v-model="platform"
                     :options="platforms"
                     label="Platform*"
-                    style="width: 250px"
+                    class="col"
+                    style="width: 5%"
                     clearable
                 />
 
-                <q-input v-model="bulletinTitle" label="Bulletin title" style="width: 250px"/>
+                <q-input v-model="bulletinTitle" class="col" label="Bulletin title"/>
             </div>
-            <div class="q-py-md q-gutter-md row items-start" style="max-width:600px">
-                <q-input v-model="id" label="Advisory ID" style="width: 250px"/>
+            <div class="q-py-md q-gutter-md row items-start">
+                <q-input v-model="id" label="Advisory ID" class="col"/>
 
-                <q-input v-model="cveId" label="CVE ID" style="width: 250px"/>
+                <q-input v-model="cveId" label="CVE ID" class="col"/>
             </div>
             <div class="q-pb-md group row justify-end">
-                <q-btn @click="searchErrata()" no-caps icon="search" color="primary">
+                <q-btn @click="currentPage = 1" no-caps icon="search" color="primary" :loading="loading">
                     Search
                 </q-btn>
             </div>
-            <q-table
-                title="Advisory"
-                :rows="advisors"
-                :columns="columns"
-                color="primary"
-                v-model:pagination="pagination"
-                binary-state-sort
-                wrap-cells style="width: 518px"
-                v-if="advisors.length">
-                <template v-slot:body="props">
-                        <q-tr :props="props" class="cursor-pointer" :class="selectedAdvisory === props.row ? 'bg-grey-4' : ''" @click="this.selectedAdvisory = props.row">
-                            <q-td key="updated_date" :props="props">{{ props.row.updated_date }}</q-td>
-                            <q-td key="id" :props="props">{{ props.row.id }}</q-td>
-                            <q-td key="updated_date" :props="props">{{ props.row.original_title }}</q-td>
-                        </q-tr>
-                </template>
-            </q-table>
+            <div v-if="advisors">
+                <q-table
+                    title="Advisory"
+                    :rows="advisors"
+                    :columns="columns"
+                    color="primary"
+                    :loading="loading"
+                    :rows-per-page-options=[10]
+                    hide-pagination
+                    binary-state-sort
+                    wrap-cells>
+                    <template v-slot:body="props">
+                            <q-tr :props="props" class="cursor-pointer" :class="markAdvisory(props.row.id)" @click="loadAdvisory(props.row.id)">
+                                <q-td key="updated_date" :props="props">{{ props.row.updated_date }}</q-td>
+                                <q-td key="id" :props="props">{{ props.row.id }}</q-td>
+                                <q-td key="original_title" :props="props">{{ props.row.original_title }}</q-td>
+                            </q-tr>
+                    </template>
+                </q-table>
+                <div class="row justify-center">
+                    <q-pagination input :max="totalPages" v-model="currentPage" size="sm"/>
+                </div>
+            </div>
         </div>
-        <div class="q-pa-md items-start q-gutter-md" v-if="selectedAdvisory">
+        <div class="q-pa-lg items-start q-gutter-md" style="width: 65%" v-if="selectedAdvisory">
             <q-card>
-                <q-card-section class="row">
-                    <q-field label="Platform" stack-label style="width: 150px">
+                <q-card-section class="row q-gutter-md" style="max-width: 100%">
+                    <q-field label="Platform" stack-label class="col">
                         <template v-slot:control>
                             <div class="self-center full-width no-outline" tabindex="0">AlmaLinux-8</div>
                         </template>
                     </q-field>
-                    <q-field label="Definitive version" class="q-pl-md" stack-label style="width: 250px">
+                    <q-field label="Definitive version" class="col" stack-label >
                         <template v-slot:control>
                             <div class="self-center full-width no-outline" tabindex="0">{{selectedAdvisory.definition_version}}</div>
                         </template>
                     </q-field>
-                </q-card-section>
-                <q-card-section>
-                    <q-input v-model="selectedAdvisory.original_title" label="Bulletin title" style="width: 500px"/>
-                </q-card-section>
-                <q-card-section>
-                    <q-input type="textarea" v-model="selectedAdvisory.original_description" label="Description" style="width: 500px"/>
-                </q-card-section>
-                <q-card-section class="row">
-                    <q-field label="Issued Date" class="q-pr-md" stack-label style="width: 140px">
+                    <q-field label="Issued Date" class="col" stack-label>
                         <template v-slot:control>
                             <div class="self-center full-width no-outline" tabindex="0">{{selectedAdvisory.issued_date}}</div>
                         </template>
                     </q-field>
-                    <q-field label="Updated Date" class="q-pl-md" stack-label style="width: 140px">
+                    <q-field label="Updated Date" class="col" stack-label>
                         <template v-slot:control>
                             <div class="self-center full-width no-outline" tabindex="0">{{selectedAdvisory.updated_date}}</div>
                         </template>
                     </q-field>
                 </q-card-section>
-                <q-tabs
-                    v-model="tab"
-                    dense
-                    class="text-grey"
-                    active-color="primary"
-                    indicator-color="primary"
-                    align="justify"
-                    narrow-indicator
-                    style="width: 700px"
-                    >
-                        <q-tab name="packages" label="Packages" />
-                        <q-tab name="patchInfo" label="Patch Info" />
-                    </q-tabs>
+                <q-card-section class="q-gutter-md" style="max-width: 100%">
+                    <q-input v-model="selectedAdvisory.original_title" label="Bulletin title"/>
+                    <q-input type="textarea" input-style="height: 250px" v-model="selectedAdvisory.original_description" label="Description" />
+                </q-card-section>
+                <q-card-section align="center">
+                    <q-tabs
+                        v-model="tab"
+                        dense
+                        class="text-grey"
+                        active-color="primary"
+                        indicator-color="primary"
+                        align="justify"
+                        narrow-indicator
+                        style="width: 60%"
+                        >
+                            <q-tab name="patchInfo" no-caps label="Patch Info"/>
+                            <q-tab name="packages" no-caps label="Packages"/>
+                        </q-tabs>
 
-                    <q-separator />
+                        <q-separator />
 
-                    <q-tab-panels v-model="tab" animated>
-                        <q-tab-panel name="packages">
-                            <q-expansion-item label="CVE information" expand-separator
-                                              icon="privacy_tip" default-opened>
-                                <q-card>
-                                    <q-card-section>
-                                        <q-item dense>
-                                            <q-table
-                                                title="CVE information"
-                                                :rows="selectedAdvisory.cve"
-                                                :columns="cveCol"
-                                                color="primary"
-                                                wrap-cells
-                                                hide-pagination
-                                                :rows-per-page-options=[0]>
-                                            </q-table>
-                                        </q-item>
-                                    </q-card-section>
-                                </q-card>
-                            </q-expansion-item>
-                            <q-expansion-item label="Refernces" expand-separator
-                          icon="shopping_cart" >
-                                <q-card>
-                                    <q-card-section>
-                                        <q-item>
-                                            Refernces
-                                        </q-item>
-                                    </q-card-section>
-                                </q-card>
-                            </q-expansion-item>
-                            <q-expansion-item label="Bugzilla info" expand-separator
-                          icon="info" >
-                                <q-card>
-                                    <q-card-section>
-                                        <q-item>
-                                            Bugzilla
-                                        </q-item>
-                                    </q-card-section>
-                                </q-card>
-                            </q-expansion-item>
-                        </q-tab-panel>
+                        <q-tab-panels v-model="tab" animated>
+                            <q-tab-panel name="patchInfo">
+                                <q-expansion-item label="CVE information" expand-separator
+                                                  icon="privacy_tip" default-opened align="left"
+                                                  v-if="cveRows(selectedAdvisory.references).length">
+                                    <q-card>
+                                        <q-card-section>
+                                            <q-item dense>
+                                                <q-table
+                                                    :rows="cveRows(selectedAdvisory.references)"
+                                                    :columns="cveCol"
+                                                    color="primary"
+                                                    wrap-cells
+                                                    style="width: 100%"
+                                                    hide-pagination
+                                                    :rows-per-page-options=[0]>
+                                                    <template v-slot:body="props">
+                                                        <q-tr :props="props">
+                                                            <q-td key="cvePublic" :props="props">{{ new Date(props.row.cve.public) }}</q-td>
+                                                            <q-td key="severity" :props="props"> {{ toCapitalize(props.row.cve.impact) }} </q-td>
+                                                            <q-td key="url" :props="props">
+                                                                <a :href="props.row.href" target="_blank">{{ props.row.href }}</a>
+                                                            </q-td>
+                                                            <q-td key="refcvss" :props="props">{{ props.row.cve.cvss3}}</q-td>
+                                                        </q-tr>
+                                                    </template>
+                                                </q-table>
+                                            </q-item>
+                                        </q-card-section>
+                                    </q-card>
+                                </q-expansion-item>
+                                <q-expansion-item label="Refernces" expand-separator
+                                                  icon="shopping_cart" align="left"
+                                                  v-if="selectedAdvisory.references.length">
+                                    <q-card>
+                                        <q-card-section>
+                                            <q-item dense>
+                                                <q-table
+                                                    :rows="selectedAdvisory.references"
+                                                    :columns="refCol"
+                                                    color="primary"
+                                                    wrap-cells
+                                                    style="width: 100%"
+                                                    hide-pagination
+                                                    :rows-per-page-options=[0]>
+                                                    <template v-slot:body="props">
+                                                        <q-tr :props="props">
+                                                            <q-td key="source" :props="props">
+                                                                <span v-if="props.row.ref_type.split('.')[1] === 'bugzilla'">{{ toCapitalize(props.row.ref_type.split('.')[1]) }} </span>
+                                                                <span v-else>{{ props.row.ref_type.split('.')[1].toUpperCase() }} </span>
+                                                            </q-td>
+                                                            <q-td key="url" :props="props">
+                                                                <a :href="props.row.href" target="_blank">{{ props.row.href }}</a>
+                                                            </q-td>
+                                                            <q-td key="id" :props="props">{{ props.row.ref_id }}</q-td>
+                                                        </q-tr>
+                                                    </template>
+                                                </q-table>
+                                            </q-item>
+                                        </q-card-section>
+                                    </q-card>
+                                </q-expansion-item>
+                                <q-expansion-item label="Bugzilla info" expand-separator
+                                                  icon="info" align="left"
+                                                  v-if="bugzillaRows(selectedAdvisory.references).length">
+                                    <q-card>
+                                        <q-card-section>
+                                            <q-item dense>
+                                                <q-table
+                                                    :rows="bugzillaRows(selectedAdvisory.references)"
+                                                    :columns="bugzillaCol"
+                                                    color="primary"
+                                                    wrap-cells
+                                                    style="width: 100%"
+                                                    hide-pagination
+                                                    :rows-per-page-options=[0]>
+                                                    <template v-slot:body="props">
+                                                        <q-tr :props="props">
+                                                            <q-td key="id" :props="props">{{ props.row.ref_id }}</q-td>
+                                                            <q-td key="url" :props="props">
+                                                                <a :href="props.row.href" target="_blank">{{ props.row.href }}</a>
+                                                            </q-td>
+                                                            <q-td key="title" :props="props">{{ props.row.title}}</q-td>
+                                                        </q-tr>
+                                                    </template>
+                                                </q-table>
+                                            </q-item>
+                                        </q-card-section>
+                                    </q-card>
+                                </q-expansion-item>
+                            </q-tab-panel>
 
-                        <q-tab-panel name="patchInfo">
-                            <q-table
-                                :rows="[{rhelPack: 'name', almaPack:'build:name', status: 'Locked'}]"
-                                :columns="patchInfoCol"
-                                selection="multiple"
-                                v-model:selected="selected"
-                                hide-pagination
-                                :rows-per-page-options=[0]>
-                            </q-table>
-                        </q-tab-panel>
-                    </q-tab-panels>
+                            <q-tab-panel name="packages">
+                                table
+                            </q-tab-panel>
+                        </q-tab-panels>
+                </q-card-section>
+                <q-card-actions align="right">
+                    <q-btn no-caps color="green">Save</q-btn>
+                    <q-btn no-caps color="primary">Release packages</q-btn>
+                </q-card-actions>
             </q-card>
         </div>
     </div>
@@ -153,15 +205,12 @@ export default defineComponent({
   data () {
     return {
         bulletinTitle: '',
-        tab: ref('packages'),
+        tab: ref('patchInfo'),
         id: '',
         cveId: '',
         platform: null,
-        pagination: {
-            sortBy: 'updated_date',
-            descending: true,
-            rowsPerPage: 10
-        },
+        loading: false,
+        totalPages: ref(1),
         selectedAdvisory: null,
         columns: [ {
             name: 'updated_date',
@@ -173,15 +222,17 @@ export default defineComponent({
         },
         { name: 'id', required: true, align: 'left', label: 'ID', field: 'id'},
         { name: 'original_title', required: true, align: 'left', label: 'Bulletin title', field: 'original_title' }],
-        advisors: [],
+        advisors: null,
+        refCol: [{ name: 'source', required: true, align: 'left', label: 'Reference source', field: 'source'},
+            { name: 'url', required: true, align: 'left', label: 'Reference URL', field: 'url', style: 'word-break: break-word;' },
+            { name: 'id', required: true, align: 'left', label: 'Reference Id', field: 'id'}],
         cveCol: [{ name: 'cvePublic', required: true, align: 'left', label: 'CVE public', field: 'cvePublic'},
             { name: 'severity', required: true, align: 'left', label: 'Severity', field: 'severity' },
             { name: 'url', required: true, align: 'left', label: 'URL', field: 'url', style: 'width: 190px; word-break: break-word;',},
             { name: 'refcvss', required: true, align: 'left', label: 'Ref CVSS3', field: 'refcvss', style: 'width: 230px; word-break: break-word;', }],
-        patchInfoCol: [{ name: 'rhelPack', required: true, align: 'left', label: 'RHEL Package', field: 'rhelPack'},
-            { name: 'almaPack', required: true, align: 'left', label: 'Alma Package', field: 'almaPack' },
-            { name: 'status', required: true, align: 'left', label: 'Status', field: 'status',}
-        ],
+        bugzillaCol: [{ name: 'id', required: true, align: 'left', label: 'Bugzilla ID', field: 'id'},
+            { name: 'url', required: true, align: 'left', label: 'Ticket URL', field: 'url', style: 'word-break: break-word;' },
+            { name: 'title', required: true, align: 'left', label: 'Title', field: 'title'}],
         selected: []
     }
   },
@@ -190,6 +241,17 @@ export default defineComponent({
         return this.$store.state.platforms.platforms.map(platform => {
             return {label: platform.name, value: platform.id }
         })
+    },
+    errataPageNumber () {
+            return this.$store.getters['errataFeed/errataPageNumber']
+        },
+    currentPage: {
+        get () { return this.$store.state.errataFeed.pageNumber },
+        set (value) {
+            this.loading = true
+            this.$store.commit('errataFeed/setPageNumber', value)
+            this.searchErrata()
+        }
     }
   },
   methods: {
@@ -199,20 +261,53 @@ export default defineComponent({
             platformId: this.platform.value,
             id: this.id,
             cveId: this.cveId,
-            pageNumber: 1
+            pageNumber: this.errataPageNumber
         }
-        console.log(query)
-        this.loadErrate(query)
+        this.loadAdvisors(query)
     },
-    loadErrate (query) {
+    loadAdvisors (query) {
+        this.loading = true
         this.$api.get(`/errata/query`, {params: query})
         .then(response => {
-            console.log(response)
+            this.loading = false
+            console.log(response.data)
             this.advisors = response.data.records
+            this.totalPages = Math.ceil(response.data['total_records'] / 10)
+          })
+        .catch(error => {
+            Notify.create({
+                message: 'Something went wrong',
+                type: 'negative',
+                actions: [
+                    { label: 'Dismiss', color: 'white', handler: () => {} }
+                ]
+            })
+        })
+    },
+    loadAdvisory (id) {
+        let query = { errata_id: id }
+        this.$api.get(`/errata`, {params: query})
+        .then(response => {
+            console.log(response.data)
+            this.selectedAdvisory = response.data
           })
         .catch(error => {
           // TODO: add error here
         })
+    },
+    cveRows (refs) {
+        return refs.filter(ref => ref.cve)
+    },
+    bugzillaRows (refs) {
+        return refs.filter(ref => ref.ref_type.split('.')[1] === 'bugzilla')
+    },
+    markAdvisory (id) {
+        if (this.selectedAdvisory) {
+            return this.selectedAdvisory.id === id ? 'bg-grey-4' : ''
+        }        
+    },
+    toCapitalize (str) {
+        return str.charAt(0).toUpperCase() + str.slice(1)
     }
   }
 })

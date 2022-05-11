@@ -4,6 +4,7 @@ import { UsersModule } from './modules/users'
 import { PlatformsModule } from './modules/platforms'
 import { BuildsFeedModule } from './modules/builds'
 import { ReleaseFeedModule } from './modules/release'
+import { ErrataFeedModule } from './modules/errata'
 import { DistributionsModule } from './modules/distributions'
 import { KeysModule } from './modules/keys'
 import { PlatformFlavorsModule } from './modules/platform_flavors'
@@ -25,6 +26,7 @@ export default store(createStore({
       platforms: PlatformsModule,
       buildsFeed: BuildsFeedModule,
       releaseFeed: ReleaseFeedModule,
+      errataFeed: ErrataFeedModule,
       distributions: DistributionsModule,
       keys: KeysModule,
       platform_flavors: PlatformFlavorsModule
