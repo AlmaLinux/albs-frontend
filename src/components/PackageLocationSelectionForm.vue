@@ -171,14 +171,14 @@ export default defineComponent({
                 if (repoId !== undefined) {
                     pack.takenFromRepo = this.orig_repos.map(repo => {
                         if (repoId === repo.id) {
-                            return `${repo.name}-${repo.debug ? 'debug-': ''}${repo.arch}`
+                            return `${repo.name}-${repo.arch}`
                         }
                     }).filter(value => value !== undefined).join()
                 }
                 if (pkgInRepos !== undefined) {
                     pack.pkgInRepos = [...this.orig_repos.map(repo => {
                         if (pkgInRepos.includes(repo.id)) {
-                            return `${repo.name}-${repo.debug ? 'debug-': ''}${repo.arch}`
+                            return `${repo.name}-${repo.arch}`
                         }
                     }).filter(value => value !== undefined)]
                 }
