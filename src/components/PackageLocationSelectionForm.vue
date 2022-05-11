@@ -195,6 +195,9 @@ export default defineComponent({
                     case 'i686':
                         pack.i686 = true
                         pack.x86_64 = true
+                        if (pack.is_multilib !== undefined) {
+                            pack.x86_64 = pack.is_multilib
+                        }
                         break;
                     default:
                         pack[pack.arch] = true
