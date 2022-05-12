@@ -39,6 +39,7 @@
 
 <script>
 import { defineComponent, ref } from 'vue'
+import { Notify } from 'quasar'
 import BuildSelectionForm from 'components/BuildSelectionForm.vue'
 import PackageLocationSelectionForm from 'components/PackageLocationSelectionForm.vue'
 
@@ -64,6 +65,14 @@ export default defineComponent({
                 })
                 .catch(error => {
                     console.log(error)
+                    Notify.create({
+                        message: error.response.data.detail,
+                        type: 'negative',
+                        actions: [
+                            { label: 'Dismiss', color: 'white', handler: () => {} }
+                        ]
+                    })
+                    this.$router.push(`/release-feed`)
                 })
         },
         updateRelease (request_body) {
@@ -74,6 +83,14 @@ export default defineComponent({
                 })
                 .catch(error => {
                     console.log(error)
+                    Notify.create({
+                        message: error.response.data.detail,
+                        type: 'negative',
+                        actions: [
+                            { label: 'Dismiss', color: 'white', handler: () => {} }
+                        ]
+                    })
+                    this.$router.push(`/release-feed`)
                 }) 
         },
         saveState (state){

@@ -104,7 +104,7 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { Notify} from 'quasar'
+import { Notify } from 'quasar'
 
 export default defineComponent({
     props: {
@@ -193,10 +193,18 @@ export default defineComponent({
                         pack.ppc64le = true
                         break;
                     case 'i686':
+                        // left this for old releases
                         pack.i686 = true
                         pack.x86_64 = true
                         if (pack.is_multilib !== undefined) {
                             pack.x86_64 = pack.is_multilib
+                            if (!pack.is_multilib) {
+                                repo_arch = item.repositories[0].arch
+                                if (repo_arch !== undefined && repo_arch == 'x86_64') {
+                                    pack.i686 = false
+                                    pack.x86_64 = true
+                                }
+                            }
                         }
                         break;
                     default:
