@@ -72,8 +72,25 @@
                     </q-field>
                 </q-card-section>
                 <q-card-section class="q-gutter-md" style="max-width: 100%">
-                    <q-input v-model="selectedAdvisory.original_title" label="Bulletin title"/>
-                    <q-input type="textarea" input-style="height: 250px" v-model="selectedAdvisory.original_description" label="Description" />
+                    <q-input v-model="selectedTitle" label="Bulletin title">
+                        <template v-slot:append>
+                            <q-btn v-if="titleWarn" round dense flat color="warning" icon="warning" @click="showTitle = true">
+                                <q-tooltip>
+                                    Bulletin title in Pulp and ALBS DB is different.<br>Click to show the original title
+                                </q-tooltip>
+                            </q-btn>
+                        </template>
+                    </q-input>
+                    <q-input type="textarea" input-style="height: 250px"
+                             v-model="selectedDescription" label="Description">
+                        <template v-slot:append>
+                            <q-btn v-if="descriptionWarn" round dense flat color="warning" icon="warning" @click="showDescription = true">
+                                <q-tooltip>
+                                    The description in Pulp and ALBS DB is different.<br>Click to show the original description
+                                </q-tooltip>
+                            </q-btn>
+                        </template>
+                    </q-input>
                 </q-card-section>
                 <q-card-section align="center">
                     <q-tabs
@@ -195,6 +212,62 @@
                 </q-card-actions>
             </q-card>
         </div>
+        <q-dialog v-model="showTitle">
+            <q-card style="width: 550px;">
+                <q-card-section>
+                    <div class="text-h6">Original Title</div>
+                </q-card-section>
+                    <q-card-section>
+                        <q-field stack-label>
+                            <template v-slot:control>
+                                <div class="self-center full-width no-outline" tabindex="0"> {{ selectedAdvisory.original_title }} </div>
+                            </template>
+                        </q-field>
+                    </q-card-section>
+                <q-card-actions align="right">
+                    <q-btn flat text-color="primary" label="Replace" no-caps @click="this.selectedTitle = this.selectedAdvisory.original_title">
+                        <q-tooltip>
+                            Replace with the original title
+                        </q-tooltip>
+                    </q-btn>
+                    <q-btn v-if="selectedAdvisory.title && selectedAdvisory.title !== selectedTitle" flat text-color="primary" label="Restore" no-caps @click="this.selectedTitle = this.selectedAdvisory.title">
+                        <q-tooltip>
+                            Restore title from Data Base
+                        </q-tooltip>
+                    </q-btn>
+                    <q-btn flat text-color="negative" label="Cancel"
+                            v-close-popup no-caps/>
+                    </q-card-actions>
+            </q-card>
+        </q-dialog>
+        <q-dialog v-model="showDescription" style="max-width: 100%">
+            <q-card style="width: 50%; max-width: 100%">
+                <q-card-section>
+                    <div class="text-h6">Original Description</div>
+                </q-card-section>
+                    <q-card-section>
+                        <q-input
+                            v-model="selectedAdvisory.original_description"
+                            autogrow
+                            readonly
+                        />
+                    </q-card-section>
+                <q-card-actions align="right">
+                    <q-btn v-if="selectedAdvisory.description && selectedAdvisory.description !== selectedDescription" flat text-color="primary" label="Restore" no-caps @click="this.selectedDescription = this.selectedAdvisory.description">
+                        <q-tooltip>
+                            Restore description from Data Base
+                        </q-tooltip>
+                    </q-btn>
+                    <q-btn flat text-color="primary" label="Replace" no-caps @click="this.selectedDescription = this.selectedAdvisory.original_description">
+                        <q-tooltip>
+                            Replace with the original description
+                        </q-tooltip>
+                    </q-btn>
+                    <q-btn flat text-color="negative" label="Cancel"
+                            v-close-popup no-caps/>
+                    </q-card-actions>
+            </q-card>
+        </q-dialog>
     </div>
 </template>
 
@@ -212,6 +285,12 @@ export default defineComponent({
         loading: false,
         totalPages: ref(1),
         selectedAdvisory: null,
+        selectedDescription: '',
+        showDescription: false,
+        descriptionWarn: false,
+        selectedTitle: '',
+        showTitle: false,
+        titleWarn: false,
         columns: [ {
             name: 'updated_date',
             required: true,
@@ -290,9 +369,19 @@ export default defineComponent({
         .then(response => {
             console.log(response.data)
             this.selectedAdvisory = response.data
+            this.selectedDescription = this.selectedAdvisory.description ? this.selectedAdvisory.description : this.selectedAdvisory.original_description
+            this.descriptionWarn = this.selectedAdvisory.description && this.selectedAdvisory.description !== this.selectedAdvisory.original_description
+            this.selectedTitle = this.selectedAdvisory.title ? this.selectedAdvisory.title : this.selectedAdvisory.original_title
+            this.titleWarn = this.selectedAdvisory.title && this.selectedAdvisory.title !== this.selectedAdvisory.original_title
           })
         .catch(error => {
-          // TODO: add error here
+          Notify.create({
+                message: `Failed to load advisory with id: ${id}`,
+                type: 'negative',
+                actions: [
+                    { label: 'Dismiss', color: 'white', handler: () => {} }
+                ]
+            })
         })
     },
     cveRows (refs) {
@@ -302,9 +391,7 @@ export default defineComponent({
         return refs.filter(ref => ref.ref_type.split('.')[1] === 'bugzilla')
     },
     markAdvisory (id) {
-        if (this.selectedAdvisory) {
-            return this.selectedAdvisory.id === id ? 'bg-grey-4' : ''
-        }        
+        if (this.selectedAdvisory) return this.selectedAdvisory.id === id ? 'bg-grey-4' : ''       
     },
     toCapitalize (str) {
         return str.charAt(0).toUpperCase() + str.slice(1)
