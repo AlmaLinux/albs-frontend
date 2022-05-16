@@ -104,7 +104,7 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { Notify} from 'quasar'
+import { Notify } from 'quasar'
 
 export default defineComponent({
     props: {
@@ -185,6 +185,14 @@ export default defineComponent({
                 pack.destinationOptions = this.reposOptions(data.plan.repositories, pack.arch)
                 this.beholderRepo(item)
                 this.selectForce(pack)
+                if (item.repo_arch_location) {
+                    for (let repo_arch of item.repo_arch_location) {
+                        pack[repo_arch] = true
+                    }
+                    this.packagesLocation.push(pack)
+                    continue
+                }
+                // TODO: need to remove this in future
                 switch (pack.arch) {
                     case 'noarch':
                         pack.i686 = true
