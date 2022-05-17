@@ -232,6 +232,7 @@
                     </q-tab-panels>
             </q-card-section>
             <q-card-actions align="right">
+                <q-btn no-caps color="green" @click="updateAdvisory(advisory.id)" :loading="loading">Save</q-btn>
                 <q-btn no-caps color="primary" @click="toRelease()">Release packages</q-btn>
             </q-card-actions>
         </q-card>
@@ -360,6 +361,31 @@ export default defineComponent({
             this.advisory = advisory
             this.description = this.advisory.description ? this.advisory.description : this.advisory.original_description
             this.title = this.advisory.title ? this.advisory.title : this.advisory.original_title
+        },
+        updateAdvisory (id) {
+            this.loading = true
+            let data = {
+                errata_record_id: id,
+                title: this.title,
+                description: this.description
+            }
+            this.$api.post('/errata/update/', data)
+            .then(response => {
+                this.loading = false
+                this.advisory = response.data
+                this.description = this.advisory.description ? this.advisory.description : this.advisory.original_description
+                this.title = this.advisory.title ? this.advisory.title : this.advisory.original_title
+            })
+            .catch(error => {
+                this.loading = false
+                Notify.create({
+                    message: `${error.response.status}:${error.response.statusText}`,
+                    type: 'negative',
+                    actions: [
+                        { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                })
+            })
         },
         titleWarn (title) {
             return title && title !== this.advisory.original_title
