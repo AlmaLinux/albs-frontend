@@ -63,6 +63,12 @@ const routes = [
         }
       },
       {
+        path: 'errata/release',
+        name: 'ErrataRelease',
+        component: () => import('pages/ErrataRelease.vue'),
+        props: (route) => ({ ...route.params })
+      },
+      {
         path: 'release-feed',
         meta: { requiresAuth: true },
         component: () => import('pages/ReleaseFeed.vue')
