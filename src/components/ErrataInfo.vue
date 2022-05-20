@@ -212,6 +212,7 @@
                                                         dense
                                                         v-model="pack.selectedALBS"
                                                         :options="pack.albs_packages"
+                                                        :disable="packages[src_rpm].released"
                                                     >
                                                         <template v-if="pack.selectedALBS && pack.selectedALBS.build_id" v-slot:before>
                                                             <q-btn
