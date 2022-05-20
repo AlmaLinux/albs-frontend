@@ -55,7 +55,7 @@
                             @click="loadAdvisory(props.row.id)">
                         <q-td key="updated_date" :props="props">{{ formatDate(props.row.updated_date) }}</q-td>
                         <q-td key="id" :props="props">{{ props.row.id }}</q-td>
-                        <q-td key="original_title" :props="props">{{ props.row.original_title }}</q-td>
+                        <q-td key="original_title" :props="props">{{ title(props.row) }}</q-td>
                     </q-tr>
                 </template>
             </q-table>
@@ -65,7 +65,7 @@
         </div>
         
         <div class="q-pa-lg items-start" style="width: 60%">
-            <errata-info ref="errataInfo" :platforms="platforms"/>
+            <errata-info ref="errataInfo" :platforms="platforms" @updateFeed="loadAdvisors" @updatePackages="loadAdvisory"/>
         </div>
     </div>
 </template>
@@ -79,7 +79,6 @@ export default defineComponent({
   data () {
     return {
         bulletinTitle: '',
-        tab: ref('patchInfo'),
         id: '',
         cveId: '',
         platform: null,
@@ -100,7 +99,7 @@ export default defineComponent({
   computed: {
     platforms () {
         return this.$store.state.platforms.platforms.map(platform => {
-            return {label: platform.name, value: platform.id }
+            return {label: platform.name, value: platform.id, arch_list: platform.arch_list }
         })
     },
     errataPageNumber () {
@@ -132,7 +131,6 @@ export default defineComponent({
         .then(response => {
             this.loading = false
             this.loadingTable = false
-            console.log(response.data)
             this.advisors = response.data.records
             this.totalPages = Math.ceil(response.data['total_records'] / 10)
         })
@@ -140,7 +138,7 @@ export default defineComponent({
             this.loading = false
             this.loadingTable = false
             Notify.create({
-                message: `${error.response.status}:${error.response.statusText}`,
+                message: `${error.response.status}: ${error.response.statusText}`,
                 type: 'negative',
                 actions: [
                     { label: 'Dismiss', color: 'white', handler: () => {} }
@@ -151,10 +149,9 @@ export default defineComponent({
     loadAdvisory (id) {
         this.loadingTable = true
         let query = { errata_id: id }
-        this.$api.get(`/errata`, {params: query})
+        this.$api.get(`/errata/`, {params: query})
         .then(response => {
             this.loadingTable = false
-            console.log(response.data)
             this.selectedAdvisory = response.data
             this.$refs.errataInfo.open(this.selectedAdvisory)
         })
@@ -181,6 +178,9 @@ export default defineComponent({
         })
         return longEnUSFormatter.format(new Date(date))
     },
+    title (advisory) {
+        return advisory.title ? advisory.title : advisory.original_title
+    }
   },
   components: {
     ErrataInfo
