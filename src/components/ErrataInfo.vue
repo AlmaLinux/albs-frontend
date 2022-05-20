@@ -169,65 +169,154 @@
                         </q-tab-panel>
 
                         <q-tab-panel name="packages">
-                            <q-table
-                                :rows="[{rhelPack: 'name', almaPack:'build:name', status: 'Locked'}]"
-                                :columns="patchInfoCol"
-                                selection="multiple"
-                                v-model:selected="selected"
-                                hide-pagination
-                                :rows-per-page-options=[0]>
-
-                                <template v-slot:body="props">
-                                    <q-tr :props="props" no-hover>
-                                        <q-td colspan="100%">
-                                            <div class="text-left"> SRPM: abc BUILD: 123 </div>
-                                        </q-td>
-                                    </q-tr>
-                                    <q-tr :props="props">
-                                        <q-td>
-                                            <q-checkbox v-model="props.selected" />
-                                        </q-td>
-                                        <q-td
-                                            v-for="col in props.cols"
-                                            :key="col.name"
-                                            :props="props"
+                            <q-markup-table flat bordered>
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">
+                                            <q-checkbox
+                                                v-model="selectedAll"
+                                                @click="selectAllRPMs"
+                                                :disable="notReleasedRPMs().length === 0"/>
+                                            <b class="q-pl-lg">
+                                                RHEL package
+                                            </b>
+                                        </th>
+                                        <th class="text-left">Alma package</th>
+                                        <th class="text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template v-for="src_rpm of Object.keys(packages)" :key="src_rpm">
+                                        <template v-if="src_rpm !== 'null'">
+                                            <tr class="q-tr--no-hover">
+                                                <td
+                                                    colspan="3" class="text-weight-bold"
+                                                    style="border-bottom: 0;"
+                                                >
+                                                    <q-checkbox
+                                                        v-if="!packages[src_rpm].released"
+                                                        v-model="packages[src_rpm].selected"
+                                                        @click="selectRPM(src_rpm)"
+                                                    />
+                                                    <b :class="packages[src_rpm].released ? 'q-pl-sm' : 'q-pl-lg'">
+                                                        {{ src_rpm }}
+                                                    </b>
+                                                </td>
+                                            </tr>
+                                            <tr v-for="pack in packages[src_rpm]" :key="pack.id">
+                                                <td>
+                                                    {{ nevra(pack) }}
+                                                </td>
+                                                <td>
+                                                    <q-select
+                                                        dense
+                                                        v-model="pack.selectedALBS"
+                                                        :options="pack.albs_packages"
+                                                    >
+                                                        <template v-if="pack.selectedALBS && pack.selectedALBS.build_id" v-slot:before>
+                                                            <q-btn
+                                                                round dense flat
+                                                                icon="link"
+                                                                @click.stop 
+                                                                :to="{path: `/build/${pack.selectedALBS.build_id}`}"
+                                                                target="_blank"
+                                                            >
+                                                                <q-tooltip>
+                                                                    Click to go to the Build {{ pack.selectedALBS.build_id }}
+                                                                </q-tooltip>
+                                                            </q-btn>
+                                                        </template>
+                                                    </q-select>
+                                                </td>
+                                                <td class="text-center">
+                                                    <q-chip
+                                                        :color="statusColor(statusPackage(pack.selectedALBS))"
+                                                        text-color="white"
+                                                        dense
+                                                        class="text-weight-bolder"
+                                                        square
+                                                        >{{ statusPackage(pack.selectedALBS) }}
+                                                    </q-chip>
+                                                 </td>
+                                            </tr>
+                                        </template>
+                                    </template>
+                                    <template v-for="src_rpm of Object.keys(packages)" :key="src_rpm">
+                                        <template v-if="src_rpm === 'null'">
+                                            <tr class="q-tr--no-hover bg-grey-2">
+                                                <td
+                                                    colspan="3"
+                                                    class="text-weight-bold"
+                                                    style="border-bottom: 0;"
+                                                >
+                                                    <b class="q-pl-sm"> Not found </b>
+                                                </td>
+                                            </tr>
+                                            <tr v-for="pack in packages[src_rpm]" :key="pack.id" class="bg-grey-2">
+                                                <td>
+                                                    {{ nevra(pack) }}
+                                                </td>
+                                                <td>
+                                                    <q-select
+                                                        dense
+                                                        v-model="pack.selectedALBS"
+                                                        :options="pack.albs_packages"
+                                                        label="No options"
+                                                    >   
+                                                        <template v-slot:no-option>
+                                                            <q-item>
+                                                                <q-item-section class="text-italic text-grey">
+                                                                    No options
+                                                                </q-item-section>
+                                                            </q-item>
+                                                        </template>
+                                                    </q-select>
+                                                </td>
+                                                <td class="text-center">
+                                                    <q-chip
+                                                        :color="statusColor(statusPackage(pack.selectedALBS))"
+                                                        text-color="white"
+                                                        dense
+                                                        class="text-weight-bolder"
+                                                        square
+                                                        >{{ statusPackage(pack.selectedALBS) }}
+                                                    </q-chip>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </template>
+                                </tbody>
+                            </q-markup-table>
+                                <div class="column items-end">
+                                    <div class="q-gutter-md col q-pt-sm">
+                                        <q-btn
+                                            size="85%"
+                                            no-caps icon="redo"
+                                            color="red-8"
+                                            @click="changeStatus('skipped')"
                                         >
-                                            {{ col.value }}
-                                        </q-td>
-                                    </q-tr>
-                                </template>
-
-                                <template v-slot:body-selection="scope">
-                                    <q-toggle v-model="scope.selected" />
-                                </template>
-
-                                <template v-slot:bottom>
-                                    <div class="row justify-between" style="width: 100%">
-                                        <div class="column items-start">
-                                            <div class="q-gutter-md col">
-                                                <q-btn dense round no-caps icon="compare_arrows" color="blue-grey-8">
-                                                    <q-tooltip>
-                                                        Associate packages
-                                                    </q-tooltip>
-                                                </q-btn>
-                                                <q-btn dense round push no-caps icon="add" color="primary">
-                                                    <q-tooltip>
-                                                        Add package
-                                                    </q-tooltip>
-                                                </q-btn>
-                                            </div>
-                                        </div>
-
-                                    <div class="column items-end">
-                                        <div class="q-gutter-md col">
-                                            <q-btn size="100%" no-caps icon="redo" color="red-8"> Skip </q-btn>
-                                            <q-btn size="100%" no-caps icon="lightbulb_outline" color="orange-14"> Proposed </q-btn>
-                                            <q-btn size="100%" no-caps icon="done" color="green-8"> Approve </q-btn>
-                                        </div>
+                                            Skip
+                                        </q-btn>
+                                        <q-btn
+                                            size="85%"
+                                            no-caps
+                                            icon="lightbulb_outline"
+                                            color="orange-14"
+                                            @click="changeStatus('proposal')"
+                                        >
+                                            Propose
+                                        </q-btn>
+                                        <q-btn
+                                            size="85%"
+                                            no-caps
+                                            icon="done"
+                                            color="primary"
+                                            @click="changeStatus('approved')"
+                                        >
+                                            Approve
+                                        </q-btn>
                                     </div>
-                                    </div>
-                                </template>
-                            </q-table>
+                                </div>
                         </q-tab-panel>
                     </q-tab-panels>
             </q-card-section>
@@ -326,9 +415,11 @@ export default defineComponent({
     props: {
         platforms: Array
     },
+    emits: ["updateFeed", "updatePackages"],
     data () {
         return {
             advisory: null,
+            packages: null,
             tab: ref('patchInfo'),
             loading: false,
             description: '',
@@ -353,7 +444,8 @@ export default defineComponent({
                 { name: 'almaPack', required: true, align: 'left', label: 'Alma Package', field: 'almaPack' },
                 { name: 'status', required: true, align: 'left', label: 'Status', field: 'status'}
             ],
-            selected: []
+            selected: [],
+            selectedAll: false
         }      
     },
     methods: {
@@ -361,6 +453,8 @@ export default defineComponent({
             this.advisory = advisory
             this.description = this.advisory.description ? this.advisory.description : this.advisory.original_description
             this.title = this.advisory.title ? this.advisory.title : this.advisory.original_title
+            this.selectedAll = false
+            this.matchingPackage(advisory)
         },
         updateAdvisory (id) {
             this.loading = true
@@ -375,17 +469,52 @@ export default defineComponent({
                 this.advisory = response.data
                 this.description = this.advisory.description ? this.advisory.description : this.advisory.original_description
                 this.title = this.advisory.title ? this.advisory.title : this.advisory.original_title
+                this.$emit('updateFeed')
             })
             .catch(error => {
                 this.loading = false
                 Notify.create({
-                    message: `${error.response.status}:${error.response.statusText}`,
+                    message: `${error.response.status}: ${error.response.statusText}`,
                     type: 'negative',
                     actions: [
                         { label: 'Dismiss', color: 'white', handler: () => {} }
                     ]
                 })
             })
+        },
+        matchingPackage (advisory) {
+            let packages = {}
+            let arch_list = this.platforms.find(platform => platform.value == advisory.platform_id).arch_list
+            advisory.packages.forEach(pack => {
+                if (arch_list.includes(pack.arch)) {
+                    let released = false
+                    let approved = false
+                    pack.albs_packages.forEach(albs => {
+                        if (albs.build_id) {
+                            albs['label'] = `Build ${albs.build_id}: ${albs.name}`
+                            albs['value'] = albs.label
+                        } else {
+                            albs['label'] = `released`
+                            albs['value'] = albs.name
+                        }
+                        if (albs.status === 'approved') proposal = true
+                        if (albs.status === 'released') released = true
+                    })
+                    if (released){
+                        pack.selectedALBS = pack.albs_packages.find(albs => albs.status === 'released')
+                    }
+                    else if (approved) {
+                        pack.selectedALBS = pack.albs_packages.find(albs => albs.status === 'approved')
+                    }
+                    else {
+                        pack.selectedALBS = pack.albs_packages[0]
+                    }
+                    packages[pack.source_srpm] ? packages[pack.source_srpm].push(pack) : packages[pack.source_srpm] = [pack]
+                    packages[pack.source_srpm].selected = false
+                    packages[pack.source_srpm].released = released
+                }
+            })
+            this.packages = packages
         },
         titleWarn (title) {
             return title && title !== this.advisory.original_title
@@ -413,9 +542,153 @@ export default defineComponent({
         toCapitalize (str) {
             return str.charAt(0).toUpperCase() + str.slice(1)
         },
+        nevra (pack) {
+            return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
+        },
+        statusPackage (pack){
+            return pack ? this.toCapitalize(pack.status) : 'Skipped'
+        },
+        statusColor(status){
+            let col = ''
+            switch (status) {
+                case 'Proposal':
+                    col = 'orange-14'
+                    break;
+                case 'Skipped':
+                    col = 'red'
+                    break;
+                case 'Released':
+                    col = 'green'
+                    break;
+                case 'Approved':
+                    col = 'primary'
+                    break;
+                default:
+                    break;
+            }
+            return col
+        },
+        notReleasedRPMs () {
+            let notReleasedRPMs = []
+            for (const rpm in this.packages) {
+                if (rpm !== 'null' && !this.packages[rpm].released)
+                    notReleasedRPMs.push(rpm)
+            }
+            return notReleasedRPMs
+        },
+        selectRPM (rpm) {
+            if (this.notReleasedRPMs().length === 0) return
+
+            if (this.packages[rpm].selected) {
+                this.selected.push(rpm)
+            } else {
+                let index = this.selected.indexOf(rpm)
+                this.selected = [ ...this.selected.slice(0, index), ...this.selected.slice(index + 1) ]
+            }
+            switch (this.selected.length) {
+                case this.notReleasedRPMs().length:
+                    this.selectedAll = true
+                    break;
+                case 0:
+                    this.selectedAll = false
+                    break;
+                default:
+                    this.selectedAll = null
+                    break;
+            }
+        },
+        selectAllRPMs () {
+            this.selected = this.selectedAll ?  this.notReleasedRPMs() : []
+            this.notReleasedRPMs().forEach (rpm => {
+                this.packages[rpm].selected = this.selectedAll
+            })
+        },
+        changeStatus (status) {
+            if (this.selected.length === 0) {
+                Notify.create({
+                    message: 'Please select at least one rpm',
+                    type: 'negative',
+                    actions: [
+                        { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                })
+                return
+            }
+
+            let data = {
+                    errata_record_id: this.advisory.id,
+                    status: status
+            }
+            this.selected.forEach(rpm => {
+                this.packages[rpm].forEach (pack => {
+                    if(pack.selectedALBS.status !== 'released') {
+                        data.errata_package_id = pack.id
+                        data.mapping_id = pack.selectedALBS.albs_artifact_id
+                    }
+                })
+                if (data.errata_package_id) {
+                    this.$api.post('/errata/update_package_status/', data)
+                    .then(response => {
+                        this.$emit('updatePackages', this.advisory.id)
+                        if (!response.data.ok) {
+                            Notify.create({
+                                message: response.date.error,
+                                type: 'negative',
+                                actions: [
+                                    { label: 'Dismiss', color: 'white', handler: () => {} }
+                                ]
+                            })
+                        }
+                    })
+                    .catch(error => {
+                        console.log(error)
+                        Notify.create({
+                            message: `${error.response.status}: ${error.response.statusText}`,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    })
+                }
+            })
+        },
         toRelease () {
-            console.log('kek')
-        }
+            let builds = new Set()
+            let build_tasks = []
+            for (const src in this.packages) {
+                this.packages[src].forEach(pack => {
+                    if (pack.selectedALBS.status === 'approved') {
+                        builds.add(pack.selectedALBS.build_id)
+                        build_tasks.push(pack.selectedALBS.task_id)
+                    }
+                })
+            }
+            if (build_tasks.length) {
+                let request_body = {
+                    builds: Array.from(builds),
+                    build_tasks: build_tasks,
+                    platform_id: this.advisory.platform_id,
+                    reference_platform_id: this.advisory.platform_id,
+                }
+                request_body = JSON.stringify(request_body)
+                this.$router.push({
+                    name: 'ErrataRelease',
+                    params: { request_body }
+                })
+            } else {
+                Notify.create({
+                    message: 'Please approve at least one package',
+                    type: 'negative',
+                    actions: [
+                        { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                })
+            }
+        }    
     }
 })
 </script>
+
+<style scoped>
+</style>
