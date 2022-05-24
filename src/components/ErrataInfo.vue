@@ -288,7 +288,7 @@
                                     </template>
                                 </tbody>
                             </q-markup-table>
-                                <div class="column items-end">
+                                <div v-if="notReleasedRPMs().length !== 0" class="column items-end">
                                     <div class="q-gutter-md col q-pt-sm">
                                         <q-btn
                                             size="85%"
@@ -659,7 +659,7 @@ export default defineComponent({
             let build_tasks = []
             for (const src in this.packages) {
                 this.packages[src].forEach(pack => {
-                    if (pack.selectedALBS.status === 'approved') {
+                    if (src !== 'null' && pack.selectedALBS.status === 'approved') {
                         builds.add(pack.selectedALBS.build_id)
                         build_tasks.push(pack.selectedALBS.task_id)
                     }
