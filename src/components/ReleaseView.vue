@@ -73,8 +73,11 @@
                         </q-tab-panel>
 
                         <q-tab-panel name="logs">
-                            <div class="text-h6">Logs</div>
-                            {{ release.plan.last_log ? `${release.plan.last_log}`: '' }}
+                            <div class="q-pt-none log-container">
+                                <pre>
+                                    {{ release.plan.last_log.trim ? `${release.plan.last_log}`: '' }}
+                                </pre>
+                            </div>
                         </q-tab-panel>
 
                     </q-tab-panels>
@@ -166,3 +169,16 @@ export default defineComponent({
     }
 })
 </script>
+
+<style scoped>
+  .log-container {
+    font-size: small;
+    overflow-y: auto;
+    padding-left: 2em;
+  }
+
+  .log-container pre {
+    white-space: pre-line;
+    word-break: break-all;
+  }
+</style>
