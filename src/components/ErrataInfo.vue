@@ -206,6 +206,11 @@
                                             <tr v-for="pack in packages[src_rpm]" :key="pack.id">
                                                 <td>
                                                     {{ nevra(pack) }}
+                                                    <q-badge v-if="pack.orinalSelectedALBS !== pack.selectedALBS" color="yellow">
+                                                        <q-tooltip>
+                                                            Unsaved change
+                                                        </q-tooltip>
+                                                    </q-badge>
                                                 </td>
                                                 <td>
                                                     <q-select
@@ -510,6 +515,7 @@ export default defineComponent({
                     else {
                         pack.selectedALBS = pack.albs_packages[0]
                     }
+                    pack.orinalSelectedALBS = pack.selectedALBS
                     packages[pack.source_srpm] ? packages[pack.source_srpm].push(pack) : packages[pack.source_srpm] = [pack]
                     packages[pack.source_srpm].selected = false
                     packages[pack.source_srpm].released = released
