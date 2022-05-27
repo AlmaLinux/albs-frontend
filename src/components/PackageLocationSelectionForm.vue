@@ -125,15 +125,9 @@ export default defineComponent({
                 },
                 { name: 'destination', align: 'left', label: 'Destination(s)', field: 'destination' },
                 { name: 'force', align: 'left', label: 'Force', field: 'force' },
-                { name: 'trustness', label: 'Trustness', field: 'trustness', align: 'center', sortable: true },
-                { name: 'src', label: 'src', field: 'src', align: 'center' },
-                { name: 'i686', label: 'i686', field: 'i686', align: 'center' },
-                { name: 'x86_64', label: 'x86_64', field: 'x86_64', align: 'center' },
-                { name: 'aarch64', label: 'aarch64', field: 'aarch64', align: 'center' },
-                { name: 'ppc64le', label: 'ppc64le', field: 'ppc64le', align: 'center' },
-                { name: 'button', label: '', field: 'button', align: 'center'}
+                { name: 'trustness', label: 'Trustness', field: 'trustness', align: 'center', sortable: true }
             ],
-            archs: ['src', 'i686', 'x86_64', 'aarch64', 'ppc64le'],
+            archs: ['src'],
             filter: '',
             loadingTable: true,
             packagesLocation: [],
@@ -154,7 +148,16 @@ export default defineComponent({
         nevra (pack) {
             return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
         },
+        createArchColumns (archs) {
+            this.columns.push({ name: 'src', label: 'src', field: 'src', align: 'center' })
+            archs.forEach(arch => {
+                this.archs.push(arch)
+                this.columns.push({ name: arch, label: arch, field: arch, align: 'center' })
+            })
+            this.columns.push({ name: 'button', label: '', field: 'button', align: 'center'})
+        },
         createTable(data){
+            this.createArchColumns(data.platform.arch_list)
             this.build_ids = data.build_ids
             this.build_task_ids = data.build_task_ids
             let packages = data.plan.packages
