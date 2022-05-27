@@ -193,23 +193,6 @@ export default defineComponent({
                         pack[repo_arch] = true
                     }
                     this.packagesLocation.push(pack)
-                    continue
-                }
-                // TODO: need to remove this in future
-                switch (pack.arch) {
-                    case 'noarch':
-                        pack.i686 = true
-                        pack.x86_64 = true
-                        pack.aarch64 = true
-                        pack.ppc64le = true
-                        break;
-                    case 'i686':
-                        pack.i686 = true
-                        pack.x86_64 = true
-                        break;
-                    default:
-                        pack[pack.arch] = true
-                        break;
                 }
                 this.packagesLocation.push(pack)
             }
