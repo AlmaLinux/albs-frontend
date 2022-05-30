@@ -97,7 +97,7 @@
               </q-item-section>
             </q-item-section>
             <q-item-section v-if="buildPlan.mock_options.module_enable" style="font-size: 12pt; letter-spacing: 1pt;">
-              enable modules: {{ mock_options.module_enable.join(' ') }}
+              enable modules: {{ buildPlan.mock_options.module_enable.join(' ') }}
             </q-item-section>
           </q-list>
         </q-expansion-item>
