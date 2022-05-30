@@ -192,24 +192,6 @@ export default defineComponent({
                     for (let repo_arch of item.repo_arch_location) {
                         pack[repo_arch] = true
                     }
-                    this.packagesLocation.push(pack)
-                    continue
-                }
-                // TODO: need to remove this in future
-                switch (pack.arch) {
-                    case 'noarch':
-                        pack.i686 = true
-                        pack.x86_64 = true
-                        pack.aarch64 = true
-                        pack.ppc64le = true
-                        break;
-                    case 'i686':
-                        pack.i686 = true
-                        pack.x86_64 = true
-                        break;
-                    default:
-                        pack[pack.arch] = true
-                        break;
                 }
                 this.packagesLocation.push(pack)
             }
@@ -314,6 +296,7 @@ export default defineComponent({
             }
             this.packagesLocation.forEach(packLocation => {
                 let repos = []
+                let repo_arch_location = []
                 let pack = {
                     arch: packLocation.arch,
                     artifact_href: packLocation.artifact_href,
@@ -327,10 +310,17 @@ export default defineComponent({
                 }
                 this.archs.forEach(arch => {
                     if (packLocation[arch] && this.repositories[arch] && packLocation.destination) {
-                        if (this.repositories[arch][packLocation.destination.value]) repos.push(this.repositories[arch][packLocation.destination.value])
+                        if (this.repositories[arch][packLocation.destination.value]) {
+                            repo_arch_location.push(arch)
+                            repos.push(this.repositories[arch][packLocation.destination.value])
+                        }
                     }
                 })
-                plan.packages.push({ package: pack, repositories: repos })
+                plan.packages.push({
+                    'package': pack,
+                    'repositories': repos,
+                    'repo_arch_location': repo_arch_location
+                })
             })
             return plan
         },
