@@ -628,7 +628,7 @@ export default defineComponent({
             }
             this.selected.forEach(rpm => {
                 this.packages[rpm].forEach (pack => {
-                    if(pack.selectedALBS.status !== 'released') {
+                    if(pack && pack.selectedALBS.status !== 'released') {
                         data.errata_package_id = pack.id
                         data.mapping_id = pack.selectedALBS.albs_artifact_id
                     }
