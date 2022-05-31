@@ -374,6 +374,9 @@
           >
           <pre>{{ signLogText }}</pre>
           </q-infinite-scroll>
+          <q-card-actions align="right">
+            <q-btn flat text-color="primary" label="Ok" style="width: 150px" v-close-popup/>
+          </q-card-actions>
       </q-card>
     </q-dialog>
   </div>
@@ -707,10 +710,14 @@ export default defineComponent({
     },
     showSignLog (sign){
       this.sign_log = true
-      axios.get(sign.log_href)
-        .then(response => {
-          this.signLogText = response.data
-        })
+      if (sign.log_href) {
+        axios.get(sign.log_href)
+          .then(response => {
+            this.signLogText = response.data
+          })
+      } else {
+        this.signLogText = sign.error_message
+      }
     },
     repeatSign (sign){
       this.loading = true
