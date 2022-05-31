@@ -649,13 +649,15 @@ export default defineComponent({
                     })
                     .catch(error => {
                         console.log(error)
-                        Notify.create({
-                            message: `${error.response.status}: ${error.response.statusText}`,
-                            type: 'negative',
-                            actions: [
-                                { label: 'Dismiss', color: 'white', handler: () => {} }
-                            ]
-                        })
+                        if (error.response) {
+                            Notify.create({
+                                message: `${error.response.status}: ${error.response.statusText}`,
+                                type: 'negative',
+                                actions: [
+                                    { label: 'Dismiss', color: 'white', handler: () => {} }
+                                ]
+                            })
+                        }
                     })
                 }
             })
