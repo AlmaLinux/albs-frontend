@@ -503,7 +503,7 @@ export default defineComponent({
                             albs['label'] = `released`
                             albs['value'] = albs.name
                         }
-                        if (albs.status === 'approved') proposal = true
+                        if (albs.status === 'approved') approved = true
                         if (albs.status === 'released') released = true
                     })
                     if (released){
@@ -630,7 +630,7 @@ export default defineComponent({
                 this.packages[rpm].forEach (pack => {
                     if (pack.selectedALBS && pack.selectedALBS.status !== 'released') {
                         data.errata_package_id = pack.id
-                        data.mapping_id = pack.selectedALBS.albs_artifact_id
+                        data.mapping_id = pack.selectedALBS.id
                     }
                 })
                 if (data.errata_package_id) {
@@ -667,7 +667,7 @@ export default defineComponent({
             let build_tasks = []
             for (const src in this.packages) {
                 this.packages[src].forEach(pack => {
-                    if (src !== 'null' && pack.selectedALBS.status === 'approved') {
+                    if (src !== 'null' && pack.selectedALBS && pack.selectedALBS.status === 'approved') {
                         builds.add(pack.selectedALBS.build_id)
                         build_tasks.push(pack.selectedALBS.task_id)
                     }
