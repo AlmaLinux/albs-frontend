@@ -31,8 +31,8 @@
               <span class="row">
                 <b>Built modules:&nbsp;</b>
               </span>
-              <span class="row q-pl-sm"> 
-                <b class="text-body2"> {{ nsvca(rpm_module[Object.keys(rpm_module)[0]]) }} </b> 
+              <span class="row q-pl-sm">
+                <b class="text-body2"> {{ nsvca(rpm_module[Object.keys(rpm_module)[0]]) }} </b>
               </span>
             </div>
              <table class="text-left q-table horizontal-separator build-info-table">
@@ -70,8 +70,8 @@
               <span class="row">
                 <b>Built modules:&nbsp;</b>
               </span>
-              <span class="row q-pl-sm"> 
-                <b class="text-body2"> {{ nsvca(rpm_module[target], target.split('.')[1]) }} </b> 
+              <span class="row q-pl-sm">
+                <b class="text-body2"> {{ nsvca(rpm_module[target], target.split('.')[1]) }} </b>
               </span>
             </div>
              <table class="text-left q-table horizontal-separator build-info-table">
@@ -137,6 +137,15 @@
                 </q-card>
               </q-expansion-item>
             </q-card-section>
+
+            <q-btn
+              color="primary"
+              icon="description"
+              label="Modules yaml"
+              v-if="buildFinished && rpm_module && Object.keys(rpm_module).length !== 0"
+              :loading="moduleYamlLoad"
+              @click="onModuleYaml(target)">
+            </q-btn>
           </q-tab-panel>
         </q-tab-panels>
       </q-card-section>
@@ -225,7 +234,7 @@
         <q-btn-dropdown label="Other Actions" color="primary" dropdown-icon="change_history"
                         style="width: 200px; height: 40px;">
           <q-list>
-            <q-item clickable v-close-popup @click="sign_build = true" v-if="allowSignBuild">
+            <q-item clickable v-close-popup @click="sign_build = true" v-if="buildFinished">
               <q-item-section avatar>
                 <q-avatar icon="lock"/>
               </q-item-section>
@@ -265,7 +274,7 @@
                 <q-item-label>Restart build tests</q-item-label>
               </q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="delete_build = true" v-if="allowDeleteBuild">
+            <q-item clickable v-close-popup @click="delete_build = true" v-if="buildFinished">
               <q-item-section avatar>
                 <q-avatar icon="delete"/>
               </q-item-section>
@@ -379,6 +388,7 @@
           </q-card-actions>
       </q-card>
     </q-dialog>
+    <module-yaml ref="showModuleYaml"/>
   </div>
 </template>
 
@@ -388,6 +398,7 @@ import { defineComponent } from 'vue'
 import {exportFile, Loading, Notify} from 'quasar'
 import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
+import ModuleYaml from 'components/ModuleYaml.vue'
 import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
 import axios from 'axios'
 
@@ -412,6 +423,7 @@ export default defineComponent({
       delete_build: false,
       loading: false,
       buildLoad: false,
+      moduleYamlLoad: false,
       current_sign: null,
       current_distro: null,
       mock_options: null,
@@ -457,16 +469,6 @@ export default defineComponent({
       }
       return rebuilt
     },
-    allowDeleteBuild () {
-      let allow_delete = true
-      for (let task of this.build.tasks) {
-        if (task.status < BuildStatus.COMPLETED) {
-          allow_delete = false
-          break
-        }
-      }
-      return allow_delete
-    },
     testingCompleted () {
       let testing_completed = true
       for (let task of this.build.tasks) {
@@ -477,15 +479,14 @@ export default defineComponent({
       }
       return testing_completed
     },
-    allowSignBuild () {
-      let allow_sign = true
+    buildFinished () {
+      let build_finished = true
       for (let task of this.build.tasks) {
         if (task.status < BuildStatus.COMPLETED) {
-          allow_sign = false
-          break
+          build_finished = false
         }
       }
-      return allow_sign
+      return build_finished
     },
     buildTargets () {
       let targetsSet = new Set()
@@ -706,7 +707,7 @@ export default defineComponent({
               { label: 'Dismiss', color: 'white', handler: () => {} }
             ]
           })
-        })      
+        })
     },
     showSignLog (sign){
       this.sign_log = true
@@ -875,7 +876,7 @@ export default defineComponent({
     },
     openTaskLogs (task) {
       this.$router.push({ path:`/build/${this.buildId}/logs/${task.id}`,
-                          query: { 
+                          query: {
                                   project_name: this.getProjectName(task),
                                   arch: task.arch
                                   }})
@@ -898,8 +899,8 @@ export default defineComponent({
       })
     },
     sortTaskPackage (tasks) {
-      tasks.sort((x,y) => { 
-        return x.name.indexOf('src.rpm') !== -1 ? -1 : y.name.indexOf('src.rpm') !== -1 ? 1 : 0; 
+      tasks.sort((x,y) => {
+        return x.name.indexOf('src.rpm') !== -1 ? -1 : y.name.indexOf('src.rpm') !== -1 ? 1 : 0;
       })
       return tasks
     },
@@ -915,11 +916,34 @@ export default defineComponent({
       } else {
         return `${module.name}:${module.stream}:${module.version}:${module.context}`
       }
-    }
+    },
+    onModuleYaml (target) {
+      this.moduleYamlLoad = true
+      let platform = target.split('.')[0]
+      let modules_url = `${window.origin}/pulp/content/builds/${platform}-${this.rpm_module[target].arch}-${this.buildId}-br/repodata/${this.rpm_module[target].sha256}-modules.yaml`
+      axios.get(modules_url)
+        .then(response => {
+          this.moduleYamlLoad = false
+          this.$refs.showModuleYaml.open({ modules_yaml: response.data, module_name: this.rpm_module[target].name, module_stream: this.rpm_module[target].stream })
+        })
+        .catch(error => {
+          this.moduleYamlLoad = false
+          if (error.response.status === 404) {
+            Notify.create({
+                message: `Failed to find modules.yaml`,
+                type: 'negative',
+                actions: [
+                    { label: 'Dismiss', color: 'white', handler: () => {} }
+                ]
+            })
+          }
+        })
+    },
   },
   components: {
     BuildRef,
-    BuildStatusCircle
+    BuildStatusCircle,
+    ModuleYaml
   }
 })
 </script>
