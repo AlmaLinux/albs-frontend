@@ -101,7 +101,7 @@
                                     </q-card-section>
                                 </q-card>
                             </q-expansion-item>
-                            <q-expansion-item label="Refernces" expand-separator
+                            <q-expansion-item label="References" expand-separator
                                                 icon="shopping_cart" align="left"
                                                 v-if="advisory.references.length">
                                 <q-card>
