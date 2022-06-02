@@ -13,12 +13,20 @@
           :key="link.title"
           v-bind="link"
         />
-          <q-item clickable @click="onLogout">
+          <q-item v-if="$store.getters.isAuthenticated" clickable @click="onLogout">
             <q-item-section avatar>
-              <q-icon name="exit_to_app" />
+              <q-icon name="logout" />
             </q-item-section>
             <q-item-section>
               <q-item-label>Logout</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item v-else clickable @click="onLogin">
+            <q-item-section avatar>
+              <q-icon name="login" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Log in</q-item-label>
             </q-item-section>
           </q-item>
       </q-list>
@@ -109,6 +117,9 @@ export default defineComponent({
   methods: {
     onLogout () {
       this.$store.commit('users/onLogout')
+    },
+    onLogin () {
+      this.$router.push('/auth/login')
     }
   }
 })
