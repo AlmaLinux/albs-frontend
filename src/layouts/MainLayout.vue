@@ -56,32 +56,38 @@
 <script>
 import EssentialLink from 'components/EssentialLink.vue'
 import BuildFeedSearchForm from 'components/BuildFeedSearchForm.vue'
+import store from '../store/index'
 
 const linksList = [
   {
     title: 'Feed',
     icon: 'view_list',
-    link: '/'
+    link: '/',
+    allow: true
   },
   {
     title: 'New build',
     icon: 'create',
-    link: '/build/create'
+    link: '/build/create',
+    allow: store.getters.isAuthenticated
   },
   {
     title: 'Release Feed',
     icon: 'cloud',
-    link: 'release-feed'
+    link: 'release-feed',
+    allow: store.getters.isAuthenticated
   },
   {
     title: 'New release',
     icon: 'new_releases',
-    link: '/release/create'
+    link: '/release/create',
+    allow: store.getters.isAuthenticated
   },
   {
     title: 'New distribution',
     icon: 'earbuds',
-    link: '/distro/new'
+    link: '/distro/new',
+    allow: store.getters.isAuthenticated
   }
 ];
 

@@ -26,8 +26,8 @@ const Router = createRouter({
 
 Router.beforeEach((to, from, next) => {
   // redirect to login page if not logged in and trying to access a restricted page
-  if (!store.getters.isAuthenticated && !to.path.startsWith('/auth')) {
-    next({ path: '/auth/login' })
+  if (!store.getters.isAuthenticated && to.meta.requiresAuth) {
+    next({ path: '/' })
   } else {
     next()
   }

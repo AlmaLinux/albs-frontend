@@ -80,7 +80,7 @@
                   <th><td/></th>
                   <th>Status</th>
                   <th>Packages</th>
-                  <th>Actions</th>
+                  <th v-if="userAuthenticated()" >Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -117,6 +117,7 @@
                         icon="restart_alt"
                         size="sm"
                         title="Restart build task tests"
+                        v-if="buildFinished && userAuthenticated()"
                         @click="RestartTestTask(task.id)"/>
                     </td>
                   </template>
@@ -230,7 +231,7 @@
           </q-card>
         </q-expansion-item>
       </q-card-section>
-      <q-card-actions align="right">
+      <q-card-actions align="right" v-if="userAuthenticated()">
         <q-btn-dropdown label="Other Actions" color="primary" dropdown-icon="change_history"
                         style="width: 200px; height: 40px;">
           <q-list>
@@ -554,6 +555,9 @@ export default defineComponent({
     }
   },
   methods: {
+    userAuthenticated () {
+      return this.$store.getters.isAuthenticated
+    },
     changeStatus (task, status) {
       if (task.status < status) task.status = status
     },

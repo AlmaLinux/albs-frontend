@@ -3,6 +3,7 @@
     clickable
     tag="a"
     :href="link"
+    v-if="allow"
   >
     <q-item-section
       v-if="icon"
@@ -44,7 +45,8 @@ export default defineComponent({
     icon: {
       type: String,
       default: ''
-    }
+    },
+    allow: Boolean
   }
 })
 </script>
