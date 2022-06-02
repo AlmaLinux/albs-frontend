@@ -47,8 +47,7 @@
       </q-select>
       <q-input v-model="filter.buildTaskArch" label="Build task architecture"/>
       <q-toggle v-model="filter.released" left-label label="Build is released"/>
-      <!-- TODO: uncomment when sign node will be implement -->
-      <!-- <q-toggle v-model="filter.signed" left-label label="Build is signed"/> -->
+      <q-toggle v-model="filter.signed" left-label label="Build is signed"/>
     </q-list>
     <div class="row group justify-end">
       <q-btn @click="hideSearchPanel" flat>
