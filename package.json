@@ -1,8 +1,8 @@
 {
   "name": "albs-frontend",
   "version": "0.0.1",
-  "description": "Almalinux build system",
-  "productName": "Almalinux Build System",
+  "description": "AlmaLinux build system",
+  "productName": "AlmaLinux Build System",
   "author": "Vyacheslav Potoropin <vpotoropin@almalinux.org>",
   "private": true,
   "scripts": {
