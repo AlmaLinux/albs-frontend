@@ -56,6 +56,7 @@ const routes = [
       {
         path: 'errata',
         component: () => import('pages/ErrataFeed.vue'),
+        meta: { requiresAuth: true },
         beforeEnter (to, from, next) {
           store.dispatch('platforms/loadPlatformList')
             .then(next())
@@ -65,6 +66,7 @@ const routes = [
       {
         path: 'errata/release',
         name: 'ErrataRelease',
+        meta: { requiresAuth: true },
         component: () => import('pages/ErrataRelease.vue'),
         props: (route) => ({ ...route.params })
       },
