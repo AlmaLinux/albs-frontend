@@ -28,17 +28,22 @@ const routes = [
       },
       { path: 'build/:buildId', component: () => import('pages/Build.vue'), props: true,
         beforeEnter (to, from, next) {
-          store.dispatch('distributions/loadDistributionsList')
-            .then(next())
-            .catch(next())
-          store.dispatch('keys/loadKeysList')
-            .then(next())
-            .catch(next())
+          if (store.getters.isAuthenticated) {
+            store.dispatch('distributions/loadDistributionsList')
+              .then(next())
+              .catch(next())
+            store.dispatch('keys/loadKeysList')
+              .then(next())
+              .catch(next())
+          } else {
+            next()
+          }
         }
       },
       {
         path: 'build/create',
         component: () => import('pages/BuildPlanner.vue'),
+        meta: { requiresAuth: true },
         beforeEnter (to, from, next) {
           store.dispatch('platforms/loadPlatformList')
             .then(next())
@@ -50,10 +55,12 @@ const routes = [
       },
       {
         path: 'release-feed',
+        meta: { requiresAuth: true },
         component: () => import('pages/ReleaseFeed.vue')
       },
       {
         path: 'release/create',
+        meta: { requiresAuth: true },
         component: () => import('pages/CreateRelease.vue'),
         beforeEnter (to, from, next) {
           store.dispatch('platforms/loadPlatformList')
@@ -64,6 +71,7 @@ const routes = [
       { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildItemInfo.vue'), props: true},
       {
         path: '/distro/new/',
+        meta: { requiresAuth: true },
         component: () => import('pages/CreateDistro'),
         beforeEnter (to, from, next) {
           store.dispatch('platforms/loadPlatformList')

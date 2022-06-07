@@ -13,12 +13,20 @@
           :key="link.title"
           v-bind="link"
         />
-          <q-item clickable @click="onLogout">
+          <q-item v-if="$store.getters.isAuthenticated" clickable @click="onLogout">
             <q-item-section avatar>
-              <q-icon name="exit_to_app" />
+              <q-icon name="logout" />
             </q-item-section>
             <q-item-section>
               <q-item-label>Logout</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item v-else clickable @click="onLogin">
+            <q-item-section avatar>
+              <q-icon name="login" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Log in</q-item-label>
             </q-item-section>
           </q-item>
       </q-list>
@@ -48,32 +56,38 @@
 <script>
 import EssentialLink from 'components/EssentialLink.vue'
 import BuildFeedSearchForm from 'components/BuildFeedSearchForm.vue'
+import store from '../store/index'
 
 const linksList = [
   {
     title: 'Feed',
     icon: 'view_list',
-    link: '/'
+    link: '/',
+    allow: true
   },
   {
     title: 'New build',
     icon: 'create',
-    link: '/build/create'
+    link: '/build/create',
+    allow: store.getters.isAuthenticated
   },
   {
     title: 'Release Feed',
     icon: 'cloud',
-    link: 'release-feed'
+    link: 'release-feed',
+    allow: store.getters.isAuthenticated
   },
   {
     title: 'New release',
     icon: 'new_releases',
-    link: '/release/create'
+    link: '/release/create',
+    allow: store.getters.isAuthenticated
   },
   {
     title: 'New distribution',
     icon: 'earbuds',
-    link: '/distro/new'
+    link: '/distro/new',
+    allow: store.getters.isAuthenticated
   }
 ];
 
@@ -109,6 +123,9 @@ export default defineComponent({
   methods: {
     onLogout () {
       this.$store.commit('users/onLogout')
+    },
+    onLogin () {
+      this.$router.push('/auth/login')
     }
   }
 })
