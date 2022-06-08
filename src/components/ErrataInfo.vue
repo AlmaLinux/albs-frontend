@@ -226,17 +226,22 @@
                                 </q-tr>
                             </template>
                             <template v-slot:body="props">
-                                <q-tr :props="props">
+                                <q-tr :props="props" :class="props.row.source_srpm ? '' : 'bg-grey-3'">
                                     <q-td key="nevra" :props="props" style="border-bottom: 0;">
                                         <q-checkbox
+                                            v-if="props.row.source_srpm"
                                             v-model="props.row.selected"
                                             @click="selectRPM(props.row)"
+                                            :disable="props.row.released"
                                         />
                                         {{ props.row.nevra }}
                                     </q-td>
-                                    <q-td key="build" :props="props" style="border-bottom: 0;" class="text-center">
-                                        <q-select v-model="props.row.selected_build"
-                                        :options="props.row.albs_builds">
+                                    <q-td key="build" :props="props" style="border-bottom: 0;">
+                                        <q-select
+                                            v-model="props.row.selected_build"
+                                            :options="props.row.albs_builds"
+                                            :disable="props.row.released"
+                                        >
                                             <template v-if="props.row.selected_build && props.row.selected_build.build_id" v-slot:before>
                                                 <q-btn
                                                     round dense flat
@@ -249,6 +254,13 @@
                                                         Click to go to the Build {{ props.row.selected_build.build_id }}
                                                     </q-tooltip>
                                                 </q-btn>
+                                            </template>
+                                            <template v-slot:no-option>
+                                                <q-item>
+                                                    <q-item-section class="text-italic text-grey">
+                                                        No options
+                                                    </q-item-section>
+                                                </q-item>
                                             </template>
                                         </q-select>
                                     </q-td>
@@ -263,7 +275,7 @@
                                         </q-chip>
                                     </q-td>
                                 </q-tr>
-                                <q-tr no-hover>
+                                <q-tr no-hover :class="props.row.source_srpm ? '' : 'bg-grey-3'">
                                     <q-td colspan="100%">
                                         <q-tree
                                                 :nodes="props.row.packages"
@@ -272,16 +284,16 @@
                                             <template v-slot:header-root="prop">
                                                 <div class="row items-center">
                                                     <q-icon :name="prop.node.icon"/>
-                                                    <div>
+                                                    <div class="text-bold q-pl-xs">
                                                         {{ prop.node.label }}
-                                                        <q-badge v-if="props.row.warning" color="orange" class="q-ml-sm">Warning</q-badge>
                                                     </div>
+                                                    <q-badge v-if="srcWarning(props.row)" color="orange" class="q-ml-sm">Warning</q-badge>
                                                 </div>
                                             </template>
                                             <template v-slot:header-generic="prop">
                                                 <div class="row items-center">
                                                     {{ prop.node.label }}
-                                                    <div class="q-pl-xs">
+                                                    <div class="q-pl-xs" v-if="props.row.selected_build">
                                                         <q-badge v-if="prop.node.warn" color="red">
                                                             <q-tooltip>
                                                                 This package was not found in Build {{ props.row.selected_build.build_id }}
@@ -479,7 +491,7 @@ export default defineComponent({
                     released: false,
                     packages: [
                         {
-                            label: 'Packages',
+                            label: packages[src][0].source_srpm,
                             icon: 'source',
                             header: 'root',
                             children: []
@@ -637,6 +649,25 @@ export default defineComponent({
                 rpm.selected = this.selectedAll
             })
         },
+        srcWarning (src) {
+            let warning = false
+            if (src.selected_build && src.selected_build.build_id) {
+                let build_id = src.selected_build.build_id
+                src.packages[0].children.forEach(pack =>{
+                    if (!pack.albs_packages.find(albs => albs.build_id === build_id)) {
+                        pack.warn = true
+                        warning = true
+                    } else {
+                        pack.warn = false
+                    }
+                })
+            } else if (src.released) {
+                src.packages[0].children.forEach(pack => {
+                    pack.warn = false
+                })
+            }
+            return warning
+        },
         changeStatus (status) {
             if (this.selected.length === 0) {
                 Notify.create({
@@ -688,8 +719,6 @@ export default defineComponent({
                     }
                 })
             }
-
-
         },
         toRelease () {
             let builds = new Set()
