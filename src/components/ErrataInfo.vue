@@ -489,17 +489,25 @@ export default defineComponent({
                 let approved = false
                 packages[src].forEach(pack => {
                     pack.albs_packages.forEach(albs => {
-                        build_options[albs.status] = {
-                            status: albs.status
-                        }
                         if (albs.status === 'released'){
-                            build_options[albs.status].label = src
-                            build_options[albs.status].value = src
+                            build_options[albs.status] = {
+                                status: albs.status,
+                                label: src,
+                                value: src
+                            }
                             project.released = true
                         } else {
-                            build_options[albs.status].build_id = albs.build_id
-                            build_options[albs.status].label = `Build ${albs.build_id}: ${src}`
-                            build_options[albs.status].value =  albs.build_id
+                            build_options[albs.build_id] = {
+                                status: albs.status,
+                                build_id: albs.build_id,
+                                label: `Build ${albs.build_id}: ${src}`,
+                                value:  albs.build_id
+                            }
+                            if (build_options[albs.build_id].build_tasks){
+                                build_options[albs.build_id].build_tasks.push(albs.task_id) 
+                            } else {
+                                build_options[albs.build_id].build_tasks = [albs.task_id]
+                            }
                         }
                         if (albs.status === 'approved') approved = true
                     })
@@ -686,14 +694,12 @@ export default defineComponent({
         toRelease () {
             let builds = new Set()
             let build_tasks = []
-            for (const src in this.packages) {
-                this.packages[src].forEach(pack => {
-                    if (src !== 'null' && pack.selectedALBS && pack.selectedALBS.status === 'approved') {
-                        builds.add(pack.selectedALBS.build_id)
-                        build_tasks.push(pack.selectedALBS.task_id)
-                    }
-                })
-            }
+            this.projects.forEach(src => {
+                if (src.source_srpm && src.selected_build && src.selected_build.status === 'approved'){
+                    builds.add(src.selected_build.build_id)
+                    build_tasks = build_tasks.concat(src.selected_build.build_tasks)
+                }
+            })
             if (build_tasks.length) {
                 let request_body = {
                     builds: Array.from(builds),
