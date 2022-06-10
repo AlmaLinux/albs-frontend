@@ -523,10 +523,6 @@ export default defineComponent({
                         }
                         if (albs.status === 'approved') approved = true
                     })
-                    if (pack.albs_packages.length === 0){
-                        pack.warn = true
-                        project.warning = true
-                    }
                     pack.label = this.nevra(pack)
                     pack.header = 'generic'
                     project.packages[0].children.push(pack)
