@@ -48,6 +48,13 @@
                 </q-th>
                 </q-tr>
             </template>
+            <template v-if="modules && modules.length" v-slot:top-row>
+                <q-tr>
+                    <q-th colspan="100%" class="text-left">
+                        Packages
+                    </q-th>
+                </q-tr>
+            </template>
             <template v-slot:body="props">
                 <q-tr :props="props">
                     <q-td key="nevra" :props="props">
@@ -98,6 +105,53 @@
                     </q-td>
                 </q-tr>
             </template>
+            <template v-if="modules && modules.length" v-slot:bottom-row>
+                <q-tr>
+                    <q-th colspan="100%" class="text-left">
+                        Modules
+                    </q-th>
+                </q-tr>
+                <q-tr v-for="modul in modules" :key="modul.arch">
+                    <q-td>
+                        {{ modul.nsvca }}
+                    </q-td>
+                    <q-td>
+                        <q-select v-model="modul.destination" dense
+                            :options="modul.destinationOptions"
+                            :readonly="viewOnly ? true : false"
+                            transition-show="scale"
+                            transition-hide="scale">
+                        </q-select>
+                    </q-td>
+                    <q-td>
+                        <q-checkbox v-model="modul.force" disable size="xs">
+                            <q-tooltip>
+                                Module cannot be force-released
+                            </q-tooltip>
+                        </q-checkbox>
+                    </q-td>
+                    <q-td class="text-center">
+                        <q-badge v-if="viewOnly" color="grey" />
+                        <q-badge v-else :color="trustness(modul) ? 'green': 'negative'" />
+                    </q-td>
+                    <q-td v-for="arch in archs" :key="arch"
+                            :class="viewOnly || arch === 'src' ? null : 'cursor-pointer'" class="text-center"
+                            @click="viewOnly || arch === 'src' ? null : modul[arch] = !modul[arch]">
+                        <q-icon v-if="modul[arch]" name="circle" color="primary" />
+                        <q-tooltip anchor="center middle" self="center middle"
+                                    :class="modul[arch] ? 'bg-primary' : null"
+                                    transition-show="scale" transition-hide="scale">
+                            {{ arch }}
+                        </q-tooltip>
+                    </q-td>
+                    <q-td v-if="!viewOnly">
+                        <div class="text-grey-8 q-gutter-xs">
+                            <q-btn class="add-btn" flat dense round icon="add" @click="addModule(modul)" />
+                            <q-btn class="del-btn" flat dense round icon="delete" @click="deleteModule(modul)"/>
+                        </div>
+                    </q-td>
+                </q-tr>
+            </template>
         </q-table>
     </div>
 </template>
@@ -117,7 +171,7 @@ export default defineComponent({
                 {
                     name: 'nevra',
                     required: true,
-                    label: 'Package',
+                    label: 'NEVRA',
                     align: 'left',
                     field: 'nevra',
                     format: val => `${val}`,
@@ -135,7 +189,8 @@ export default defineComponent({
             repositories: {},
             loading: false,
             selected: [],
-            forceAll: false
+            forceAll: false,
+            modules: []
         }
     },
     created () {
@@ -144,6 +199,9 @@ export default defineComponent({
     methods: {
         tableFullScreen(props){
             props.toggleFullscreen()
+        },
+        nsvca (modul){
+            return `${modul.name}:${modul.stream}:${modul.version}:${modul.context}:${modul.arch}`
         },
         nevra (pack) {
             return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
@@ -156,6 +214,21 @@ export default defineComponent({
             })
             this.columns.push({ name: 'button', label: '', field: 'button', align: 'center'})
         },
+        moduleLocation (modules) {
+            if (modules.length) {
+                this.modules = []
+                for (const item of modules) {
+                    let modul = item.module
+                    modul.trustRepos = item.repositories
+                    modul.nsvca = this.nsvca(modul)
+                    modul.destinationOptions = this.reposOptions(this.orig_repos, modul.arch)
+                    this.beholderRepo(item, 'module')
+                    modul[modul.arch] = true
+                    modul.force = false
+                    this.modules.push(modul)
+                }
+            }
+        },
         createTable(data){
             this.createArchColumns(data.platform.arch_list)
             this.build_ids = data.build_ids
@@ -163,7 +236,7 @@ export default defineComponent({
             let packages = data.plan.packages
             this.releaseId = data.id
             this.orig_repos = data.plan.repositories
-            this.modules = data.plan.modules
+            this.moduleLocation(data.plan.modules)
             this.packagesLocation = []
             for (const item of packages) {
                 let pack = item.package
@@ -186,7 +259,7 @@ export default defineComponent({
                     }).filter(value => value !== undefined)]
                 }
                 pack.destinationOptions = this.reposOptions(data.plan.repositories, pack.arch)
-                this.beholderRepo(item)
+                this.beholderRepo(item, 'package')
                 this.selectForce(pack)
                 if (item.repo_arch_location) {
                     for (let repo_arch of item.repo_arch_location) {
@@ -197,13 +270,13 @@ export default defineComponent({
             }
             this.loadingTable = false
         },
-        beholderRepo (data){
+        beholderRepo (data, type){
             if (data.repositories.length) {
                 if (!data.repositories[0]) return
 
-                for (const index in data.package.destinationOptions){
-                    if (data.package.destinationOptions[index].label == data.repositories[0].name) {
-                        data.package.destination = data.package.destinationOptions[index]
+                for (const index in data[type].destinationOptions){
+                    if (data[type].destinationOptions[index].label == data.repositories[0].name) {
+                        data[type].destination = data[type].destinationOptions[index]
                     }
                 }
             }
@@ -276,6 +349,18 @@ export default defineComponent({
             }
             return trustness
         },
+        deleteModule(item) {
+            let index = this.modules.indexOf(item)
+            this.modules = [ ...this.modules.slice(0, index), ...this.modules.slice(index + 1) ]
+        },
+        addModule (item){
+            if (item.destination){
+                let index = this.modules.indexOf(item)
+                let row = JSON.parse(JSON.stringify(item))
+                row.destination = ''
+                this.modules.splice(index + 1, 0, row)
+            }
+        },
         deletePackage(item) {
             let index = this.packagesLocation.indexOf(item)
             this.packagesLocation = [ ...this.packagesLocation.slice(0, index), ...this.packagesLocation.slice(index + 1) ]
@@ -291,9 +376,32 @@ export default defineComponent({
         getPlan() {
             let plan = {
                 packages: [],
-                modules: this.modules,
+                modules: [],
                 repositories: this.orig_repos
             }
+            this.modules.forEach(moduleLocation => {
+                let repos = []
+                let modul = {
+                    arch: moduleLocation.arch,
+                    build_id: moduleLocation.build_id,
+                    context: moduleLocation.context,
+                    name: moduleLocation.name,
+                    stream: moduleLocation.stream,
+                    template: moduleLocation.template,
+                    version: moduleLocation.version
+                }
+                this.archs.forEach(arch => {
+                    if (moduleLocation[arch] && this.repositories[arch] && moduleLocation.destination) {
+                        if (this.repositories[arch][moduleLocation.destination.value]) {
+                            repos.push(this.repositories[arch][moduleLocation.destination.value])
+                        }
+                    }
+                })
+                plan.modules.push({
+                    'module': modul,
+                    'repositories': repos
+                })
+            })
             this.packagesLocation.forEach(packLocation => {
                 let repos = []
                 let repo_arch_location = []
