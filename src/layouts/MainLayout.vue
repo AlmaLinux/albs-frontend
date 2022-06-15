@@ -92,6 +92,7 @@ const linksList = [
 ];
 
 import { defineComponent, ref } from 'vue'
+import { LocalStorage } from 'quasar'
 
 export default defineComponent({
   name: 'MainLayout',
@@ -103,6 +104,17 @@ export default defineComponent({
     onBuildFeed () {
       return this.$route.name && this.$route.name.startsWith('BuildFeed')
     }
+  },
+  mounted() {
+    window.addEventListener('storage', () => {
+      let user = LocalStorage.getItem('user')
+      if (user) {
+        store.commit('users/updateSelf', user)
+        this.$router.go()
+      } else {
+        this.onLogout()
+      }
+    })
   },
   setup () {
     const leftDrawerOpen = ref(false)
