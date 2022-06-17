@@ -38,3 +38,18 @@ export function buildRefText (buildRef) {
       return buildRef.git_ref
   }
 }
+
+/**
+ * Return nvsca for module
+ *
+ * @param {Object} build_module - Module.
+ * @param {String} arch - Arch.
+ * @returns {String}
+ */
+export function nsvca (build_module, arch = null) {
+  if (arch) {
+    return `${build_module.name}:${build_module.stream}:${build_module.version}:${build_module.context}:${arch}`
+  } else {
+    return `${build_module.name}:${build_module.stream}:${build_module.version}:${build_module.context}`
+  }
+}

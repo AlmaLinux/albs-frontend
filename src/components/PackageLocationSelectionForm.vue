@@ -159,6 +159,7 @@
 <script>
 import { defineComponent } from 'vue'
 import { Notify } from 'quasar'
+import { nsvca } from '../utils';
 
 export default defineComponent({
     props: {
@@ -197,11 +198,9 @@ export default defineComponent({
         if (this.viewOnly) this.createTable(JSON.parse(JSON.stringify(this.release)))  
     },
     methods: {
+        nsvca: nsvca,
         tableFullScreen(props){
             props.toggleFullscreen()
-        },
-        nsvca (build_module){
-            return `${build_module.name}:${build_module.stream}:${build_module.version}:${build_module.context}:${build_module.arch}`
         },
         nevra (pack) {
             return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`

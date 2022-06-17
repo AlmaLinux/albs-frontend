@@ -401,6 +401,7 @@ import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import ModuleYaml from 'components/ModuleYaml.vue'
 import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
+import { nsvca } from '../utils';
 import axios from 'axios'
 
 export default defineComponent({
@@ -555,6 +556,7 @@ export default defineComponent({
     }
   },
   methods: {
+    nsvca: nsvca,
     userAuthenticated () {
       return this.$store.getters.isAuthenticated
     },
@@ -913,13 +915,6 @@ export default defineComponent({
         return false
       }
       return true
-    },
-    nsvca(module, arch = null) {
-      if (arch) {
-        return `${module.name}:${module.stream}:${module.version}:${module.context}:${module.arch}`
-      } else {
-        return `${module.name}:${module.stream}:${module.version}:${module.context}`
-      }
     },
     onModuleYaml (target) {
       this.moduleYamlLoad = true
