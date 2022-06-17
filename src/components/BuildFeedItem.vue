@@ -67,6 +67,7 @@
 import { defineComponent } from 'vue';
 import { BuildStatus } from '../constants.js'
 import BuildRef from 'components/BuildRef.vue';
+import { nsvca } from '../utils';
 
 export default defineComponent({
   name: 'BuildFeedItem',
@@ -134,6 +135,7 @@ export default defineComponent({
     }
   },
   methods: {
+    nsvca: nsvca,
     getTaskCSS (task) {
         let css = []
         switch (task.status) {
@@ -172,9 +174,6 @@ export default defineComponent({
         }
       }
       return targets
-    },
-    nsvca(module) {
-      return `${module.name}:${module.stream}:${module.version}:${module.context}`
     }
   },
   components: {
