@@ -111,20 +111,20 @@
                         Modules
                     </q-th>
                 </q-tr>
-                <q-tr v-for="modul in modules" :key="modul.arch">
+                <q-tr v-for="build_module in modules" :key="build_module.arch">
                     <q-td>
-                        {{ modul.nsvca }}
+                        {{ build_module.nsvca }}
                     </q-td>
                     <q-td>
-                        <q-select v-model="modul.destination" dense
-                            :options="modul.destinationOptions"
+                        <q-select v-model="build_module.destination" dense
+                            :options="build_module.destinationOptions"
                             :readonly="viewOnly ? true : false"
                             transition-show="scale"
                             transition-hide="scale">
                         </q-select>
                     </q-td>
                     <q-td>
-                        <q-checkbox v-model="modul.force" disable size="xs">
+                        <q-checkbox v-model="build_module.force" disable size="xs">
                             <q-tooltip>
                                 Module cannot be force-released
                             </q-tooltip>
@@ -132,22 +132,22 @@
                     </q-td>
                     <q-td class="text-center">
                         <q-badge v-if="viewOnly" color="grey" />
-                        <q-badge v-else :color="trustness(modul) ? 'green': 'negative'" />
+                        <q-badge v-else :color="trustness(build_module) ? 'green': 'negative'" />
                     </q-td>
                     <q-td v-for="arch in archs" :key="arch"
                             :class="viewOnly || arch === 'src' ? null : 'cursor-pointer'" class="text-center"
-                            @click="viewOnly || arch === 'src' ? null : modul[arch] = !modul[arch]">
-                        <q-icon v-if="modul[arch]" name="circle" color="primary" />
+                            @click="viewOnly || arch === 'src' ? null : build_module[arch] = !build_module[arch]">
+                        <q-icon v-if="build_module[arch]" name="circle" color="primary" />
                         <q-tooltip anchor="center middle" self="center middle"
-                                    :class="modul[arch] ? 'bg-primary' : null"
+                                    :class="build_module[arch] ? 'bg-primary' : null"
                                     transition-show="scale" transition-hide="scale">
                             {{ arch }}
                         </q-tooltip>
                     </q-td>
                     <q-td v-if="!viewOnly">
                         <div class="text-grey-8 q-gutter-xs">
-                            <q-btn class="add-btn" flat dense round icon="add" @click="addModule(modul)" />
-                            <q-btn class="del-btn" flat dense round icon="delete" @click="deleteModule(modul)"/>
+                            <q-btn class="add-btn" flat dense round icon="add" @click="addModule(build_module)" />
+                            <q-btn class="del-btn" flat dense round icon="delete" @click="deleteModule(build_module)"/>
                         </div>
                     </q-td>
                 </q-tr>
@@ -200,8 +200,8 @@ export default defineComponent({
         tableFullScreen(props){
             props.toggleFullscreen()
         },
-        nsvca (modul){
-            return `${modul.name}:${modul.stream}:${modul.version}:${modul.context}:${modul.arch}`
+        nsvca (build_module){
+            return `${build_module.name}:${build_module.stream}:${build_module.version}:${build_module.context}:${build_module.arch}`
         },
         nevra (pack) {
             return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
@@ -218,14 +218,14 @@ export default defineComponent({
             if (modules.length) {
                 this.modules = []
                 for (const item of modules) {
-                    let modul = item.module
-                    modul.trustRepos = item.repositories
-                    modul.nsvca = this.nsvca(modul)
-                    modul.destinationOptions = this.reposOptions(this.orig_repos, modul.arch)
+                    let build_module = item.module
+                    build_module.trustRepos = item.repositories
+                    build_module.nsvca = this.nsvca(build_module)
+                    build_module.destinationOptions = this.reposOptions(this.orig_repos, build_module.arch)
                     this.beholderRepo(item, 'module')
-                    modul[modul.arch] = true
-                    modul.force = false
-                    this.modules.push(modul)
+                    build_module[build_module.arch] = true
+                    build_module.force = false
+                    this.modules.push(build_module)
                 }
             }
         },
@@ -381,7 +381,7 @@ export default defineComponent({
             }
             this.modules.forEach(moduleLocation => {
                 let repos = []
-                let modul = {
+                let build_module = {
                     arch: moduleLocation.arch,
                     build_id: moduleLocation.build_id,
                     context: moduleLocation.context,
@@ -398,7 +398,7 @@ export default defineComponent({
                     }
                 })
                 plan.modules.push({
-                    'module': modul,
+                    'module': build_module,
                     'repositories': repos
                 })
             })
