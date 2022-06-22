@@ -143,7 +143,7 @@
               color="primary"
               icon="description"
               label="Modules yaml"
-              v-if="buildFinished && rpm_module && Object.keys(rpm_module).length !== 0"
+              v-if="rpm_module && Object.keys(rpm_module).length !== 0"
               :loading="moduleYamlLoad"
               @click="onModuleYaml(target)">
             </q-btn>
