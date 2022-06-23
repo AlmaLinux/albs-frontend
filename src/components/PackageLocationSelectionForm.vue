@@ -219,7 +219,7 @@ export default defineComponent({
                 for (const item of modules) {
                     let build_module = item.module
                     build_module.trustRepos = item.repositories
-                    build_module.nsvca = this.nsvca(build_module)
+                    build_module.nsvca = this.nsvca(build_module, build_module.arch)
                     build_module.destinationOptions = this.reposOptions(this.orig_repos, build_module.arch)
                     this.beholderRepo(item, 'module')
                     build_module[build_module.arch] = true
