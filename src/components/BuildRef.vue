@@ -1,6 +1,20 @@
 <template>
   <span :class="cssClass">
-    <span>{{ text }}</span><br>
+    <span>
+      {{ text }}
+      <q-badge v-if="show_cas && is_cas_authenticated !== null" color="white" align="bottom">
+        <q-icon v-if="is_cas_authenticated" size="xs" name="key" color="primary">
+          <q-tooltip>
+            {{ cas_hash }}
+          </q-tooltip>
+        </q-icon>
+        <q-icon v-else size="xs" name="key_off" color="negative">
+          <q-tooltip>
+            Source is not authenticated or notarized
+          </q-tooltip>
+        </q-icon>
+      </q-badge>
+    </span><br>
     <span>{{ isTagOrBranch }}</span>
     <a v-if="hasUrl" :href="refUrl" target="_blank">{{ refText }}</a>
     <span v-else>{{ refText }}</span>
@@ -24,7 +38,10 @@ export default defineComponent({
   name: 'BuildRef',
   props: {
     buildRef: {type: Object, required: true},
-    cssClass: {type: String, default: 'text-tertiary'}
+    cssClass: {type: String, default: 'text-tertiary'},
+    show_cas: Boolean,
+    is_cas_authenticated: Boolean,
+    cas_hash: String
   },
   computed: {
     hasTooltip () {
