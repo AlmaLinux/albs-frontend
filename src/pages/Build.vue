@@ -119,7 +119,8 @@
                           {{ pkg.name }}
                         </a>
                         <q-badge color="white" align="bottom">
-                          <q-icon v-if="pkg.cas_hash" size="xs" name="key" color="primary">
+                          <q-icon v-if="pkg.cas_hash" size="xs" name="key" color="primary"
+                                  @click="copyToClipboard(pkg.cas_hash)">
                             <q-tooltip>
                               {{ pkg.cas_hash }}
                             </q-tooltip>
@@ -423,7 +424,7 @@ import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import ModuleYaml from 'components/ModuleYaml.vue'
 import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
-import { nsvca } from '../utils';
+import { nsvca, copyToClipboard } from '../utils';
 import axios from 'axios'
 
 export default defineComponent({
@@ -578,6 +579,7 @@ export default defineComponent({
     }
   },
   methods: {
+    copyToClipboard: copyToClipboard,
     nsvca: nsvca,
     userAuthenticated () {
       return this.$store.getters.isAuthenticated

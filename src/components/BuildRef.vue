@@ -3,7 +3,8 @@
     <span>
       {{ text }}
       <q-badge v-if="show_cas && is_cas_authenticated !== null" color="white" align="bottom">
-        <q-icon v-if="is_cas_authenticated" size="xs" name="key" color="primary">
+        <q-icon v-if="is_cas_authenticated" size="xs" name="key" color="primary"
+                @click="copyToClipboard(cas_hash)">
           <q-tooltip>
             {{ cas_hash }}
           </q-tooltip>
@@ -29,7 +30,7 @@
 import { QTooltip } from 'quasar';
 import { defineComponent } from 'vue';
 import { BuildTaskRefType } from '../constants';
-import { buildRefText, splitRpmFileName } from '../utils';
+import { buildRefText, splitRpmFileName, copyToClipboard } from '../utils';
 
 // Max length for build tasks refs
 const maxLengthRef = 20;
@@ -115,6 +116,7 @@ export default defineComponent({
     QTooltip,
   },
   methods: {
+    copyToClipboard: copyToClipboard,
   }
 })
 </script>
