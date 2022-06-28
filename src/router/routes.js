@@ -54,6 +54,23 @@ const routes = [
         }
       },
       {
+        path: 'errata',
+        component: () => import('pages/ErrataFeed.vue'),
+        meta: { requiresAuth: true },
+        beforeEnter (to, from, next) {
+          store.dispatch('platforms/loadPlatformList')
+            .then(next())
+            .catch(next())
+        }
+      },
+      {
+        path: 'errata/release',
+        name: 'ErrataRelease',
+        meta: { requiresAuth: true },
+        component: () => import('pages/ErrataRelease.vue'),
+        props: (route) => ({ ...route.params })
+      },
+      {
         path: 'release-feed',
         meta: { requiresAuth: true },
         component: () => import('pages/ReleaseFeed.vue')
