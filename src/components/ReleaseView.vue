@@ -75,7 +75,7 @@
                         <q-tab-panel name="logs">
                             <div class="q-pt-none log-container">
                                 <pre>
-                                    {{ release.plan.last_log.trim ? `${release.plan.last_log}`: '' }}
+                                    {{ release.plan.last_log ? `${release.plan.last_log}`: "This release hasn't produced any logs yet" }}
                                 </pre>
                             </div>
                         </q-tab-panel>
