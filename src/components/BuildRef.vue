@@ -2,11 +2,12 @@
   <span :class="cssClass">
     <span>
       {{ text }}
-      <q-badge v-if="show_cas && is_cas_authenticated !== null" color="white" align="bottom">
+      <q-badge v-if="show_cas && is_cas_authenticated !== null" color="white" align="bottom" class="cursor-pointer">
         <q-icon v-if="is_cas_authenticated" size="xs" name="key" color="primary"
                 @click="copyToClipboard(cas_hash)">
-          <q-tooltip>
-            {{ cas_hash }}
+          <q-tooltip class="text-center">
+            {{ cas_hash }} <br>
+            (click to copy)
           </q-tooltip>
         </q-icon>
         <q-icon v-else size="xs" name="key_off" color="negative">
