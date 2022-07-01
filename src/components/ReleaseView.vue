@@ -152,15 +152,9 @@ export default defineComponent({
             this.$api.post(`/releases/${this.release.id}/commit/`)
                 .then(response => {
                     this.loading = false
-                    if (response.data.release.status === 4){
-                        Notify.create({message: response.data.message, type: 'negative',
-                            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
-                        this.$router.push(`/release-feed`)
-                    } else {
-                        Notify.create({message: response.data.message, type: 'positive',
-                            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
-                        this.$router.push(`/release-feed`)
-                    }
+                    Notify.create({message: response.data.message, type: 'positive',
+                        actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+                    this.$router.push(`/release-feed`)
                 })
         },
     },

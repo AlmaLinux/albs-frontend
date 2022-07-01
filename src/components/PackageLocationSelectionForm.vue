@@ -475,7 +475,10 @@ export default defineComponent({
                     full_name: packLocation.full_name,
                     name: packLocation.name,
                     force: packLocation.force,
+                    force_not_notarized: packLocation.force_not_notarized,
                     release: packLocation.release,
+                    sha256: packLocation.sha256,
+                    cas_hash: packLocation.cas_hash,
                     version: packLocation.version
                 }
                 this.archs.forEach(arch => {
@@ -512,16 +515,11 @@ export default defineComponent({
                     this.$api.post(`/releases/${response.data.id}/commit/`)
                         .then(response => {
                             this.loading = false
-                            if (response.data.release.status === 4){
-                                Notify.create({message: response.data.message, type: 'negative',
-                                    actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+                            Notify.create({message: response.data.message, type: 'positive',
+                                actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+                            this.$router.push(`/release-feed`)                            
                                 this.$router.push(`/release-feed`)
-                            } else {
-                                Notify.create({message: response.data.message, type: 'positive',
-                                    actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
-                                this.$router.push(`/release-feed`)
-                            }
-                            
+                            this.$router.push(`/release-feed`)                            
                         })
                         .catch(error => {
                             this.loading = false
