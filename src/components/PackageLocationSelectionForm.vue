@@ -44,6 +44,9 @@
                 <q-checkbox v-if="col.name === 'force' && !viewOnly"
                             v-model="forceAll" :disable="loadingTable"
                             size="xs" @click="selectForceAll"/>
+                <q-checkbox v-if="col.name === 'force_not_notarized' && !viewOnly"
+                            v-model="forceNotNotarizedAll" :disable="loadingTable"
+                            size="xs" @click="selectNotNotarizedAll"/>
                     {{ col.label }}
                 </q-th>
                 </q-tr>
@@ -59,6 +62,13 @@
                 <q-tr :props="props">
                     <q-td key="nevra" :props="props">
                         {{ props.row.nevra }}
+                        <q-badge v-if="!props.row.cas_hash" color="white" align="bottom" class="cursor-pointer">
+                            <q-icon size="xs" name="key_off" color="negative">
+                            <q-tooltip>
+                                Package is not notarized
+                            </q-tooltip>
+                            </q-icon>
+                        </q-badge>
                         <q-badge v-if="props.row.takenFromRepo || props.row.pkgInRepos" color="yellow">
                             <q-tooltip>
                                 <span v-if="props.row.takenFromRepo">
@@ -80,6 +90,11 @@
                             transition-show="scale"
                             transition-hide="scale">
                         </q-select>
+                    </q-td>
+                    <q-td key="force_not_notarized" :props="props" v-if="!props.row.cas_hash">
+                        <q-checkbox v-model="props.row.force_not_notarized"
+                            :disable="viewOnly && !props.row.cas_hash"
+                            size="xs" @click="selectNotNotarized(props.row)"/>
                     </q-td>
                     <q-td key="force" :props="props">
                         <q-checkbox v-model="props.row.force" :disable="viewOnly" size="xs" @click="selectForce(props.row)"/>
@@ -190,7 +205,9 @@ export default defineComponent({
             repositories: {},
             loading: false,
             selected: [],
+            selectedNotNotarized: [],
             forceAll: false,
+            forceNotNotarizedAll: false,
             modules: []
         }
     },
@@ -260,12 +277,22 @@ export default defineComponent({
                 pack.destinationOptions = this.reposOptions(data.plan.repositories, pack.arch)
                 this.beholderRepo(item, 'package')
                 this.selectForce(pack)
+                this.selectNotNotarized(pack)
                 if (item.repo_arch_location) {
                     for (let repo_arch of item.repo_arch_location) {
                         pack[repo_arch] = true
                     }
                 }
                 this.packagesLocation.push(pack)
+            }
+            if (this.NotNotarizedPackages().length !== 0) {
+                let col = {
+                    name: 'force_not_notarized',
+                    align: 'left',
+                    label: 'Force not notarized',
+                    field: 'force_not_notarized'
+                }
+                this.columns.splice(2, 0, col)
             }
             this.loadingTable = false
         },
@@ -309,7 +336,43 @@ export default defineComponent({
                 return { label: repName, value: repName }
             })
         },
-        selectForceAll (){
+        NotNotarizedPackages () {
+            let notNotarized = this.packagesLocation.filter( pack => !pack.cas_hash)
+            return notNotarized
+        },
+        selectNotNotarized (row) {
+            if (this.viewOnly) return
+
+            if (row.cas_hash) return
+
+            if (row.force_not_notarized){
+                this.selectedNotNotarized.push(row)
+            } else {
+                let index = this.selectedNotNotarized.indexOf(row)
+                this.selectedNotNotarized = [ ...this.selectedNotNotarized.slice(0, index), ...this.selectedNotNotarized.slice(index + 1) ]
+            }
+            switch (this.selectedNotNotarized.length) {
+                case this.NotNotarizedPackages().length:
+                    this.forceNotNotarizedAll = true
+                    break;
+                case 0:
+                    this.forceNotNotarizedAll = false
+                    break;
+                default:
+                    this.forceNotNotarizedAll = null
+                    break;
+            }
+        },
+        selectNotNotarizedAll () {
+            if (this.viewOnly) return
+
+            this.selectedNotNotarized = this.forceNotNotarizedAll ? this.NotNotarizedPackages : []
+            this.packagesLocation.forEach (pack => {
+                if (!pack.cas_hash)
+                    pack.force_not_notarized = this.forceNotNotarizedAll
+            })
+        },
+        selectForceAll () {
             if (this.viewOnly) return
 
             this.selected = this.forceAll ? this.packagesLocation : []
