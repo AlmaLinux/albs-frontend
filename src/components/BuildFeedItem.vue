@@ -33,7 +33,12 @@
         <tbody>
           <tr v-for="task in buildTasks" :key="task.id">
             <td>
-              <buildRef :buildRef="task.ref"/>
+              <buildRef
+                :buildRef="task.ref"
+                :show_cas="true"
+                :is_cas_authenticated="task.is_cas_authenticated"
+                :cas_hash="task.alma_commit_cas_hash"
+              />
             </td>
             <td
                 v-for="target in getTaskTargets(task)"
