@@ -1,4 +1,5 @@
 import { BuildTaskRefType } from './constants';
+import { Notify } from 'quasar';
 
 /**
  * Extracts an RPM name, version, release and architecture from the specified URL.
@@ -52,4 +53,20 @@ export function nsvca (build_module, arch = null) {
   } else {
     return `${build_module.name}:${build_module.stream}:${build_module.version}:${build_module.context}`
   }
+}
+
+/**
+ * Copies value to clipboard
+ * @param {String} value
+ */
+export function copyToClipboard(value) {
+  navigator.clipboard.writeText(value).then(
+    res => Notify.create({
+      message: `${value} copied to clipboard`,
+      type: 'positive',
+      actions: [
+          { label: 'Dismiss', color: 'white', handler: () => {} }
+      ]
+    })
+  )
 }

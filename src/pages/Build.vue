@@ -47,7 +47,12 @@
               <tbody>
                 <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
                   <td>
-                    <buildRef :buildRef="tasks[0].ref"/>
+                    <buildRef
+                      :buildRef="tasks[0].ref"
+                      :show_cas="true"
+                      :is_cas_authenticated="tasks[0].is_cas_authenticated"
+                      :cas_hash="tasks[0].alma_commit_cas_hash"
+                    />
                   </td>
                   <template v-for="targetName of Object.keys(buildTasks)" :key="targetName">
                     <td class="text-center" v-for="task in buildTasks[targetName][tasks[0].index]" :key=task.id>
@@ -86,9 +91,14 @@
               <tbody>
                 <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
                   <td>
-                    <buildRef :buildRef="tasks[0].ref"/>
+                    <buildRef
+                      :buildRef="tasks[0].ref"
+                      :show_cas="true"
+                      :is_cas_authenticated="tasks[0].is_cas_authenticated"
+                      :cas_hash="tasks[0].alma_commit_cas_hash"
+                    />
                   </td>
-                  <template v-for="task in buildTasks[target][tasks[0].index]" :key=task.id>
+                  <template v-for="task in buildTasks[target][tasks[0].index]" :key="task.id">
                     <td :class="getTaskCSS(task)"
                         @click="openTaskLogs(task)"
                     >
@@ -97,7 +107,7 @@
                     <td>
                       <div
                         v-for="pkg in sortTaskPackage(getTaskPackages(task))"
-                        :key="pkg.name"
+                        :key="pkg.name" class="row"
                       >
                         <div v-if="pkgNameSrc(pkg.name)" class="q-pb-sm q-pt-md">
                           <a class="text-tertiary" :href="pkg.downloadUrl">
@@ -108,6 +118,19 @@
                         <a v-else class="text-tertiary" :href="pkg.downloadUrl">
                           {{ pkg.name }}
                         </a>
+                        <q-badge color="white" align="bottom">
+                          <q-icon v-if="pkg.cas_hash" size="xs" name="key" color="primary"
+                                  @click="copyToClipboard(pkg.cas_hash)">
+                            <q-tooltip>
+                              {{ pkg.cas_hash }}
+                            </q-tooltip>
+                          </q-icon>
+                          <q-icon v-else size="xs" name="key_off" color="negative">
+                            <q-tooltip>
+                              Package is not notarized
+                            </q-tooltip>
+                          </q-icon>
+                        </q-badge>
                       </div>
                     </td>
                     <td>
@@ -401,7 +424,7 @@ import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import ModuleYaml from 'components/ModuleYaml.vue'
 import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
-import { nsvca } from '../utils';
+import { nsvca, copyToClipboard } from '../utils';
 import axios from 'axios'
 
 export default defineComponent({
@@ -556,6 +579,7 @@ export default defineComponent({
     }
   },
   methods: {
+    copyToClipboard: copyToClipboard,
     nsvca: nsvca,
     userAuthenticated () {
       return this.$store.getters.isAuthenticated
