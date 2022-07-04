@@ -25,7 +25,6 @@ export const UsersModule = {
     onLogout (state) {
       LocalStorage.remove('user')
       state.self = null
-      router.go()
     }
   },
   getters: {
