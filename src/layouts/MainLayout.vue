@@ -99,6 +99,7 @@ const linksList = [
 
 import { defineComponent, ref } from 'vue'
 import { LocalStorage } from 'quasar'
+import { parseJwt } from '../utils'
 
 export default defineComponent({
   name: 'MainLayout',
@@ -112,13 +113,16 @@ export default defineComponent({
     }
   },
   mounted() {
-    window.addEventListener('storage', () => {
-      let user = LocalStorage.getItem('user')
-      if (user) {
-        store.commit('users/updateSelf', user)
-        this.$router.go()
-      } else {
-        this.onLogout()
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'user') {
+        let user = LocalStorage.getItem('user')
+        if (user) {
+          store.commit('users/updateSelf', user)
+          this.$router.go()
+        } else {
+          LocalStorage.set('redirectPath', this.$router.currentRoute._value.href)
+          this.$router.go()
+        }
       }
     })
   },
@@ -138,12 +142,26 @@ export default defineComponent({
       }
     }
   },
+  created () {
+    let user = LocalStorage.getItem('user')
+    if (user) {
+      let token = parseJwt(user.jwt_token)
+        let dateExpires = Math.abs(new Date(token.expires * 1000) - Date.now())
+        setTimeout(() => {
+          LocalStorage.set('redirectPath', this.$router.currentRoute._value.href)
+          this.$store.commit('users/onLogout')
+          this.$router.push('/auth/login')
+        }, dateExpires)
+    }
+  },
   methods: {
     onLogout () {
       this.$store.commit('users/onLogout')
+      this.$router.go()
     },
     onLogin () {
       this.$router.push('/auth/login')
+      LocalStorage.set('redirectPath', this.$router.currentRoute._value.href)
     }
   }
 })

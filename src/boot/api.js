@@ -1,6 +1,7 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 import store from '../store/index'
+import router from '../router/index'
 
 const api = axios.create({ baseURL: '/api/v1' })
 
@@ -16,6 +17,7 @@ api.interceptors.response.use(response => {
 }, error => {
   if (error.response.status === 403) {
     store.commit('users/onLogout')
+    router.push('/')
   }
   return Promise.reject(error);
 });
