@@ -10,7 +10,7 @@
         Build {{ build.id }}
         </router-link>
           created by
-          <a :href="`mailto:${build.user.email}`">{{ build.user.username }}</a>
+          <a :href="`mailto:${build.owner.email}`">{{ build.owner.username }}</a>
           at {{ buildCreatedTime }}
       </q-card-section>
 

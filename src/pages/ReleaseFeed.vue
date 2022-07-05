@@ -13,7 +13,7 @@
             <tbody>
                 <tr v-for="(release, index) in releases" :key="release.id" :class="index % 2 == 0 ? 'bg-grey-2' : null">
                     <td class="text-left">
-                        <a :href="`mailto:${release.created_by.email}`"> {{release.created_by.username}} </a>
+                        <a :href="`mailto:${release.owner.email}`"> {{release.owner.username}} </a>
                     </td>
                     <td class="text-left">
                         <q-chip

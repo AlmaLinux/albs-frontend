@@ -12,6 +12,13 @@
         <q-checkbox left-label class="text-grey-8 text-body1 q-pb-sm"
                     v-model="buildPlan.is_secure_boot" label="Secure Boot"/>
 
+        <q-select v-model="product"
+                  :options="buildProducts"
+                  label="Product:"
+                  clearable
+                  style="min-width: 250px; max-width: 300px"
+        />
+
         <q-select v-model="buildPlan.platforms"
                   :options="buildPlatforms"
                   multiple
@@ -103,8 +110,8 @@
         </q-expansion-item>
       </q-step>
 
-      <q-step name="selectProjects" :disable="buildPlan.platforms.length < 1"
-              title="Select projects" :error="buildPlan.tasks.length < 1"
+      <q-step name="selectProjects" :disable="buildPlan.platforms.length < 1 || !product"
+              title="Select projects" :error="buildPlan.tasks.length < 1 || !product"
               error-color="negative">
         <project-selector :buildItems="buildPlan.tasks"
                           :platformName="buildPlan.platforms[0].value"
@@ -154,6 +161,7 @@ export default defineComponent({
         mock_options: {},
         platform_flavors: []
       },
+      product: null,
       platformArches: platformArches,
       currentStep: 'buildEnvironment',
       linked_builds_input: '',
@@ -181,7 +189,12 @@ export default defineComponent({
       return this.$store.state.platform_flavors.flavors.map(flavour => {
         return {label: flavour.name, value: flavour.name, id: flavour.id}
       })
-    }
+    },
+    buildProducts () {
+      return this.$store.state.products.products.map(product => {
+        return {label: product.name, value: product.id }
+      })
+    },
   },
   methods: {
     onAddMockOptions () {
@@ -254,6 +267,7 @@ export default defineComponent({
         flavors.push(flavour.id)
       }
       this.buildPlan.platform_flavors = flavors
+      this.buildPlan.product_id = this.product.value
       let cacheTasks = JSON.parse(JSON.stringify(this.buildPlan.tasks))
       this.$api.post('/builds/', this.buildPlan)
         .then((response) => {

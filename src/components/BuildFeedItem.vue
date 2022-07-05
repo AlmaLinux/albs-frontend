@@ -53,7 +53,7 @@
       </table>
       </div>
       <div class="col-2 text-tertiary creation-info">
-        Created by <a :href="`mailto:${build.user.email}`">{{ build.user.username }}</a>
+        Created by <a :href="`mailto:${build.owner.email}`">{{ build.owner.username }}</a>
         <br/>
         at {{ buildCreatedTime }}
       </div>

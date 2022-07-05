@@ -48,7 +48,10 @@ const routes = [
           store.dispatch('platforms/loadPlatformList')
             .then(next())
             .catch(next())
-            store.dispatch('platform_flavors/loadFlavorsList')
+          store.dispatch('platform_flavors/loadFlavorsList')
+            .then(next())
+            .catch(next())
+          store.dispatch('products/loadProductList')
             .then(next())
             .catch(next())
         }
