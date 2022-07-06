@@ -285,7 +285,7 @@ export default defineComponent({
                     this.textValue = ''
                     if (!buildAuthenticated) {
                         Notify.create({
-                            message: `Build ${buildId} have one or more not authenticated projects`,
+                            message: `Build ${buildId} has one or more not authenticated projects`,
                             type: 'warning',
                             actions: [
                                 { label: 'Dismiss', color: 'white', handler: () => {} }
