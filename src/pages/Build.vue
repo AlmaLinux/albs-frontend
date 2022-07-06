@@ -198,7 +198,7 @@
                         Sign Log
                       </q-tooltip>
                     </q-btn>
-                    <q-btn v-if="sign.status === signStatus.FAILED" icon="cached" color="faded"
+                    <q-btn v-if="sign.status === signStatus.FAILED && userAuthenticated()" icon="cached" color="faded"
                       round flat @click="repeatSign(sign)">
                       <q-tooltip anchor="bottom right" self="top middle">
                       Re-sign
@@ -396,7 +396,7 @@
     </q-dialog>
 
     <q-dialog v-model="sign_log">
-      <q-card style="width: 400px;">
+      <q-card style="width: 800px;">
         <q-card-section>
           <div class="text-h6">Sign log</div>
         </q-card-section>
