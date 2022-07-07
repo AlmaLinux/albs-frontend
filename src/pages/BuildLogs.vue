@@ -108,7 +108,11 @@ export default defineComponent({
   },
   methods: {
     filterLogs (regex) {
-      return this.logs.filter(artifact => regex.test(artifact.name))
+      return this.logs.filter(artifact => regex.test(artifact.name)).sort((a,b) => {
+        if (a.name < b.name) return -1
+        if (a.name > b.name) return 1
+        return 0 
+      })
     },
     loadLogsList () {
       Loading.show()
