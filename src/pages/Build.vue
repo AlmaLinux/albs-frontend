@@ -118,11 +118,12 @@
                         <a v-else class="text-tertiary" :href="pkg.downloadUrl">
                           {{ pkg.name }}
                         </a>
-                        <q-badge color="white" align="bottom">
+                        <q-badge color="white" align="bottom" class="cursor-pointer">
                           <q-icon v-if="pkg.cas_hash" size="xs" name="key" color="primary"
                                   @click="copyToClipboard(pkg.cas_hash)">
-                            <q-tooltip>
-                              {{ pkg.cas_hash }}
+                            <q-tooltip class="text-center">
+                              {{ pkg.cas_hash }} <br>
+                              (click to copy)
                             </q-tooltip>
                           </q-icon>
                           <q-icon v-else size="xs" name="key_off" color="negative">

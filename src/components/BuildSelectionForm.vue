@@ -202,11 +202,15 @@ export default defineComponent({
                     let options = {}
                     let buildRunning = false
                     let buildSigned = false
+                    let buildAuthenticated = true
                     if (build.sign_tasks.length) {
                         buildSigned = build.sign_tasks[build.sign_tasks.length - 1].status === SignStatus.DONE
                     }
                     
                     build.tasks.forEach( task => {
+                        if (!task.is_cas_authenticated) {
+                            buildAuthenticated = false
+                        }
                         switch (task.status) {
                             case BuildStatus.COMPLETED:
                                 failed.has(task.index) ? build.warning = true : successful.add(task.index)
@@ -279,6 +283,15 @@ export default defineComponent({
                         this.builds.push(build)
                     }
                     this.textValue = ''
+                    if (!buildAuthenticated) {
+                        Notify.create({
+                            message: `Build ${buildId} has one or more not authenticated projects`,
+                            type: 'warning',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    }
                 })
                 .catch(error => {
                     this.loading = false
