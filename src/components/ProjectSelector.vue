@@ -163,9 +163,8 @@ export default defineComponent({
     },
     onDeleteBuildItem (buildItem) {
       this.$emit('change', this.buildItems.filter(el => {
-        // TODO: we need a better way to check ref!
-        if (el.modules_yaml) return el.modules_yaml !== buildItem.modules_yaml
-        return el.url !== buildItem.url
+        if (el.modules_yaml) return `${el.module_name}${el.git_ref}` !== `${buildItem.module_name}${buildItem.git_ref}`
+        return `${el.url}${el.git_ref}` !== `${buildItem.url}${buildItem.git_ref}`
       }))
     },
     onMoveBuildItemUp (buildItem) {
