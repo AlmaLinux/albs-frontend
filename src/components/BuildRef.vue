@@ -18,12 +18,18 @@
       </q-badge>
     </span><br>
     <span>{{ isTagOrBranch }}</span>
-    <a v-if="hasUrl" :href="refUrl" target="_blank">{{ refText }}</a>
-    <span v-else>{{ refText }}</span>
-    <q-tooltip v-if="hasTooltip" class="text-body2"
-               anchor="bottom middle" self="top left">
-      {{ refTooltip }}
-    </q-tooltip>
+    <a v-if="hasUrl" :href="refUrl" target="_blank">
+      {{ refText }}
+      <q-tooltip v-if="hasTooltip" class="text-body2">
+        {{ refTooltip }}
+      </q-tooltip>
+    </a>
+    <span v-else>
+      {{ refText }}
+      <q-tooltip v-if="hasTooltip" class="text-body2">
+        {{ refTooltip }}
+      </q-tooltip>
+    </span>
   </span>
 </template>
 
