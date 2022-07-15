@@ -220,9 +220,9 @@ export default defineComponent({
                                 } else {
                                     options[task.index] =  {
                                         ids: [task.id],
-                                        ref: task.ref,
-                                        selected: true
+                                        ref: task.ref
                                     }
+                                    options[task.index].selected = !failed.has(task.index)
                                 }
                                 break;
                             case BuildStatus.FAILED:
