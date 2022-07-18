@@ -8,6 +8,7 @@ import { ErrataFeedModule } from './modules/errata'
 import { DistributionsModule } from './modules/distributions'
 import { KeysModule } from './modules/keys'
 import { PlatformFlavorsModule } from './modules/platform_flavors'
+import { ProductsModule } from './modules/products'
 
 // import example from './module-example'
 
@@ -29,7 +30,8 @@ export default store(createStore({
       errataFeed: ErrataFeedModule,
       distributions: DistributionsModule,
       keys: KeysModule,
-      platform_flavors: PlatformFlavorsModule
+      platform_flavors: PlatformFlavorsModule,
+      products: ProductsModule
     },
 
     getters: {
