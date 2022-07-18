@@ -17,7 +17,7 @@ api.interceptors.response.use(response => {
 }, error => {
   if (error.response.status === 403) {
     store.commit('users/onLogout')
-    router.push('/')
+    router.push('/auth/login')
   }
   return Promise.reject(error);
 });

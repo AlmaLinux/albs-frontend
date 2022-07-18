@@ -146,7 +146,7 @@ export default defineComponent({
     let user = LocalStorage.getItem('user')
     if (user) {
       let token = parseJwt(user.jwt_token)
-        let dateExpires = Math.abs(new Date(token.expires * 1000) - Date.now())
+        let dateExpires = Math.abs(new Date(token.exp * 1000) - Date.now())
         setTimeout(() => {
           LocalStorage.set('redirectPath', this.$router.currentRoute._value.href)
           this.$store.commit('users/onLogout')

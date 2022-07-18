@@ -4,38 +4,36 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { LocalStorage, Notify } from 'quasar'
+import { Cookies, LocalStorage, Notify } from 'quasar'
+import { parseJwt } from '../utils'
 
 export default defineComponent({
-  name: 'Github-page',
-  props: {
-    code: {
-      type: String,
-      required: true
-    }
-  },
+  name: 'PostLogin-page',
+  
   created () {
-    const params = {
-      code: this.$props.code
+    let token = Cookies.get('albs')
+    try {
+      let parsedToken = parseJwt(token)
+      let user = {
+        user_id: parsedToken.user_id,
+        jwt_token: token
+      }
+      this.$store.commit('users/updateSelf', user)
+      let redirectPath = LocalStorage.getItem('redirectPath')
+      if (redirectPath.startsWith('/auth')) redirectPath = '/'
+
+      this.$router.push(redirectPath)
+    } catch (err) {
+      console.log(err)
+      Notify.create({
+          message: 'Authorization error: Invalid JWT',
+          type: 'negative',
+          actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+          ]
+      })
+      this.$router.push('/')
     }
-    this.$api.post('/users/login/github', params)
-      .then((response) => {
-        let redirectPath = LocalStorage.getItem('redirectPath')
-        this.$store.commit('users/updateSelf', response.data)
-        this.$router.push(redirectPath)
-      })
-      // TODO: make a nice error here in UI
-      .catch((error) => {
-        Notify.create({
-            message: `${error.response.status}: ${error.response.statusText}`,
-            type: 'negative',
-            actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-            ]
-        })
-        console.log('Where was an error while was making request', error)
-        this.$router.push('/')
-      })
   }
 })
 </script>

@@ -27,15 +27,10 @@ export default defineComponent({
 
   methods: {
     githubLogin () {
-      window.location.href = this.makeGithubAuthURL()
-    },
-    makeGithubAuthURL () {
-      const baseUrl = 'https://github.com/login/oauth/authorize'
-      const params = new URLSearchParams({
-        client_id: process.env.GITHUB_CLIENT,
-        scope: 'read:user,user:email,read:org'
-      })
-      return `${baseUrl}?${params.toString()}`
+      this.$api.get('/auth/github/authorize')
+        .then((response) => {
+          window.location.href = response.data.authorization_url
+        })
     }
   }
 })

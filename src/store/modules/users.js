@@ -2,7 +2,6 @@ import {
   LocalStorage,
   Notify,
 } from 'quasar'
-import router from '../../router/index'
 import { api } from 'boot/api'
 
 
