@@ -29,7 +29,7 @@ const routes = [
       { path: 'build/:buildId', component: () => import('pages/Build.vue'), props: true,
         beforeEnter (to, from, next) {
           if (store.getters.isAuthenticated) {
-            store.dispatch('distributions/loadDistributionsList')
+            store.dispatch('products/loadProductList')
               .then(next())
               .catch(next())
             store.dispatch('keys/loadKeysList')
@@ -90,6 +90,11 @@ const routes = [
       },
       { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildItemInfo.vue'), props: true},
       {
+        path: 'product-feed',
+        meta: {requiresAuth: true },
+        component: () => import('pages/ProductFeed')
+      },
+      {
         path: '/distro/new/',
         meta: { requiresAuth: true },
         component: () => import('pages/CreateDistro'),
@@ -97,7 +102,7 @@ const routes = [
           store.dispatch('platforms/loadPlatformList')
             .then(next())
             .catch(next())
-          store.dispatch('distributions/loadDistributionsList')
+          store.dispatch('teams/loadTeamsList')
             .then(next())
             .catch(next())
         }

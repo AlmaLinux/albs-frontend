@@ -275,20 +275,20 @@
                 <q-item-label>Rebuild failed build items</q-item-label>
               </q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="add_to_distro = true" v-if="allowDistroModify">
+            <q-item clickable v-close-popup @click="add_to_product = true" v-if="allowProductModify">
               <q-item-section avatar>
                 <q-avatar icon="playlist_add_check"/>
               </q-item-section>
               <q-item-section>
-                <q-item-label>Add to a distribution</q-item-label>
+                <q-item-label>Add to a product</q-item-label>
               </q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="remove_from_distro = true" v-if="allowDistroModify">
+            <q-item clickable v-close-popup @click="remove_from_product = true" v-if="allowProductModify">
               <q-item-section avatar>
                 <q-avatar icon="delete_sweep"/>
               </q-item-section>
               <q-item-section>
-                <q-item-label>Remove from a distribution</q-item-label>
+                <q-item-label>Remove from a product</q-item-label>
               </q-item-section>
             </q-item>
             <q-item clickable v-close-popup @click="RestartBuildTests()" v-if="testingCompleted">
@@ -312,43 +312,43 @@
       </q-card-actions>
 
     </q-card>
-    <q-dialog v-model="add_to_distro">
+    <q-dialog v-model="add_to_product">
       <q-card style="width: 400px;">
         <q-card-section>
-          <div class="text-h6">Add to a distribution</div>
+          <div class="text-h6">Add to a product</div>
         </q-card-section>
-        <q-form @submit="AddToDistribution">
+        <q-form @submit="AddToProduct">
           <q-card-section>
-            <q-select v-model="current_distro" label="Choose distribution to add to"
-                      :rules="[val => !!val || 'Distribution name is required']"
-                      :options="existingDistros"/>
+            <q-select v-model="current_product" label="Choose product to add to"
+                      :rules="[val => !!val || 'Product name is required']"
+                      :options="existingProducts"/>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat text-color="primary" label="Add" style="width: 150px"
                   :loading="loading" type="submit">
             </q-btn>
             <q-btn flat text-color="negative" label="Cancel"
-                  v-close-popup @click="current_distro = null"/>
+                  v-close-popup @click="current_product = null"/>
           </q-card-actions>
         </q-form>
       </q-card>
     </q-dialog>
-    <q-dialog v-model="remove_from_distro">
+    <q-dialog v-model="remove_from_product">
       <q-card style="width: 400px;">
         <q-card-section>
-          <div class="text-h6">Remove from a distribution</div>
+          <div class="text-h6">Remove from a product</div>
         </q-card-section>
-        <q-form @submit="RemoveFromDistribution">
+        <q-form @submit="RemoveFromProduct">
           <q-card-section>
-            <q-select v-model="current_distro" label="Choose distribution to remove from"
-                      :rules="[val => !!val || 'Distribution name is required']"
-                      :options="existingDistros"/>
+            <q-select v-model="current_product" label="Choose product to remove from"
+                      :rules="[val => !!val || 'Product name is required']"
+                      :options="existingProducts"/>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat text-color="primary" label="Remove" style="width: 150px"
                   :loading="loading" type="submit"/>
             <q-btn flat text-color="negative" label="Cancel"
-                  v-close-popup @click="current_distro = null"/>
+                  v-close-popup @click="current_product = null"/>
           </q-card-actions>
         </q-form>
       </q-card>
@@ -444,14 +444,14 @@ export default defineComponent({
       linked_builds: null,
       sign_build: false,
       sign_log: false,
-      add_to_distro: false,
-      remove_from_distro: false,
+      add_to_product: false,
+      remove_from_product: false,
       delete_build: false,
       loading: false,
       buildLoad: false,
       moduleYamlLoad: false,
       current_sign: null,
-      current_distro: null,
+      current_product: null,
       mock_options: null,
       signLogText: '',
       signStatus: SignStatus
@@ -463,7 +463,7 @@ export default defineComponent({
     }
   },
   computed: {
-    allowDistroModify () {
+    allowProductModify () {
       let allow_modify = true
       for (let i=0; i < this.build.tasks.length; i++) {
         if (this.build.tasks[i].status < 2) {
@@ -472,9 +472,9 @@ export default defineComponent({
       }
       return allow_modify
     },
-    existingDistros () {
-      return this.$store.state.distributions.distributions.map(distribution => {
-        return {label: distribution.name, value: distribution.name}
+    existingProducts () {
+      return this.$store.state.products.products.map(product => {
+        return {label: product.name, value: product.name}
       })
     },
     existingKeys () {
@@ -588,20 +588,20 @@ export default defineComponent({
     changeStatus (task, status) {
       if (task.status < status) task.status = status
     },
-    AddToDistribution () {
+    AddToProduct () {
       this.loading = true
-      this.$api.post(`/distro/add/${this.buildId}/${this.current_distro.label}/`)
+      this.$api.post(`/products/add/${this.buildId}/${this.current_product.label}/`)
         .then(() => {
           this.loading = false
-          this.add_to_distro = false
+          this.add_to_product = false
           Notify.create({
-            message: `Packages of build ${this.buildId} has been added to ${this.current_distro.label} distribution`,
+            message: `Packages of build ${this.buildId} has been added to ${this.current_product.label} product`,
             type: 'positive',
             actions: [
               { label: 'Dismiss', color: 'white', handler: () => {} }
             ]
           })
-          this.current_distro = null
+          this.current_product = null
         })
         .catch(error => {
           this.loading = false
@@ -614,20 +614,20 @@ export default defineComponent({
           })
         })
     },
-    RemoveFromDistribution () {
+    RemoveFromProduct () {
       this.loading = true
-      this.$api.post(`/distro/remove/${this.buildId}/${this.current_distro.label}/`)
+      this.$api.post(`/products/remove/${this.buildId}/${this.current_product.label}/`)
         .then(() => {
           this.loading = false
-          this.remove_from_distro = false
+          this.remove_from_product = false
           Notify.create({
-            message: `Packages of build ${this.buildId} has been removed to ${this.current_distro.label} distribution`,
+            message: `Packages of build ${this.buildId} has been removed to ${this.current_product.label} product`,
             type: 'positive',
             actions: [
               { label: 'Dismiss', color: 'white', handler: () => {} }
             ]
           })
-          this.current_distro = null
+          this.current_product = null
         })
         .catch(error => {
           this.loading = false
