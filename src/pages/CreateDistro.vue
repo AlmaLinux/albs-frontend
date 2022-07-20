@@ -1,84 +1,119 @@
 <template>
   <div class="row no-wrap justify-center vertical-middle layout-padding">
-    <q-card style="min-width: 40vw;" flat bordered>
-      <q-card-section>
-        <div class="text-h6">Create new distribution</div>
-      </q-card-section>
-      <q-card-section>
-        <q-input v-model="newDistro.name" clearable
-                 style="min-width: 250px; max-width: 300px"
-                 hint="Enter name of new distribution"
-                 :error="name_error" :error-message="error_msg"
-                 label="Distribution name"/>
-        <q-select v-model="newDistro.platforms"
-                  multiple use-chips clearable
-                  style="min-width: 250px; max-width: 300px"
-                  :options="platforms"
-                  label="Create from platform">
-          <template v-slot:option="scope">
-            <q-item v-bind="scope.itemProps">
-              <q-item-section>
-                <q-item-label v-html="scope.opt.label" />
-                <q-item-label caption>{{ scope.opt.description }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </template>
-        </q-select>
-      </q-card-section>
-      <q-card-actions align="right">
-        <q-btn color="secondary" style="width: 150px;" @click="createNewDistro"
-               :loading="loading" label="Create">
-          <template v-slot:loading>
-            <q-spinner-hourglass class="on-left" />
-              Loading...
-          </template>
-        </q-btn>
-      </q-card-actions>
+    <q-card style="min-width: 40%" bordered>
+    <q-form @submit="createNewProduct">
+        <q-card-section>
+          <div class="text-h6">Create new product</div>
+        </q-card-section>
+        <q-card-section>
+          <q-input v-model="product_name" clearable
+                    style="max-width: 70%"
+                    :options="teams"
+                    hint="Enter name of new product"
+                    :rules="[val => !!val || 'Name is required']"
+                    :error="name_error" :error-message="error_msg"
+                    label="Product name" ref="nameRef" />
+          <q-select v-model="product_teams"
+                    clearable
+                    :options="teams"
+                    hint="Select team"
+                    :rules="[val => !!val || 'Team is required']"
+                    style="max-width: 70%"
+                    label="Create for team" ref="teamRef" />
+          <q-select v-model="product_platforms"
+                    multiple use-chips clearable
+                    style="max-width: 70%"
+                    :options="platforms"
+                    option-value="id"
+                    option-label="name"
+                    hint="Select platforms"
+                    :rules="[val => platformsRule(val) || 'Platforms is required']"
+                    label="Create from platforms" ref="platfotrmsRef">
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section>
+                  <q-item-label v-html="scope.opt.name" />
+                  <q-item-label caption>{{ scope.opt.arch_list.join(', ') }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn color="primary" style="width: 30%" type="submit"
+                :loading="loading" label="Create" no-caps>
+            <template v-slot:loading>
+              <q-spinner-hourglass class="on-left" />
+                Loading...
+            </template>
+          </q-btn>
+        </q-card-actions>
+      </q-form>
     </q-card>
   </div>
 </template>
 
 <script>
 import { defineComponent, ref } from 'vue'
-import {Loading, Notify} from "quasar"
+import { LocalStorage, Notify } from "quasar"
 
 export default defineComponent({
-  name: "CreateDistro",
+  name: "CreateProduct",
   data () {
     return {
-      newDistro: {
-        platforms: [],
-        name: '',
-      },
+      product_name: '',
+      product_teams: null,
+      product_platforms: [],
       loading: false,
-      existing_distro: false,
       name_error: false,
-      error_msg: ''
+      error_msg: '',
+      nameRef: null,
+      teamRef: null,
+      platfotrmsRef: null
     }
   },
   computed: {
     platforms () {
-      return this.$store.state.platforms.platforms.map(platform => {
-        return {label: platform.name, value: platform.name, description: platform.arch_list.join(', ')}
+      return this.$store.state.platforms.platforms
+    },
+    teams () {
+      return this.$store.state.teams.teams.map(team => {
+        return { label: team.name, value: team.id }
       })
     }
   },
   methods: {
-    createNewDistro () {
+    platformsRule (values) {
+      let flag = true
+      if (values === null){
+        values = []
+      }
+      if (values.length === 0) {
+        flag = false
+      }
+      return flag
+    },
+    createNewProduct () {
       this.loading = true
-      this.newDistro.platforms = this.newDistro.platforms.map(item => item.value)
-      this.$api.post('/distro/', this.newDistro)
-        .then(() => {
+      let user = LocalStorage.getItem('user')
+      let data = {
+        name: this.product_name,
+        team_id: this.product_teams.value,
+        owner_id: user.id,
+        platforms: this.product_platforms
+      }
+      this.$api.post('/products/', data)
+        .then(response => {
           this.loading = false
           Notify.create({
-            message: `Distribution ${this.newDistro.name} has been created`,
+            message: `Product ${response.data.name} has been created`,
             type: 'positive', actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
           })
-          this.newDistro.name = ''
-          this.newDistro.platforms = []
+          this.$router.push('/product-feed')
         })
         .catch(error => {
           this.loading = false
+          console.log(error)
           Notify.create({
             message: error.response.data.detail, type: 'negative',
             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]

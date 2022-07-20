@@ -90,7 +90,13 @@ const linksList = [
     allow: store.getters.isAuthenticated
   },
   {
-    title: 'New distribution',
+    title: 'Products feed',
+    icon: 'list',
+    link: '/product-feed',
+    allow: store.getters.isAuthenticated
+  },
+  {
+    title: 'New product',
     icon: 'earbuds',
     link: '/distro/new',
     allow: store.getters.isAuthenticated
