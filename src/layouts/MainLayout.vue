@@ -90,15 +90,23 @@ const linksList = [
     allow: store.getters.isAuthenticated
   },
   {
-    title: 'Products feed',
-    icon: 'list',
-    link: '/product-feed',
-    allow: store.getters.isAuthenticated
-  },
-  {
-    title: 'New product',
-    icon: 'earbuds',
-    link: '/distro/new',
+    title: 'Products',
+    icon: 'category',
+    expand: true,
+    children: [
+      {
+        title: 'Products feed',
+        icon: 'list',
+        link: '/product-feed',
+        allow: store.getters.isAuthenticated
+      },
+      {
+        title: 'New product',
+        icon: 'earbuds',
+        link: '/product/new',
+        allow: store.getters.isAuthenticated
+      }
+    ],
     allow: store.getters.isAuthenticated
   }
 ];

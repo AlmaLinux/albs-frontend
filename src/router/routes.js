@@ -94,10 +94,11 @@ const routes = [
         meta: {requiresAuth: true },
         component: () => import('pages/ProductFeed')
       },
+      { path: '/product/:productId', component: () => import('pages/ProductDetails.vue'), props: true},
       {
-        path: '/distro/new/',
+        path: '/product/new/',
         meta: { requiresAuth: true },
-        component: () => import('pages/CreateDistro'),
+        component: () => import('pages/CreateProduct.vue'),
         beforeEnter (to, from, next) {
           store.dispatch('platforms/loadPlatformList')
             .then(next())

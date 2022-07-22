@@ -17,8 +17,8 @@ export const ProductsModule = {
     }
   },
   getters: {
-    productsFeedQuery: (state, getters) => {
-      return { pageNumber: state.pageNumber }
+    productsPageNumber: (state, getters) => {
+      return state.pageNumber
     }
   },
   actions: {
