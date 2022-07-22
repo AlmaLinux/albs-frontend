@@ -8,27 +8,39 @@
         <q-card-section>
           <q-input v-model="product_name" clearable
                     style="max-width: 70%"
-                    :options="teams"
-                    hint="Enter name of new product"
+                    hint="Enter name of new product*"
                     :rules="[val => !!val || 'Name is required']"
                     :error="name_error" :error-message="error_msg"
-                    label="Product name" ref="nameRef" />
+                    label="Product name" />
+          <q-input v-model="product_title" clearable
+                    style="max-width: 70%"
+                    hint="Enter title of new product*"
+                    :rules="[val => !!val || 'Title is required']"
+                    label="Product title"/>
+          <div class="q-pt-md" style="max-width: 70%">
+                    <q-input
+                      v-model="product_description"
+                      type="textarea"
+                      hint="Enter description of new product"
+                      label="Product description"
+                    />
+          </div>
           <q-select v-model="product_teams"
                     clearable
                     :options="teams"
-                    hint="Select team"
+                    hint="Select team*"
                     :rules="[val => !!val || 'Team is required']"
                     style="max-width: 70%"
-                    label="Create for team" ref="teamRef" />
+                    label="Create for team" />
           <q-select v-model="product_platforms"
                     multiple use-chips clearable
                     style="max-width: 70%"
                     :options="platforms"
                     option-value="id"
                     option-label="name"
-                    hint="Select platforms"
+                    hint="Select platforms*"
                     :rules="[val => platformsRule(val) || 'Platforms is required']"
-                    label="Create from platforms" ref="platfotrmsRef">
+                    label="Create from platforms">
             <template v-slot:option="scope">
               <q-item v-bind="scope.itemProps">
                 <q-item-section>
@@ -62,6 +74,8 @@ export default defineComponent({
   data () {
     return {
       product_name: '',
+      product_title: '',
+      product_description: '',
       product_teams: null,
       product_platforms: [],
       loading: false,
@@ -100,6 +114,8 @@ export default defineComponent({
         name: this.product_name,
         team_id: this.product_teams.value,
         owner_id: user.id,
+        title: this.product_title,
+        description: this.product_description,
         platforms: this.product_platforms
       }
       this.$api.post('/products/', data)
