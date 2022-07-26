@@ -134,8 +134,8 @@ export default defineComponent({
             message: error.response.data.detail, type: 'negative',
             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
           })
-          this.error_msg = 'Already exists'
-          this.name_error = true
+          // this.error_msg = 'Already exists'
+          // this.name_error = true
         })
     }
   }

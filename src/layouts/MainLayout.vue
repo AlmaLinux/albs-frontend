@@ -114,7 +114,6 @@ const linksList = [
     ]
   },
     allow: store.getters.isAuthenticated
-  }
 ];
 
 import { defineComponent, ref } from 'vue'
