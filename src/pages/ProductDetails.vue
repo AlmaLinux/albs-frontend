@@ -168,7 +168,7 @@ export default defineComponent({
     methods: {
         copyToClipboard: copyToClipboard,
         installationString () {
-            return `dnf copr --hub <hub_name> enable ${this.product.owner.username}/${this.product.name}`
+            return `dnf copr --hub almalinux enable ${this.product.owner.username}/${this.product.name}`
         },
         loadProduct (productId) {
             this.loadingPage = true
