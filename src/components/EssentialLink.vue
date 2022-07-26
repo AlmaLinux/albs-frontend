@@ -3,7 +3,6 @@
     <q-expansion-item
       :icon="icon"
       :label="title"
-      default-opened
       v-if="allow">
         <q-item
           clickable
