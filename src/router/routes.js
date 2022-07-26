@@ -107,7 +107,8 @@ const routes = [
             .then(next())
             .catch(next())
         }
-      }
+      },
+      { path: '/documentation/:chapter/:article/', component: () => import('pages/DocumentationViewer.vue'), props: true},
     ]
   },
   // TODO: make this children

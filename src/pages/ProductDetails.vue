@@ -44,6 +44,17 @@
                 </q-card-section>
                 <q-card-section v-else style="width: 80%">
                     <q-field label="Install product" stack-label>
+                        <template v-slot:after>
+                            <q-btn flat round
+                                   target="_blank"
+                                   :to="{path: `/documentation/COPR/COPR%20quick%20setup.md/`}"
+                                   icon="description"
+                                   @click.stop>
+                                <q-tooltip>
+                                    See documentation
+                                </q-tooltip>
+                            </q-btn>
+                        </template>
                         <template v-slot:control>
                             <div class="self-center full-width text-overline" tabindex="0">
                                 {{ installationString() }}
