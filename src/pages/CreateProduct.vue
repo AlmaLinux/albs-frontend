@@ -1,23 +1,23 @@
 <template>
   <div class="row no-wrap justify-center vertical-middle layout-padding">
-    <q-card style="min-width: 40%" bordered>
+    <q-card style="min-width: 50%" bordered>
     <q-form @submit="createNewProduct">
         <q-card-section>
           <div class="text-h6">Create new product</div>
         </q-card-section>
         <q-card-section>
           <q-input v-model="product_name" clearable
-                    style="max-width: 70%"
+                    style="max-width: 80%"
                     hint="Enter name of new product*"
                     :rules="[val => !!val || 'Name is required']"
                     :error="name_error" :error-message="error_msg"
                     label="Product name" />
           <q-input v-model="product_title" clearable
-                    style="max-width: 70%"
+                    style="max-width: 80%"
                     hint="Enter title of new product*"
                     :rules="[val => !!val || 'Title is required']"
                     label="Product title"/>
-          <div class="q-pt-md" style="max-width: 70%">
+          <div class="q-pt-md" style="max-width: 80%">
                     <q-input
                       v-model="product_description"
                       type="textarea"
@@ -30,11 +30,11 @@
                     :options="teams"
                     hint="Select team*"
                     :rules="[val => !!val || 'Team is required']"
-                    style="max-width: 70%"
+                    style="max-width: 80%"
                     label="Create for team" />
           <q-select v-model="product_platforms"
                     multiple use-chips clearable
-                    style="max-width: 70%"
+                    style="max-width: 80%"
                     :options="platforms"
                     option-value="id"
                     option-label="name"

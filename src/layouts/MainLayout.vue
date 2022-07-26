@@ -68,8 +68,8 @@ const linksList = [
   {
     title: 'New build',
     icon: 'create',
-    link: '/build/create',
-    allow: store.getters.isUserValid
+    link: 'build/create',
+    allow: store.getters.isAuthenticated
   },
   {
     title: 'Errata',
@@ -78,35 +78,41 @@ const linksList = [
     allow: store.getters.isAuthenticated
   },
   {
-    title: 'Release Feed',
+    title: 'Releases',
     icon: 'cloud',
-    link: '/release-feed',
-    allow: store.getters.isAuthenticated
-  },
-  {
-    title: 'New release',
-    icon: 'new_releases',
-    link: '/release/create',
-    allow: store.getters.isAuthenticated
+    expand: true,
+    allow: store.getters.isAuthenticated,
+    children: [
+      {
+        title: 'Release Feed',
+        icon: 'cloud_circle',
+        link: 'release-feed'
+      },
+      {
+        title: 'New release',
+        icon: 'cloud_upload',
+        link: 'release/create'
+      },
+    ]
   },
   {
     title: 'Products',
     icon: 'category',
     expand: true,
+    allow: store.getters.isAuthenticated,
     children: [
       {
-        title: 'Products feed',
+        title: 'Products Feed',
         icon: 'list',
-        link: '/product-feed',
-        allow: store.getters.isAuthenticated
+        link: 'product-feed'
       },
       {
         title: 'New product',
         icon: 'earbuds',
-        link: '/product/new',
-        allow: store.getters.isAuthenticated
+        link: 'product/new'
       }
-    ],
+    ]
+  },
     allow: store.getters.isAuthenticated
   }
 ];
@@ -127,7 +133,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    window.addEventListener('visibilitychange', (event) => { 
+    window.addEventListener('visibilitychange', (event) => {
       if (document.visibilityState === 'visible') {
         let user = LocalStorage.getItem('user')
         if (user) {
