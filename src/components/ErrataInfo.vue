@@ -313,6 +313,7 @@
             <q-card-actions align="right">
                 <q-btn no-caps color="green" @click="updateAdvisory(advisory.id)" :loading="loading">Save</q-btn>
                 <q-btn no-caps color="primary" @click="toRelease()">Release packages</q-btn>
+                <q-btn no-caps color="primary" @click="releaseUpdateinfo()" :loading="loadingRelease">Release updateinfo</q-btn>
             </q-card-actions>
         </q-card>
     </div>
@@ -412,6 +413,7 @@ export default defineComponent({
             projects: null,
             tab: ref('patchInfo'),
             loading: false,
+            loadingRelease: false,
             description: '',
             showDescription: false,
             title: '',
@@ -746,7 +748,44 @@ export default defineComponent({
                     ]
                 })
             }
-        }    
+        },
+        releaseUpdateinfo () {
+            this.loadingRelease = true
+            this.$api.post(`/errata/release_record/${this.advisory.id}/`)
+            .then(response => {
+                this.loadingRelease = false
+                if (!response.data.ok) {
+                    Notify.create({
+                        message: response.date.error,
+                        type: 'negative',
+                        actions: [
+                            { label: 'Dismiss', color: 'white', handler: () => {} }
+                        ]
+                    })
+                } else {
+                    Notify.create({
+                        message: 'Released',
+                        type: 'positive',
+                        actions: [
+                            { label: 'Dismiss', color: 'white', handler: () => {} }
+                        ]
+                    })
+                }
+            })
+            .catch(error => {
+                this.loadingRelease = false
+                console.log(error)
+                if (error.response) {
+                    Notify.create({
+                        message: `${error.response.status}: ${error.response.statusText}`,
+                        type: 'negative',
+                        actions: [
+                            { label: 'Dismiss', color: 'white', handler: () => {} }
+                        ]
+                    })
+                }
+            })
+        }
     }
 })
 </script>
