@@ -18,8 +18,9 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import BuildFeedItem from 'components/BuildFeedItem.vue'
-import { Loading } from 'quasar'
+import { Loading, LocalStorage } from 'quasar'
 import { BuildStatus, SignStatus, TestStatus } from 'src/constants'
+import { parseJwt } from 'src/utils'
 
 export default defineComponent({
   name: 'BuildFeed',
@@ -33,6 +34,7 @@ export default defineComponent({
   created () {
     this.updateFilter()
     this.loadFeedPage()
+    this.checkAuthorize()
   },
   computed: {
     buildFeedQuery () {
@@ -53,6 +55,17 @@ export default defineComponent({
     'query': 'updateFilter'
   },
   methods: {
+    checkAuthorize () {
+      let user = LocalStorage.getItem('user')
+      if (user) {
+        let token = parseJwt(user.jwt_token)
+        let tokenExpired = new Date(token.exp * 1000) <= Date.now()
+        if (tokenExpired) {
+          this.$store.commit('users/onLogout')
+          this.$router.go()
+        }
+      }
+    },
     updateFilter () {
       this.$store.dispatch('buildsFeed/updateFilter', this.queryToFilter(this.query))
     },

@@ -25,6 +25,11 @@ const Router = createRouter({
 })
 
 Router.beforeEach((to, from, next) => {
+  console.log(to.path.startsWith('/build'))
+  if (to.path.startsWith('/build') && store.getters.isAuthenticated && !store.getters.isUserValid){
+    store.commit('users/onLogout')
+    Router.go()
+  }
   // redirect to login page if not logged in and trying to access a restricted page
   if (!store.getters.isAuthenticated && to.meta.requiresAuth) {
     next({ path: '/' })

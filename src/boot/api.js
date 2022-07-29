@@ -2,6 +2,7 @@ import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 import store from '../store/index'
 import router from '../router/index'
+import { LocalStorage } from 'quasar'
 
 const api = axios.create({ baseURL: '/api/v1' })
 
@@ -15,7 +16,8 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(response => {
   return response
 }, error => {
-  if (error.response.status === 403) {
+  if (error.response.status === 403 || error.response.status === 401) {
+    LocalStorage.set('redirectPath', router.currentRoute._value.href)
     store.commit('users/onLogout')
     router.push('/auth/login')
   }

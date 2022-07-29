@@ -69,18 +69,18 @@ const linksList = [
     title: 'New build',
     icon: 'create',
     link: '/build/create',
-    allow: store.getters.isAuthenticated
+    allow: store.getters.isUserValid
   },
   {
     title: 'Errata',
     icon: 'bug_report',
-    link: 'errata',
+    link: '/errata',
     allow: store.getters.isAuthenticated
   },
   {
     title: 'Release Feed',
     icon: 'cloud',
-    link: 'release-feed',
+    link: '/release-feed',
     allow: store.getters.isAuthenticated
   },
   {
@@ -113,6 +113,20 @@ export default defineComponent({
     }
   },
   mounted() {
+    window.addEventListener('visibilitychange', (event) => { 
+      if (document.visibilityState === 'visible') {
+        let user = LocalStorage.getItem('user')
+        if (user) {
+          let token = parseJwt(user.jwt_token)
+          let tokenExpired = new Date(token.exp * 1000) <= Date.now()
+          if (tokenExpired) {
+            LocalStorage.set('redirectPath', this.$router.currentRoute._value.href)
+            this.$store.commit('users/onLogout')
+            this.$router.push('/auth/login')
+          }
+        }
+      }
+    })
     window.addEventListener('storage', (event) => {
       if (event.key === 'user') {
         let user = LocalStorage.getItem('user')
@@ -140,18 +154,6 @@ export default defineComponent({
       toggleRightDrawer () {
         rightDrawerOpen.value = !rightDrawerOpen.value
       }
-    }
-  },
-  created () {
-    let user = LocalStorage.getItem('user')
-    if (user) {
-      let token = parseJwt(user.jwt_token)
-        let dateExpires = Math.abs(new Date(token.exp * 1000) - Date.now())
-        setTimeout(() => {
-          LocalStorage.set('redirectPath', this.$router.currentRoute._value.href)
-          this.$store.commit('users/onLogout')
-          this.$router.push('/auth/login')
-        }, dateExpires)
     }
   },
   methods: {
