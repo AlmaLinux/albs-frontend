@@ -9,6 +9,7 @@ import { DistributionsModule } from './modules/distributions'
 import { KeysModule } from './modules/keys'
 import { PlatformFlavorsModule } from './modules/platform_flavors'
 import { ProductsModule } from './modules/products'
+import { parseJwt } from 'src/utils'
 
 // import example from './module-example'
 
@@ -44,6 +45,14 @@ export default store(createStore({
           return null
         }
         return state.users.self.jwt_token
+      },
+      isUserValid: state => {
+        if (state.users.self !== null) {
+          let token = parseJwt(state.users.self.jwt_token)
+          return new Date(token.exp * 1000) > Date.now()
+        } else {
+          return false
+        }
       }
     },
     // enable strict mode (adds overhead!)

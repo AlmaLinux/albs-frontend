@@ -28,7 +28,7 @@ const routes = [
       },
       { path: 'build/:buildId', component: () => import('pages/Build.vue'), props: true,
         beforeEnter (to, from, next) {
-          if (store.getters.isAuthenticated) {
+          if (store.getters.isUserValid) {
             store.dispatch('distributions/loadDistributionsList')
               .then(next())
               .catch(next())
