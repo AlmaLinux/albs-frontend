@@ -101,7 +101,7 @@
                                     <q-td key="id" :props="props">{{ props.row.id }}</q-td>
                                     <q-td key="username" :props="props">{{ props.row.username}}</q-td>
                                     <q-td key="email" :props="props">
-                                        <a :href="props.row.email" target="_blank">{{ props.row.email }}</a>
+                                        <a :href="`mailto:${props.row.email}`" target="_blank">{{ props.row.email }}</a>
                                     </q-td>
                                 </q-tr>
                             </template>
