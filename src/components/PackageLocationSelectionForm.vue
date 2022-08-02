@@ -139,6 +139,13 @@
                         </q-select>
                     </q-td>
                     <q-td>
+                        <q-checkbox v-model="build_module.force_not_notarized" disable size="xs">
+                            <q-tooltip>
+                                Module cannot be force-released
+                            </q-tooltip>
+                        </q-checkbox>
+                    </q-td>
+                    <q-td>
                         <q-checkbox v-model="build_module.force" disable size="xs">
                             <q-tooltip>
                                 Module cannot be force-released
@@ -160,8 +167,8 @@
                         </q-tooltip>
                     </q-td>
                     <q-td v-if="!viewOnly">
-                        <div class="text-grey-8 q-gutter-xs">
-                            <q-btn class="add-btn" flat dense round icon="add" @click="addModule(build_module)" />
+                        <div class="text-grey-8 q-gutter-xs text-center">
+                            <q-btn class="add-btn" flat dense round icon="add" @click="addModule(build_module)"/>
                             <q-btn class="del-btn" flat dense round icon="delete" @click="deleteModule(build_module)"/>
                         </div>
                     </q-td>
@@ -241,6 +248,7 @@ export default defineComponent({
                     this.beholderRepo(item, 'module')
                     build_module[build_module.arch] = true
                     build_module.force = false
+                    build_module.force_not_notarized = false
                     this.modules.push(build_module)
                 }
             }
@@ -405,7 +413,7 @@ export default defineComponent({
             let trustness = false
             if (pack.trustRepos.length) {
                 pack.trustRepos.forEach ( repo => {
-                    if (!repo) return
+                    if (!repo | !pack.destination) return
                     if (repo.name === pack.destination.value) trustness = true
                 })
             }
