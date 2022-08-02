@@ -9,7 +9,7 @@
           <q-input v-model="product_name" clearable
                     style="max-width: 80%"
                     hint="Enter name of new product*"
-                    :rules="[val => !!val || 'Name is required']"
+                    :rules="[val => nameRule(val) || 'Name is required']"
                     :error="name_error" :error-message="error_msg"
                     label="Product name" />
           <q-input v-model="product_title" clearable
@@ -97,6 +97,9 @@ export default defineComponent({
     }
   },
   methods: {
+    nameRule (values) {
+      return !!values && values.indexOf(' ') < 0
+    },
     platformsRule (values) {
       let flag = true
       if (values === null){
@@ -130,12 +133,24 @@ export default defineComponent({
         .catch(error => {
           this.loading = false
           console.log(error)
-          Notify.create({
-            message: error.response.data.detail, type: 'negative',
-            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
-          })
-          // this.error_msg = 'Already exists'
-          // this.name_error = true
+          if (error.response.status === 400){
+            Notify.create({
+              message: error.response.data.detail, type: 'negative',
+              actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+            })
+            if (error.response.data.detail.includes('already exist')){
+              this.error_msg = 'Already exists'
+              this.name_error = true
+            }  
+          } else {
+            Notify.create({
+              message: `${error.response.status}: ${error.response.statusText}`,
+              type: 'negative',
+              actions: [
+                  { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          }      
         })
     }
   }
