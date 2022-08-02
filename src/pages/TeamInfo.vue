@@ -261,7 +261,7 @@ export default defineComponent({
         setTimeout(() => {
             if (this.$route.query.tab)
                 this.tab = this.$route.query.tab
-        }, 200)
+        }, 500)
     },
     computed: {
         allUsers () {
