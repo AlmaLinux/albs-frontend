@@ -113,7 +113,12 @@ const linksList = [
       }
     ]
   },
+  {
+    title: 'Teams',
+    icon: 'groups',
+    link: 'team-feed',
     allow: store.getters.isAuthenticated
+  },
 ];
 
 import { defineComponent, ref } from 'vue'

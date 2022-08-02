@@ -2,7 +2,8 @@ import { api } from 'boot/api'
 
 export const TeamsModule = {
   state: () => ({
-    teams: []
+    teams: [],
+    pageNumber: 1
   }),
   mutations: {
     updateTeamsList (state, teams) {
@@ -10,9 +11,16 @@ export const TeamsModule = {
       for (const team of teams) {
         state.teams.push(team)
       }
+    },
+    setPageNumber (state, pageNumber) {
+      state.pageNumber = pageNumber
     }
   },
-  getters: {},
+  getters: {
+    teamsPageNumber: (state, getters) => {
+      return state.pageNumber
+    }
+  },
   actions: {
     loadTeamsList ({ commit, state }) {
     return api.get('/teams/')
