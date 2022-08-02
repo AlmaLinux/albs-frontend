@@ -33,8 +33,10 @@
                                 </span>
                                 <div class="q-pt-md">
                                     <b>Team:&nbsp;</b>
-                                <a>{{product.team.name}}</a>
-                            </div>
+                                    <router-link :to="{path: `/teams/${product.team.id}`, query: { tab: 'products' } }">
+                                        {{ product.team.name }}
+                                    </router-link>
+                                </div>
                             </div>
                         </template>
                     </q-card-section>
@@ -46,10 +48,8 @@
                     <q-field label="Install product" stack-label>
                         <template v-slot:after>
                             <q-btn flat round
-                                   target="_blank"
-                                   :to="{path: `/documentation/COPR/COPR%20quick%20setup.md/`}"
                                    icon="description"
-                                   @click.stop>
+                                   @click="doc = true">
                                 <q-tooltip>
                                     See documentation
                                 </q-tooltip>
@@ -133,7 +133,7 @@
 
                 <q-card-actions class="row justify-end q-gutter-sm q-pr-sm">
                     <q-skeleton type="circle" v-if="loadingPage"/>
-                    <q-btn v-else color="negative" icon="delete" round @click="deleteProduct" :loading="loading">
+                    <q-btn v-else color="negative" icon="delete" round @click="confirm = true" :loading="loading">
                         <q-tooltip>
                             Delete product
                         </q-tooltip>
@@ -142,20 +142,48 @@
             </q-card>
         </div>
     </div>
+    <q-dialog v-model="confirm" persistent>
+        <q-card style="width: 50%">
+            <q-card-section>
+                <div class="text-h6">Warning</div>
+            </q-card-section>
+            <q-card-section>
+                Are you sure you want to delete the product ?
+            </q-card-section>
+            <q-card-actions align="right">
+                <q-btn flat label="Ok" color="primary" @click="deleteProduct()" :loading="loading" />
+                <q-btn flat text-color="negative" label="Cancel" v-close-popup/>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
+    <q-dialog v-model="doc" style="max-width: 90%">
+        <q-card style="max-width: 90%">
+            <q-card-section>
+                <documentation-viewer chapter="COPR" article="COPR%20quick%20setup.md"/>
+            </q-card-section>
+            <q-card-actions align="right">
+                <q-btn flat text-color="primary" label="ok" v-close-popup/>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
 </template>
 
 <script>
 import { defineComponent, ref } from 'vue'
 import { Notify } from 'quasar'
 import { copyToClipboard } from '../utils'
+import DocumentationViewer from './DocumentationViewer.vue'
 
 export default defineComponent({
+  components: { DocumentationViewer },
     props: {
         productId: String
     },
     data() {
         return {
             product: null,
+            confirm: false,
+            doc: false,
             loadingPage: false,
             loading: false,
             mockPackages: [

@@ -134,6 +134,9 @@
                                             {{ props.row.name }}
                                         </router-link>
                                     </q-td>
+                                    <q-td key="name" :props="props" class="text-left">
+                                        {{ props.row.title }}
+                                    </q-td>
                                 </q-tr>
                             </template>
                         </q-table>
@@ -245,7 +248,8 @@ export default defineComponent({
             loadAddUser: false,
             loadRemoveUser: false,
             productsCol: [
-                { name: 'name', required: true, align: 'center', label: 'Name', field: 'name' }
+                { name: 'name', required: true, align: 'center', label: 'Name', field: 'name' },
+                { name: 'title', required: true, align: 'left', label: 'Title', field: 'title' }
             ],
             rolesCol: [
                 { name: 'name', required: true, align: 'left', label: 'Name', field: 'name' }

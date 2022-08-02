@@ -113,7 +113,7 @@ export default defineComponent({
       let data = {
         name: this.product_name,
         team_id: this.product_teams.value,
-        owner_id: user.id,
+        owner_id: user.user_id,
         title: this.product_title,
         description: this.product_description,
         platforms: this.product_platforms
