@@ -120,7 +120,7 @@ export default defineComponent({
                 { name: 'name', required: true, align: 'left', label: 'Name', field: 'name'},
                 { name: 'owner', required: true, align: 'left', label: 'Owner', field: 'owner'},
                 { name: 'products', required: true, align: 'center', label: 'Products', field: 'products' },
-                { name: 'members', required: true, align: 'center', label: 'Membres', field: 'members' }  
+                { name: 'members', required: true, align: 'center', label: 'Members', field: 'members' }  
             ],
             addNewTeam: false,
             newTeamName: '',
