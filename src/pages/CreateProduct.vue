@@ -9,7 +9,7 @@
           <q-input v-model="product_name" clearable
                     style="max-width: 80%"
                     hint="Enter name of new product*"
-                    :rules="[val => nameRule(val) || 'Name is required']"
+                    :rules="[val => nameRule(val) || 'Name is required and cannot contain spaces']"
                     :error="name_error" :error-message="error_msg"
                     label="Product name" />
           <q-input v-model="product_title" clearable
