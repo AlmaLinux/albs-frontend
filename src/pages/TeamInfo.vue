@@ -184,9 +184,11 @@
             </q-card-section>
             <q-form @submit="addUsers">
                 <q-card-section>
-                    <q-select v-model="newMembers" :options="allUsers" label="Users*" hint="Select users for this team"
+                    <q-select v-model="newMembers" :options="usersOptions" label="Users*" hint="Select users for this team"
                             option-value="id" option-label="username" multiple use-chips
-                            :rules="[val => useresRule(val) || 'Please select at least one user']" clearable>
+                            input-debounce="0" @filter="userFilter" use-input autofocus
+                            ref="userSelect" @add="clearFilter" clearable
+                            :rules="[val => usersRule(val) || 'Please select at least one user']" >
                                 <template v-slot:no-option>
                                     <q-item>
                                         <q-item-section class="text-italic text-grey">
@@ -223,7 +225,7 @@
 </template>
 
 <script>
-import { Notify } from 'quasar'
+import { Loading, Notify } from 'quasar'
 import { defineComponent, ref } from 'vue'
 
 export default defineComponent({
@@ -238,6 +240,7 @@ export default defineComponent({
             confirm: false,
             selectedMembers: [],
             filter: '',
+            usersOptions: ref([]),
             membersCol: [
                 { name: 'id', required: true, align: 'center', label: 'User ID', field: 'id'},
                 { name: 'username', required: true, align: 'center', label: 'Username', field: 'username' },
@@ -276,7 +279,21 @@ export default defineComponent({
         }
     },
     methods: {
-        useresRule (val) {
+        userFilter (val, update, abort) {
+            update(() => {
+                const needle = val.toLocaleLowerCase()
+                this.usersOptions = this.allUsers.filter(v => v.username.toLocaleLowerCase().indexOf(needle) > -1)
+            })
+            abort(() => {
+                val = ''
+            })
+        },
+        clearFilter () {
+            if (this.$refs.userSelect !== void 0) {
+                this.$refs.userSelect.updateInputValue('')
+            }
+        },
+        usersRule (val) {
             return val ? val.length !== 0  : false
         },
         addUsers () {
@@ -329,11 +346,14 @@ export default defineComponent({
                 })
         },
         loadTeam (teamId) {
+            Loading.show()
             this.$api.get(`/teams/${teamId}/`)
                 .then(response => {
+                    Loading.hide()
                     this.team = response.data
                 })
                 .catch(error => {
+                    Loading.hide()
                     Notify.create({
                         message: `${error.response.status}: ${error.response.statusText}`,
                         type: 'negative',

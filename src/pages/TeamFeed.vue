@@ -12,11 +12,6 @@
                 hide-pagination
             >   
                 <template v-slot:top-right>
-                    <!-- <q-input borderless dense debounce="300" class="q-pr-md" v-model="filter" placeholder="Search">
-                        <template v-slot:append>
-                            <q-icon name="search" />
-                        </template>
-                    </q-input> -->
                     <div class="q-gutter-md">
                         <q-btn @click="addNewTeam = true" 
                             icon-right="group_add"

@@ -69,31 +69,31 @@
                         </template>
                     </q-field>
                 </q-card-section>
-                <q-card-section v-if="loadingPage" class="q-px-md">
+                <!-- TODO: remove mockup and add real packages -->
+                <!-- <q-card-section v-if="loadingPage" class="q-px-md">
                     <q-skeleton  type="rect" style="height: 40px" />
                 </q-card-section>
                 <q-card-section v-else class="q-px-none q-py-xs">
-                    <!-- TODO: remove mockup and add real packages -->
                     <q-expansion-item label="Packages" expand-separator
                                                 icon="shopping_cart" align="left">
-                                <q-card>
-                                    <q-card-section>
-                                        <q-item dense>
-                                            <q-table
-                                                :rows="mockPackages"
-                                                :columns="packCol"
-                                                color="primary"
-                                                wrap-cells
-                                                flat
-                                                style="width: 100%"
-                                                hide-pagination
-                                                :rows-per-page-options=[0]>
-                                            </q-table>
-                                        </q-item>
-                                    </q-card-section>
-                                </q-card>
-                            </q-expansion-item>
-                </q-card-section>
+                        <q-card>
+                            <q-card-section>
+                                <q-item dense>
+                                    <q-table
+                                        :rows="mockPackages"
+                                        :columns="packCol"
+                                        color="primary"
+                                        wrap-cells
+                                        flat
+                                        style="width: 100%"
+                                        hide-pagination
+                                        :rows-per-page-options=[0]>
+                                    </q-table>
+                                </q-item>
+                            </q-card-section>
+                        </q-card>
+                    </q-expansion-item>
+                </q-card-section> -->
                 <q-card-section class="q-px-md q-py-xs" v-if="loadingPage">
                     <q-skeleton type="rect" style="height: 40px" />
                 </q-card-section>
@@ -186,15 +186,15 @@ export default defineComponent({
             doc: false,
             loadingPage: false,
             loading: false,
-            mockPackages: [
-                { name: 'alsa-sof-firmware', version: '#1.9.3-4.el8_6'},
-                { name: 'cheese', version: '#3.28.0-4.el8_6'},
-                { name: 'compat-openssl10 ', version: '#1.0.2o-4.el8_6'},
-                { name: 'libinput', version: '#1.16.3-3.el8_6'},
-                { name: 'nmstate', version: '#1.2.1-3.el8_6'},
-                { name: 'pulseaudio', version: '#14.0-3.el8_6'},
-                { name: 'rhel-system-roles-sap', version: '#3.2.0-2.el8_6'}
-            ],
+            // mockPackages: [
+            //     { name: 'alsa-sof-firmware', version: '#1.9.3-4.el8_6'},
+            //     { name: 'cheese', version: '#3.28.0-4.el8_6'},
+            //     { name: 'compat-openssl10 ', version: '#1.0.2o-4.el8_6'},
+            //     { name: 'libinput', version: '#1.16.3-3.el8_6'},
+            //     { name: 'nmstate', version: '#1.2.1-3.el8_6'},
+            //     { name: 'pulseaudio', version: '#14.0-3.el8_6'},
+            //     { name: 'rhel-system-roles-sap', version: '#3.2.0-2.el8_6'}
+            // ],
             packCol: [
                 { name: 'name', required: true, align: 'left', label: 'Name', field: 'name'},
                 { name: 'version', required: true, align: 'left', label: 'Version', field: 'version' },
