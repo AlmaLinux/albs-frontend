@@ -175,7 +175,7 @@ export default defineComponent({
             let user = LocalStorage.getItem('user')
             let data = {
                 team_name: this.newTeamName,
-                user_id: user.id
+                user_id: user.user_id
             }
             this.$api.post(`/teams/create/`, data)
                 .then(response => {
