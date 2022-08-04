@@ -70,4 +70,21 @@ export default defineComponent({
   .castor-doc >>> h5 {
     font-size: 0.2rem;
   }
+
+  .castor-doc >>> code {
+    margin: 0;
+    position: relative;
+    font-size: 14px;
+    color: #424242;
+    background-color: #fdfdfd;
+    font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    line-height: 1.5;
+    tab-size: 4;
+    hyphens: none;
+  }
 </style>
