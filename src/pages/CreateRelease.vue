@@ -11,7 +11,7 @@
             style="min-height: 200px;"
             title="Build selector"
         >    
-            <build-selection-form :releaseBuilds="builds" :releasePlatform="platform" :releaseId="releaseId"
+            <build-selection-form :releaseBuilds="builds" :releasePlatform="platform" :releaseId="releaseId" :releseProduct="product"
                                     @saveState="saveState" @nextStep="onPackagesLocationSelector"/>
         </q-step>
 
@@ -48,6 +48,7 @@ export default defineComponent({
         return {
             builds: [],
             platform: null,
+            product: null,
             releaseId: null,
             currentStep: 'buildSelection',
             plan: null
@@ -96,6 +97,7 @@ export default defineComponent({
         saveState (state){
             this.builds = state.builds
             this.platform = state.platform
+            this.product = state.product
         },
         onNextStep () {
             this.$refs.Releaser.next()
