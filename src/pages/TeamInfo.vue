@@ -330,7 +330,7 @@ export default defineComponent({
                     this.loadRemoveUser = false
                     this.addNewMember = false
                     this.newMembers = null
-                    this.selected = []
+                    this.selectedMembers = []
                     this.team = response.data
                 })
                 .catch(error => {
