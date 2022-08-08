@@ -299,10 +299,9 @@ export default defineComponent({
         addUsers () {
             this.loadAddUser = true
             let data = {
-                modification: 'add',
                 members_to_update: this.newMembers
             }
-            this.updateMembers(data)
+            this.updateMembers(data, 'add')
         },
         removeMembers () {
              if (this.selectedMembers.length === 0) {
@@ -318,13 +317,12 @@ export default defineComponent({
 
             this.loadRemoveUser = true
             let data = {
-                modification: 'remove',
                 members_to_update: this.selectedMembers
             }
-            this.updateMembers(data)
+            this.updateMembers(data, 'remove')
         },
-        updateMembers (data) {
-            this.$api.post(`/teams/${this.teamId}/members/`, data)
+        updateMembers (data, modification) {
+            this.$api.post(`/teams/${this.teamId}/members/${modification}/`, data)
                 .then(response => {
                     this.loadAddUser = false
                     this.loadRemoveUser = false
