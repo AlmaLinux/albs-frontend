@@ -61,7 +61,8 @@
                             hide-pagination
                             :rows-per-page-options=[0]
                             selection="multiple"
-                            v-model:selected="selectedMembers">
+                            v-model:selected="selectedMembers"
+                            no-data-label="No members">
                             <template v-slot:top-right>
                                 <div class="q-gutter-md">
                                     <q-btn flat
@@ -119,7 +120,8 @@
                             row-key="id"
                             :filter="filter"
                             hide-pagination
-                            :rows-per-page-options=[0]>
+                            :rows-per-page-options=[0]
+                            no-data-label="No products yet">
                             <template v-slot:top-right>
                                 <q-input borderless dense debounce="300" class="q-pl-md" v-model="filter" placeholder="Search">
                                     <template v-slot:append>
