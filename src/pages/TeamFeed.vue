@@ -192,6 +192,17 @@ export default defineComponent({
                 })
         },
         selectDeletingTeam (team) {
+            if (team.products.length !== 0) {
+                Notify.create({
+                    message: 'First you need to remove the products',
+                    type: 'negative',
+                    actions: [
+                        { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                })
+                return
+            }
+            
             this.confirm = true
             this.selectedTeam = team
         },

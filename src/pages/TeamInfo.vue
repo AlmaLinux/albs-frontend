@@ -169,7 +169,7 @@
                 <q-separator />
 
                 <q-card-actions align="right">
-                    <q-btn flat color="negative" @click="confirm = true">Delete Team</q-btn>
+                    <q-btn flat color="negative" @click="checkDeleting()">Delete Team</q-btn>
                 </q-card-actions>
             </q-card>
         </div>
@@ -360,6 +360,20 @@ export default defineComponent({
                         ]
                     })
                 })
+        },
+        checkDeleting () {
+            if (this.team.products.length !== 0) {
+                Notify.create({
+                    message: 'First you need to remove the products',
+                    type: 'negative',
+                    actions: [
+                        { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                })
+                return
+            }
+
+            this.confirm = true
         },
         deleteTeam () {
             this.loadingDeleteTeam = true
