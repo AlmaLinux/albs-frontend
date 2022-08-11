@@ -133,7 +133,7 @@ export default defineComponent({
         .catch(error => {
           this.loading = false
           console.log(error)
-          if (String(error.response.status)[0] === 4){
+          if (+String(error.response.status)[0] === 4){
             Notify.create({
               message: error.response.data.detail, type: 'negative',
               actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]

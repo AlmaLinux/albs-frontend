@@ -182,7 +182,7 @@ export default defineComponent({
                 .catch(error => {
                     this.addLoading = false
                     this.newTeamName = ''
-                    if (String(error.response.status)[0] === 4 ){
+                    if (+String(error.response.status)[0] === 4 ){
                         Notify.create({
                             message: error.response.data.detail, type: 'negative',
                             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
@@ -216,7 +216,7 @@ export default defineComponent({
         deleteTeam (id) {
             this.loadingDeleteTeam = true
             this.loading = true
-            this.$api.delete(`/teams/${id}/remove`)
+            this.$api.delete(`/teams/${id}/remove/`)
                 .then(response => {
                     this.loadingDeleteTeam = false
                     this.confirm = false
@@ -226,7 +226,7 @@ export default defineComponent({
                 .catch(error => {
                     this.loading = false
                     this.loadingDeleteTeam = false
-                    if (String(error.response.status)[0] === 4 ){
+                    if (+String(error.response.status)[0] === 4 ){
                         Notify.create({
                             message: error.response.data.detail, type: 'negative',
                             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]

@@ -354,7 +354,7 @@ export default defineComponent({
                 })
                 .catch(error => {
                     Loading.hide()
-                    if (String(error.response.status)[0] === 4 ){
+                    if (+String(error.response.status)[0] === 4 ){
                         Notify.create({
                             message: error.response.data.detail, type: 'negative',
                             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
@@ -394,7 +394,7 @@ export default defineComponent({
                 })
                 .catch(error => {
                     this.loadingDeleteTeam = false
-                    if (String(error.response.status)[0] === 4 ){
+                    if (+String(error.response.status)[0] === 4 ){
                         Notify.create({
                             message: error.response.data.detail, type: 'negative',
                             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
