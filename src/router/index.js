@@ -25,7 +25,6 @@ const Router = createRouter({
 })
 
 Router.beforeEach((to, from, next) => {
-  console.log(to.path.startsWith('/build'))
   if (to.path.startsWith('/build') && store.getters.isAuthenticated && !store.getters.isUserValid){
     store.commit('users/onLogout')
     Router.go()
