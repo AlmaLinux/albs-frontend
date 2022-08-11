@@ -84,8 +84,11 @@ const routes = [
         component: () => import('pages/CreateRelease.vue'),
         beforeEnter (to, from, next) {
           store.dispatch('platforms/loadPlatformList')
-          .then(next())
-          .catch(next())
+            .then(next())
+            .catch(next())
+          store.dispatch('products/loadProductList')
+            .then(next())
+            .catch(next())
         }
       },
       { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildItemInfo.vue'), props: true},

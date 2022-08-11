@@ -1,8 +1,29 @@
 <template>
     <q-form @submit="submit" >
-        <div class="q-pa-lg" style="float: left;">
+        <div class="q-pa-lg row" style="float: left;">
+            <q-select v-model="product" dense
+                        :options="existingProducts" label="Select Product"
+                        :readonly="releaseId ? true : false"
+                        clearable  style="width: 220px"
+                        transition-show="scale"
+                        transition-hide="scale"
+                        :rules="[val => !!val || 'Field is required']">
+                <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps">              
+                        <q-item-section>
+                            <q-item-label class="text-center" v-html="scope.opt.label" ></q-item-label>
+                            <q-item-label v-if="scope.opt.description" class="text-center" caption>
+                                {{ scope.opt.description }}
+                            </q-item-label>
+                        </q-item-section>
+                    </q-item>
+                </template>
+            </q-select>
+        </div>
+        <div class="q-pa-lg row" style="float: left;">
+            
             <q-select v-model="platform" dense
-                        :options="existingDistros" label="Select Platform"
+                        :options="existingPlatfroms" label="Select Platform"
                         :readonly="releaseId ? true : false"
                         clearable  style="width: 220px"
                         transition-show="scale"
@@ -124,6 +145,7 @@ export default defineComponent({
     props: {
         releaseBuilds: Array,
         releasePlatform: Object,
+        releseProduct: Object,
         releaseId: Number
     },
     emits: ["nextStep", "saveState"],
@@ -132,6 +154,7 @@ export default defineComponent({
             builds: this.releaseBuilds,
             uniqueBuildsId: new Set(),
             platform: this.releasePlatform,
+            product: this.releseProduct,
             activeBuild: null,
             textValue: null,
             tableselected: [],
@@ -147,7 +170,12 @@ export default defineComponent({
         }
     },
     computed: {
-        existingDistros () {
+        existingProducts () {
+            return this.$store.state.products.products.map(product => {
+                return { label: product.name, value: product.id, description: product.title }
+            })
+        },
+        existingPlatfroms () {
             return this.$store.state.platforms.platforms.map(platform => {
                 return { label: platform.name, value: platform.name, description: platform.arch_list.join(', '), id: platform.id }
             })
@@ -327,10 +355,11 @@ export default defineComponent({
             let request_body = {
                 builds: [],
                 build_tasks: [],
+                product_id: this.product.value,
                 platform_id: this.platform.id,
                 reference_platform_id: this.platform.id
             }
-            let state = {builds: this.builds, platform: this.platform}
+            let state = {builds: this.builds, platform: this.platform, product: this.product}
             this.$emit('saveState', state)
             this.builds.map(build => {
                 if (!build.selected.length) return

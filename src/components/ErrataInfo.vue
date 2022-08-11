@@ -731,6 +731,7 @@ export default defineComponent({
                 let request_body = {
                     builds: Array.from(builds),
                     build_tasks: build_tasks,
+                    product_id: 1, //AlmaLinux product
                     platform_id: this.advisory.platform_id,
                     reference_platform_id: this.advisory.platform_id,
                 }
