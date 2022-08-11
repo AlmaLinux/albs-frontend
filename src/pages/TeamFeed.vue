@@ -182,13 +182,20 @@ export default defineComponent({
                 .catch(error => {
                     this.addLoading = false
                     this.newTeamName = ''
-                    Notify.create({
-                        message: `${error.response.status}: ${error.response.statusText}`,
-                        type: 'negative',
-                        actions: [
-                            { label: 'Dismiss', color: 'white', handler: () => {} }
-                        ]
-                    })
+                    if (String(error.response.status)[0] === 4 ){
+                        Notify.create({
+                            message: error.response.data.detail, type: 'negative',
+                            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+                        })
+                    } else {
+                        Notify.create({
+                            message: `${error.response.status}: ${error.response.statusText}`,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    }
                 })
         },
         selectDeletingTeam (team) {
@@ -202,7 +209,7 @@ export default defineComponent({
                 })
                 return
             }
-            
+
             this.confirm = true
             this.selectedTeam = team
         },
@@ -218,13 +225,21 @@ export default defineComponent({
                 })
                 .catch(error => {
                     this.loading = false
-                    Notify.create({
-                        message: `${error.response.status}: ${error.response.statusText}`,
-                        type: 'negative',
-                        actions: [
-                            { label: 'Dismiss', color: 'white', handler: () => {} }
-                        ]
-                    })
+                    this.loadingDeleteTeam = false
+                    if (String(error.response.status)[0] === 4 ){
+                        Notify.create({
+                            message: error.response.data.detail, type: 'negative',
+                            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+                        })
+                    } else {
+                        Notify.create({
+                            message: `${error.response.status}: ${error.response.statusText}`,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    }
                 })
         }
     }

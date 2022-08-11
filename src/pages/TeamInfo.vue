@@ -354,13 +354,20 @@ export default defineComponent({
                 })
                 .catch(error => {
                     Loading.hide()
-                    Notify.create({
-                        message: `${error.response.status}: ${error.response.statusText}`,
-                        type: 'negative',
-                        actions: [
-                            { label: 'Dismiss', color: 'white', handler: () => {} }
-                        ]
-                    })
+                    if (String(error.response.status)[0] === 4 ){
+                        Notify.create({
+                            message: error.response.data.detail, type: 'negative',
+                            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+                        })
+                    } else {
+                        Notify.create({
+                            message: `${error.response.status}: ${error.response.statusText}`,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    }
                 })
         },
         checkDeleting () {
@@ -387,13 +394,20 @@ export default defineComponent({
                 })
                 .catch(error => {
                     this.loadingDeleteTeam = false
-                    Notify.create({
-                        message: `${error.response.status}: ${error.response.statusText}`,
-                        type: 'negative',
-                        actions: [
-                            { label: 'Dismiss', color: 'white', handler: () => {} }
-                        ]
-                    })
+                    if (String(error.response.status)[0] === 4 ){
+                        Notify.create({
+                            message: error.response.data.detail, type: 'negative',
+                            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+                        })
+                    } else {
+                        Notify.create({
+                            message: `${error.response.status}: ${error.response.statusText}`,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    }
                 })
         }
     }
