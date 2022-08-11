@@ -2,7 +2,8 @@ import { api } from 'boot/api'
 
 export const ProductsModule = {
   state: () => ({
-    products: []
+    products: [],
+    pageNumber: 1
   }),
   mutations: {
     updateProductList (state, products) {
@@ -10,9 +11,15 @@ export const ProductsModule = {
       for (const product of products) {
         state.products.push(product)
       }
+    },
+    setPageNumber (state, pageNumber) {
+      state.pageNumber = pageNumber
     }
   },
   getters: {
+    productsPageNumber: (state, getters) => {
+      return state.pageNumber
+    }
   },
   actions: {
     loadProductList ({ commit, state }) {

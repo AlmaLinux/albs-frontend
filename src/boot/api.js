@@ -16,12 +16,12 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(response => {
   return response
 }, error => {
-  if (error.response.status === 403) {
+  if (error.response.status === 401) {
     LocalStorage.set('redirectPath', router.currentRoute._value.href)
     store.commit('users/onLogout')
     router.push('/auth/login')
   }
-  if (error.response.status === 401) {
+  if (error.response.status === 403) {
     Notify.create({
       message: 'Access Denied',
       type: 'negative',

@@ -29,7 +29,7 @@ const routes = [
       { path: 'build/:buildId', component: () => import('pages/Build.vue'), props: true,
         beforeEnter (to, from, next) {
           if (store.getters.isUserValid) {
-            store.dispatch('distributions/loadDistributionsList')
+            store.dispatch('products/loadProductList')
               .then(next())
               .catch(next())
             store.dispatch('keys/loadKeysList')
@@ -93,18 +93,37 @@ const routes = [
       },
       { path: '/build/:buildId/logs/:taskId', component: () => import('pages/BuildItemInfo.vue'), props: true},
       {
-        path: '/distro/new/',
+        path: 'product-feed',
+        meta: {requiresAuth: true },
+        component: () => import('pages/ProductFeed')
+      },
+      { path: '/product/:productId', component: () => import('pages/ProductDetails.vue'), props: true},
+      {
+        path: '/product/new/',
         meta: { requiresAuth: true },
-        component: () => import('pages/CreateDistro'),
+        component: () => import('pages/CreateProduct.vue'),
         beforeEnter (to, from, next) {
           store.dispatch('platforms/loadPlatformList')
             .then(next())
             .catch(next())
-          store.dispatch('distributions/loadDistributionsList')
+          store.dispatch('teams/loadTeamsList')
             .then(next())
             .catch(next())
         }
-      }
+      },
+      {
+        path: 'team-feed',
+        meta: {requiresAuth: true },
+        component: () => import('pages/TeamFeed')
+      },
+      { path: '/teams/:teamId', component: () => import('pages/TeamInfo.vue'), props: true ,
+        beforeEnter (to, from, next) {
+          store.dispatch('users/loadUsersList')
+            .then(next())
+            .catch(next())
+        }
+      },
+      { path: '/documentation/:chapter/:article/', component: () => import('pages/DocumentationViewer.vue'), props: true},
     ]
   },
   // TODO: make this children
