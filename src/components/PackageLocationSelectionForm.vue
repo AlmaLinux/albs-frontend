@@ -38,6 +38,9 @@
                 </div>
             </template>
             <template v-slot:header="props">
+                <q-td v-if="release.product !== undefined">
+                    Chosen product for release is <b>{{ release.product.name }}</b>
+                </q-td>
                 <q-tr :props="props">
                 <q-th v-for="col in props.cols"
                       :key="col.name" :props="props">
