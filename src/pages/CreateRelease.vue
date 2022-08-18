@@ -20,7 +20,7 @@
             style="min-height: 200px;"
             title="Package location selector"
         >
-            <package-location-selection-form ref="packageLocationSelectionForm"/>
+            <package-location-selection-form :releaseProduct="product" ref="packageLocationSelectionForm"/>
         </q-step>
         
         <template v-slot:navigation>

@@ -38,8 +38,8 @@
                 </div>
             </template>
             <template v-slot:header="props">
-                <q-td v-if="release.product !== undefined">
-                    Chosen product for release is <b>{{ release.product.name }}</b>
+                <q-td v-if="productName !== undefined">
+                    Chosen product for release is <b>{{ productName }}</b>
                 </q-td>
                 <q-tr :props="props">
                 <q-th v-for="col in props.cols"
@@ -189,6 +189,7 @@ import { nsvca } from '../utils';
 export default defineComponent({
     props: {
         release: Object,
+        releaseProduct: Object,
         viewOnly: Boolean
     },
     data() {
@@ -218,6 +219,7 @@ export default defineComponent({
             selectedNotNotarized: [],
             forceAll: false,
             forceNotNotarizedAll: false,
+            productName: this.getProductName(),
             modules: []
         }
     },
@@ -228,6 +230,13 @@ export default defineComponent({
         nsvca: nsvca,
         tableFullScreen(props){
             props.toggleFullscreen()
+        },
+        getProductName() {
+            if (this.release !== undefined && this.release.product !== undefined) {
+                return this.release.product.name
+            } else if (this.releaseProduct !== undefined) {
+                return this.releaseProduct.label
+            }
         },
         nevra (pack) {
             return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
