@@ -26,6 +26,7 @@
                     />
                     <template v-if="!viewOnly" >
                         <q-btn @click="saveRelease"
+                            :loading="loadingSave"
                             color="green">
                             Save
                         </q-btn>
@@ -225,6 +226,7 @@ export default defineComponent({
             releaseId: null,
             repositories: {},
             loading: false,
+            loadingSave: false,
             selected: [],
             selectedNotNotarized: [],
             forceAll: false,
@@ -522,12 +524,15 @@ export default defineComponent({
             return plan
         },
         saveRelease () {
+            this.loadingSave = true
             this.$api.put(`/releases/${this.releaseId}/`, { plan: this.getPlan() })
                 .then(response => {
-                     Notify.create({message: `Release ${response.data.id} updated`, type: 'positive',
+                    this.loadingSave =  false
+                    Notify.create({message: `Release ${response.data.id} updated`, type: 'positive',
                         actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
                 })
                 .catch(error => {
+                    this.loadingSave =  false
                     Notify.create({message: 'Unable to update a release', type: 'negative',
                         actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
                 })
