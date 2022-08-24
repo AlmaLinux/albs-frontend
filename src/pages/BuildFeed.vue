@@ -97,7 +97,12 @@ export default defineComponent({
       }
       return filter
     },
-    loadSignInfo (build) {
+    getReleaseStatus (build) {
+      if (build.released) {
+        build.releaseStatus = 'released'
+        return
+      }
+
       if (build.sign_tasks.length) {
         let signs = build.sign_tasks
         build.releaseStatus = SignStatus.text[signs[signs.length - 1].status]
@@ -137,7 +142,7 @@ export default defineComponent({
         .then(response => {
           this.builds = response.data['builds']
           this.builds.forEach( build => {
-            this.loadSignInfo(build)
+            this.getReleaseStatus(build)
             build.tasks.forEach(task => {
               if (task.status === BuildStatus.COMPLETED) {
                 this.loadTestsInfo(task)
