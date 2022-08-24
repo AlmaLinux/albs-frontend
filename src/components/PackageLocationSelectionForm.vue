@@ -29,7 +29,7 @@
                             color="green">
                             Save
                         </q-btn>
-                        <q-btn  @click="commitRelease"
+                        <q-btn  @click="confirm = true"
                                 :loading="loading"
                                 color="primary">
                             Commit
@@ -176,6 +176,20 @@
             </template>
         </q-table>
     </div>
+    <q-dialog v-model="confirm" persistent>
+        <q-card style="width: 50%">
+            <q-card-section>
+                <div class="text-h6">Warning</div>
+            </q-card-section>
+            <q-card-section>
+                Are you sure you want to commit release ?
+            </q-card-section>
+            <q-card-actions align="right">
+                <q-btn flat label="Ok" color="primary" @click="commitRelease" :loading="loading" />
+                <q-btn flat text-color="negative" label="Cancel" v-close-popup/>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
 </template>
 
 <script>
@@ -215,7 +229,8 @@ export default defineComponent({
             selectedNotNotarized: [],
             forceAll: false,
             forceNotNotarizedAll: false,
-            modules: []
+            modules: [],
+            confirm: false
         }
     },
     created () {
@@ -531,12 +546,14 @@ export default defineComponent({
                         })
                         .catch(error => {
                             this.loading = false
+                            this.confirm = false
                             Notify.create({message: 'Unable to commit a release', type: 'negative',
                                 actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
                         })
                 })
                 .catch(error => {
                     this.loading = false
+                    this.confirm = false
                     Notify.create({message: 'Unable to commit a release', type: 'negative',
                                 actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
                 })
