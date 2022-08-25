@@ -92,9 +92,9 @@
                             transition-hide="scale">
                         </q-select>
                     </q-td>
-                    <q-td key="force_not_notarized" :props="props" v-if="!props.row.cas_hash">
+                    <q-td key="force_not_notarized" :props="props" v-if="NotNotarizedPackages().length !== 0">
                         <q-checkbox v-model="props.row.force_not_notarized"
-                            :disable="viewOnly && !props.row.cas_hash"
+                            :disable="viewOnly"
                             size="xs" @click="selectNotNotarized(props.row)"/>
                     </q-td>
                     <q-td key="force" :props="props">
