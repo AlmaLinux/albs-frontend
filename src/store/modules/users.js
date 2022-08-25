@@ -33,6 +33,7 @@ export const UsersModule = {
       return api.get('/users/all_users')
         .then(response => {
           commit('updateUsersList', response.data)
+          return response.data
         })
         .catch(error => {
           Notify.create({

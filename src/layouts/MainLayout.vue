@@ -60,6 +60,21 @@ import store from '../store/index'
 
 const linksList = [
   {
+    title: 'Administration',
+    icon: 'settings',
+    expand: true,
+    // is_superuser workaround
+    // We update the allow value manually after the Link is populated
+    allow: false,
+    children: [
+      {
+        title: 'Users',
+        icon: 'manage_accounts',
+        link: 'users'
+      }
+    ]
+  },
+  {
     title: 'Feed',
     icon: 'view_list',
     link: '/',
@@ -127,6 +142,12 @@ import { parseJwt } from '../utils'
 
 export default defineComponent({
   name: 'MainLayout',
+  // is_superuser workaround
+  data () {
+    return {
+      currentUser: null
+    }
+  },
   components: {
     BuildFeedSearchForm,
     EssentialLink
@@ -136,7 +157,19 @@ export default defineComponent({
       return this.$route.name && this.$route.name.startsWith('BuildFeed')
     }
   },
-  mounted() {
+  created () {
+    // is_superuser workaround
+    // Store the currentUser and use it to determine whether
+    // the admin section shold be shown/hidden
+    if (store.getters.isAuthenticated) {
+      store.state.users.users.forEach(user => {
+        if (user.id == store.state.users.self.user_id) {
+          this.currentUser = user
+        }
+      })
+    }
+  },
+  mounted () {
     window.addEventListener('visibilitychange', (event) => {
       if (document.visibilityState === 'visible') {
         let user = LocalStorage.getItem('user')
@@ -163,6 +196,14 @@ export default defineComponent({
         }
       }
     })
+    // is_superuser workaround
+    // TODO: Investigate how to achieve this in a better way
+    // Here's where we show/hide the Admin section from the menu
+    if (store.getters.isAuthenticated) {
+      let adminLink = this.essentialLinks.find(link => link.title === 'Administration')
+      adminLink.allow = this.currentUser.is_superuser
+    }
+    
   },
   setup () {
     const leftDrawerOpen = ref(false)

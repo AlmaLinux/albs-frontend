@@ -4,6 +4,11 @@ const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
+    // is_superuser workaround
+    beforeEnter (to, from, next) {
+      store.dispatch('users/loadUsersList')
+        .then(users => { store.commit('users/updateUsersList', users); next() })
+    },
     children: [
       { 
         path: '',
