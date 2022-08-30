@@ -106,9 +106,6 @@ const routes = [
           store.dispatch('platforms/loadPlatformList')
             .then(next())
             .catch(next())
-          store.dispatch('teams/loadTeamsList')
-            .then(next())
-            .catch(next())
         }
       },
       {
