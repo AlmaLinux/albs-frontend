@@ -31,6 +31,12 @@ const routes = [
           }
         ]
       },
+      {
+        path: 'users',
+        name: 'Users',
+        component: () => import('pages/AdminUsers.vue'),
+        meta: { requiresAuth: true },
+      },
       { path: 'build/:buildId', component: () => import('pages/Build.vue'), props: true,
         beforeEnter (to, from, next) {
           if (store.getters.isUserValid) {
