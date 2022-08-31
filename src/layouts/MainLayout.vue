@@ -203,7 +203,6 @@ export default defineComponent({
       let adminLink = this.essentialLinks.find(link => link.title === 'Administration')
       adminLink.allow = this.currentUser.is_superuser
     }
-    
   },
   setup () {
     const leftDrawerOpen = ref(false)

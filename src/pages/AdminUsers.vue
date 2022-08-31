@@ -2,7 +2,7 @@
   <q-page class="q-px-xl q-pt-md">
     <div class="row justify-center">
       <q-table
-          style="width: 60%"
+          style="width: 80%"
           title="Users"
           :rows="users"
           :columns="columns"
@@ -16,10 +16,10 @@
 
           <!-- Remove button, search box  -->
           <template v-slot:top-right>
-            <q-btn flat color="negative" icon="person_remove" v-show="usersToRemove.length != 0" @click="confirmDeletion = true">
+            <q-btn flat color="negative" icon="person_remove" v-show="usersToRemove.length != 0" @click="confirmDeletion = true" label="Remove selected users">
               <q-tooltip>Remove selected users</q-tooltip>
             </q-btn>
-            <q-btn flat color="positive" icon="manage_accounts" v-show="usersToUpdate.length != 0" @click="confirmUpdate = true">
+            <q-btn flat color="positive" icon="manage_accounts" v-show="usersToUpdate.length != 0" @click="confirmUpdate = true" label="Save changes">
               <q-tooltip>Update selected users</q-tooltip>
             </q-btn>
             <q-input borderless dense debounce="300" class="q-pl-md" v-model="filter" placeholder="Search">
@@ -71,7 +71,13 @@
         <div class="text-h6">Warning</div>
       </q-card-section>
       <q-card-section>
-          You are about to permanently remove the selected users. Continue?
+        You are about to permanently remove the selected users:
+        <ul>
+          <li v-for="user in usersToRemove" :key="user.id">
+            {{ user.username }}
+          </li>
+        </ul>
+        Are you sure?
       </q-card-section>
       <q-card-actions align="right">
         <q-btn flat label="Continue" color="primary" @click="removeUsers()" v-close-popup />
@@ -87,7 +93,19 @@
         <div class="text-h6">Warning</div>
       </q-card-section>
       <q-card-section>
-          Are you sure you want to apply the changes to the selected users?
+        Please confirm that you want to perform the following changes
+        <ul>
+          <li v-for="user in generateUpdateSummary()" :key="user.username">
+            {{ user.username }}:
+              <ul>
+                <li v-for="(val, key) in user.changes" :key="key">
+                  <div>
+                    Set <i>{{ key }}</i> to {{ val }}
+                  </div>
+                </li>
+              </ul>
+          </li>
+        </ul>
       </q-card-section>
       <q-card-actions align="right">
         <q-btn flat label="Continue" color="primary" @click="updateUsers()" v-close-popup />
@@ -165,49 +183,46 @@ export default defineComponent({
                   }
               })
         },
-        userPropertyChanged (user) {
-          let alreadyIncluded = this.usersToUpdate.indexOf(user.id)
-          if (alreadyIncluded !== -1) {
-            let index = this.users.findIndex(u => u.id === user.id)
-            let changes = diff(this.originalUsers[index], this.users[index])
-            if (Object.keys(changes).length === 0) {
-              this.usersToUpdate.splice(alreadyIncluded, 1)
-            }
-          } else {
-            this.usersToUpdate.push(user.id)
-          }
 
+        userPropertyChanged (user) {
+            let alreadyIncluded = this.usersToUpdate.indexOf(user.id)
+            if (alreadyIncluded !== -1) {
+                let index = this.users.findIndex(u => u.id === user.id)
+                let changes = diff(this.originalUsers[index], this.users[index])
+                if (Object.keys(changes).length === 0) {
+                    this.usersToUpdate.splice(alreadyIncluded, 1)
+                }
+            } else {
+                this.usersToUpdate.push(user.id)
+            }
         },
-        removeUsers () {
-            this.usersToRemove.forEach(user => {
-                this.$api.delete(`/users/${user.id}/remove`)
-                    .then(response => {
-                        Notify.create({
-                            message: `Successfully removed user ${user.username}`,
-                            type: 'positive',
-                            actions: [
-                                { label: 'Dismiss', color: 'white', handler: () => {} }
-                            ]
-                        })
-                        this.loadUsers()
-                    })
-                    .catch(error => {
-                        Notify.create({
-                            message: `${error.response.status}: ${error.response.statusText}`,
-                            type: 'negative',
-                            actions: [
-                                { label: 'Dismiss', color: 'white', handler: () => {} }
-                            ]
-                        })
-                    })
+
+        // This method generates a JSON object that can be easily rendered in the
+        // update users confirmation dialog
+        generateUpdateSummary () {
+            let summary = []
+            this.usersToUpdate.forEach(user_id => {
+                let update = {}
+                let index = this.users.findIndex(u => u.id === user_id)
+                update.changes = diff(this.originalUsers[index], this.users[index])
+                // We do this rename to ensure consistency with UI, which uses
+                // the term 'enabled'
+                if (update.changes.hasOwnProperty('is_active')) {
+                  update.changes.is_enabled = update.changes.is_active
+                  delete update.changes.is_active
+                }
+                update.username = this.users[index].username
+                summary.push(update)
             })
+            return summary
         },
+
         updateUsers () {
             let promises = []
             this.usersToUpdate.forEach(user_id => {
                 let index = this.users.findIndex(u => u.id === user_id)
                 let changes = diff(this.originalUsers[index], this.users[index])
-                changes.is_verified = changes.is_active
+                if (changes.hasOwnProperty('is_active')) changes.is_verified = changes.is_active
                 changes.id = user_id
 
                 let promise = this.$api.put(`/users/${user_id}`, changes)
@@ -231,6 +246,32 @@ export default defineComponent({
                     })
                     this.loadUsers()
                 })
+        },
+
+        removeUsers () {
+            this.usersToRemove.forEach(user => {
+                this.$api.delete(`/users/${user.id}/remove`)
+                    .then(response => {
+                        Notify.create({
+                            message: `Successfully removed user ${user.username}`,
+                            type: 'positive',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                        this.loadUsers()
+                    })
+                    .catch(error => {
+                        // TODO: Provide useful errors for each deletion
+                        Notify.create({
+                            message: `${error.response.status}: ${error.response.statusText}`,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    })
+            })
         }
     }
 })
