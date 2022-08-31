@@ -757,7 +757,8 @@ export default defineComponent({
                 this.loadingRelease = false
                 if (!response.data.ok) {
                     Notify.create({
-                        message: response.date.error,
+                        message: response.data.error,
+                        timeout: 0,
                         type: 'negative',
                         actions: [
                             { label: 'Dismiss', color: 'white', handler: () => {} }
@@ -765,7 +766,7 @@ export default defineComponent({
                     })
                 } else {
                     Notify.create({
-                        message: 'Released',
+                        message: `Record ${this.advisory.id} is released`,
                         type: 'positive',
                         actions: [
                             { label: 'Dismiss', color: 'white', handler: () => {} }
