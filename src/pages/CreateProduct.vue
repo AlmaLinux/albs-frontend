@@ -25,13 +25,6 @@
                       label="Product description"
                     />
           </div>
-          <q-select v-model="product_teams"
-                    clearable
-                    :options="teams"
-                    hint="Select team*"
-                    :rules="[val => !!val || 'Team is required']"
-                    style="max-width: 80%"
-                    label="Create for team" />
           <q-select v-model="product_platforms"
                     multiple use-chips clearable
                     style="max-width: 80%"
@@ -76,7 +69,6 @@ export default defineComponent({
       product_name: '',
       product_title: '',
       product_description: '',
-      product_teams: null,
       product_platforms: [],
       loading: false,
       name_error: false,
@@ -89,11 +81,6 @@ export default defineComponent({
   computed: {
     platforms () {
       return this.$store.state.platforms.platforms
-    },
-    teams () {
-      return this.$store.state.teams.teams.map(team => {
-        return { label: team.name, value: team.id }
-      })
     }
   },
   methods: {
@@ -115,7 +102,6 @@ export default defineComponent({
       let user = LocalStorage.getItem('user')
       let data = {
         name: this.product_name,
-        team_id: this.product_teams.value,
         owner_id: user.user_id,
         title: this.product_title,
         description: this.product_description,
