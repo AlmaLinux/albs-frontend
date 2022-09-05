@@ -22,10 +22,10 @@
             <q-btn flat color="positive" icon="manage_accounts" v-show="usersToUpdate.length != 0" @click="confirmUpdate = true" label="Save changes">
               <q-tooltip>Update selected users</q-tooltip>
             </q-btn>
-            <q-btn flat color="primary" icon="undo" v-show="usersToUpdate.length != 0 || usersToRemove.length != 0" @click="discardChanges" label="Discard changes">
+            <q-btn flat color="primary" icon="undo" v-show="usersToUpdate.length != 0 || usersToRemove.length != 0" @click="discardChanges" label="Undo">
               <q-tooltip>Discard changes</q-tooltip>
             </q-btn>
-            <q-input borderless dense debounce="300" class="q-pl-md" v-model="filter" placeholder="Search">
+            <q-input borderless dense debounce="300" autogrow class="q-pl-md" v-model="filter" placeholder="Search">
               <template v-slot:append>
                 <q-icon name="search"/>
               </template>
