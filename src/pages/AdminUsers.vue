@@ -276,18 +276,19 @@ export default defineComponent({
                         this.loadUsers()
                     })
                     .catch(error => {
-                        // TODO: Provide useful errors for each deletion
                         Notify.create({
-                            message: `${error.response.status}: ${error.response.statusText}`,
+                            message: error.response.data.detail,
                             type: 'negative',
+                            timeout: 10000,
                             actions: [
                                 { label: 'Dismiss', color: 'white', handler: () => {} }
                             ]
                         })
+                        this.loadUsers()
                     })
             })
         }
-    }
+    },
 })
 </script>
 <style>
