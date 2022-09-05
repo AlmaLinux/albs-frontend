@@ -14,13 +14,16 @@
           v-model:pagination="pagination"
           wrap-cells>
 
-          <!-- Remove button, search box  -->
+          <!-- Remove, update and discard buttons + search box  -->
           <template v-slot:top-right>
             <q-btn flat color="negative" icon="person_remove" v-show="usersToRemove.length != 0" @click="confirmDeletion = true" label="Remove selected users">
               <q-tooltip>Remove selected users</q-tooltip>
             </q-btn>
             <q-btn flat color="positive" icon="manage_accounts" v-show="usersToUpdate.length != 0" @click="confirmUpdate = true" label="Save changes">
               <q-tooltip>Update selected users</q-tooltip>
+            </q-btn>
+            <q-btn flat color="primary" icon="undo" v-show="usersToUpdate.length != 0 || usersToRemove.length != 0" @click="discardChanges" label="Discard changes">
+              <q-tooltip>Discard changes</q-tooltip>
             </q-btn>
             <q-input borderless dense debounce="300" class="q-pl-md" v-model="filter" placeholder="Search">
               <template v-slot:append>
@@ -113,7 +116,6 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
-
 </template>
 
 <script>
@@ -287,6 +289,12 @@ export default defineComponent({
                         this.loadUsers()
                     })
             })
+        },
+
+        discardChanges () {
+            this.usersToRemove = []
+            this.usersToUpdate = []
+            this.loadUsers()
         }
     },
 })
