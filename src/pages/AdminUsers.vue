@@ -150,9 +150,23 @@ export default defineComponent({
             confirmUpdate: false,
         }
     },
+
     created () {
         this.loadUsers()
+        // TODO: Explore the possibilities to achieve this ala vue-router way,
+        // because the in-component guards beforeRouteLeave and beforeRouteUpdate
+        // are not working out of the box. For now, we're using the browsers'
+        // stock leave site confirmation dialogs.
+        window.addEventListener('beforeunload', (event) => {
+          event.preventDefault()
+          if (this.usersToUpdate.length != 0 || this.usersToRemove != 0) {
+            // We need to set returnValue in order for chrome to show the pop up
+            event.returnValue = "Unsaved changes"
+            return
+          }
+        })
     },
+
     methods: {
         loadUsers () {
             Loading.show()
