@@ -269,7 +269,7 @@ export default defineComponent({
                 this.$api.delete(`/users/${user.id}/remove`)
                     .then(response => {
                         Notify.create({
-                            message: `Successfully removed user ${user.username}`,
+                            message: `User ${user.username} has been queued for removal`,
                             type: 'positive',
                             actions: [
                                 { label: 'Dismiss', color: 'white', handler: () => {} }
