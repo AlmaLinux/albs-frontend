@@ -7,7 +7,10 @@ const routes = [
     // is_superuser workaround
     beforeEnter (to, from, next) {
       store.dispatch('users/setIsAdmin')
-        .then(next())
+        .then(isAdmin => {
+          store.commit('users/updateIsAdmin', isAdmin)
+          next()
+	})
         .catch(next())
     },
     children: [

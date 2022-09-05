@@ -180,9 +180,9 @@ export default defineComponent({
     })
     // is_superuser workaround
     // Here's where we show/hide the Admin section from the menu
-    if (store.getters.isAuthenticated) {
-      let adminLink = this.essentialLinks.find(link => link.title === 'Administration')
-      adminLink.allow = store.getters.isAdmin
+    if (store.getters.isAuthenticated && store.getters.isAdmin) {
+        let adminLink = this.essentialLinks.find(link => link.title === 'Administration')
+        adminLink.allow = true
     }
   },
   setup () {
