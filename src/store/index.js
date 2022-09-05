@@ -53,6 +53,9 @@ export default store(createStore({
         } else {
           return false
         }
+      },
+      isAdmin: state => {
+        return state.users.isAdmin
       }
     },
     // enable strict mode (adds overhead!)
