@@ -50,6 +50,13 @@ export const UsersModule = {
             ]
           })
         })
+    },
+    async setIsAdmin ({ dispatch, commit, state }) {
+      if (state.self != null) {
+        let users = await dispatch('loadUsersList')
+        let currentUser = users.find(u => u.id == state.self.user_id)
+        commit('updateIsAdmin', currentUser.is_superuser)
+      }
     }
   },
   namespaced: true

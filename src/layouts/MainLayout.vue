@@ -142,12 +142,6 @@ import { parseJwt } from '../utils'
 
 export default defineComponent({
   name: 'MainLayout',
-  // is_superuser workaround
-  data () {
-    return {
-      currentUser: null
-    }
-  },
   components: {
     BuildFeedSearchForm,
     EssentialLink
@@ -155,19 +149,6 @@ export default defineComponent({
   computed: {
     onBuildFeed () {
       return this.$route.name && this.$route.name.startsWith('BuildFeed')
-    }
-  },
-  created () {
-    // is_superuser workaround
-    // Store the currentUser and use it to determine whether
-    // the admin section shold be shown/hidden
-    if (store.getters.isAuthenticated) {
-      store.state.users.users.forEach(user => {
-        if (user.id == store.state.users.self.user_id) {
-          this.currentUser = user
-          this.$store.commit('users/updateIsAdmin', this.currentUser.is_superuser)
-        }
-      })
     }
   },
   mounted () {
@@ -198,11 +179,10 @@ export default defineComponent({
       }
     })
     // is_superuser workaround
-    // TODO: Investigate how to achieve this in a better way
     // Here's where we show/hide the Admin section from the menu
     if (store.getters.isAuthenticated) {
       let adminLink = this.essentialLinks.find(link => link.title === 'Administration')
-      adminLink.allow = this.currentUser.is_superuser
+      adminLink.allow = store.getters.isAdmin
     }
   },
   setup () {
