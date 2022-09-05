@@ -165,6 +165,7 @@ export default defineComponent({
       store.state.users.users.forEach(user => {
         if (user.id == store.state.users.self.user_id) {
           this.currentUser = user
+          this.$store.commit('users/updateIsAdmin', this.currentUser.is_superuser)
         }
       })
     }

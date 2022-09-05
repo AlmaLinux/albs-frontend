@@ -8,7 +8,8 @@ import { api } from 'boot/api'
 export const UsersModule = {
   state: () => ({
     self: LocalStorage.getItem('user'),
-    users: []
+    users: [],
+    isAdmin: LocalStorage.getItem('isAdmin')
   }),
   mutations: {
     updateSelf (state, self) {
@@ -21,8 +22,13 @@ export const UsersModule = {
         state.users.push(user)
       }
     },
+    updateIsAdmin (state, isAdmin) {
+      state.isAdmin = isAdmin
+      LocalStorage.set('isAdmin', isAdmin)
+    },
     onLogout (state) {
       LocalStorage.remove('user')
+      LocalStorage.remove('isAdmin')
       state.self = null
     }
   },

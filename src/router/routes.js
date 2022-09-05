@@ -36,6 +36,15 @@ const routes = [
         name: 'Users',
         component: () => import('pages/AdminUsers.vue'),
         meta: { requiresAuth: true },
+        // Guard direct navigation to users admin page
+        beforeEnter (to, from, next) {
+          if (!store.getters.isAdmin) {
+            // Maybe take the user to 404?
+            next('/')
+          } else {
+            next()
+          }
+        }
       },
       { path: 'build/:buildId', component: () => import('pages/Build.vue'), props: true,
         beforeEnter (to, from, next) {
