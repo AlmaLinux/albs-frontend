@@ -6,12 +6,16 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     // is_superuser workaround
     beforeEnter (to, from, next) {
-      store.dispatch('users/setIsAdmin')
-        .then(isAdmin => {
-          store.commit('users/updateIsAdmin', isAdmin)
-          next()
-	})
-        .catch(next())
+      if (store.getters.isAuthenticated) {
+        store.dispatch('users/setIsAdmin')
+          .then(isAdmin => {
+            store.commit('users/updateIsAdmin', isAdmin)
+            next()
+          })
+          .catch(next())
+      } else {
+        next()
+      }
     },
     children: [
       { 

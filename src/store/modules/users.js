@@ -56,6 +56,7 @@ export const UsersModule = {
         let users = await dispatch('loadUsersList')
         let currentUser = users.find(u => u.id == state.self.user_id)
         commit('updateIsAdmin', currentUser.is_superuser)
+        return currentUser.is_superuser
       }
     }
   },
