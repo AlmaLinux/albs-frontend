@@ -401,7 +401,7 @@ export default defineComponent({
                     return this.isDebug(packLocation.name) ? opt.value.includes(`${this.allPackagesRepo.value}-debug`) : opt.value === this.allPackagesRepo.value
                 })
             })
-            this.moduleLocation.forEach(modLocation => {
+            this.modules.forEach(modLocation => {
                 modLocation.destination = modLocation.destinationOptions.find(opt => opt.value === this.allPackagesRepo.value)
             })
         },
