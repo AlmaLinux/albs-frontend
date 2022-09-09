@@ -120,3 +120,28 @@ export function diff(obj1, obj2) {
     });
     return result;
 }
+
+export async function getFromApi (api, endpoint) {
+  return new Promise(resolve => {
+    api.get(endpoint)
+      .then(response => {
+          resolve(response.data)
+      })
+      .catch(error => {
+          if (+String(error.response.status)[0] === 4 ){
+              Notify.create({
+                  message: error.response.data.detail, type: 'negative',
+                  actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+              })
+          } else {
+              Notify.create({
+                  message: `${error.response.status}: ${error.response.statusText}`,
+                  type: 'negative',
+                  actions: [
+                      { label: 'Dismiss', color: 'white', handler: () => {} }
+                  ]
+              })
+          }
+      })
+  })
+}

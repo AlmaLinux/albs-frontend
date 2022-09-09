@@ -60,6 +60,9 @@
               <q-td key="isSuperuser" :props="props">
                 <q-checkbox v-model="props.row.is_superuser" v-on:click="userPropertyChanged(props.row)" />
               </q-td>
+              <q-td key="userRoles" :props="props">
+                <q-btn dense flat round field="edit" icon="edit" v-on:click="editUserRoles(props.row)"></q-btn>
+              </q-td>
             </q-tr>
           </template>
 
@@ -116,26 +119,33 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+
+  <UserRolesEditor ref="userRolesEditor" />
 </template>
 
 <script>
 import { Loading, Notify } from 'quasar'
 import { defineComponent, ref } from 'vue'
 import { diff } from '../utils'
+import UserRolesEditor from 'components/UserRolesEditor.vue'
 
 export default defineComponent({
+    components: {
+        UserRolesEditor
+    },
     data() {
         return {
             // user list related
             originalUsers: [], // keep an unaltered list of users
             users: [],
             columns: [
-                { name: 'select', required: true, align: 'center', label: '', field: 'id'},
+                { name: 'deleteCheck', required: true, align: 'center', label: '', field: 'id'},
             //    { name: 'id', required: true, align: 'center', label: 'Id', field: 'id'},
                 { name: 'username', required: true, align: 'center', label: 'Username', field: 'username' },
                 { name: 'email', required: true, align: 'center', label: 'Email', field: 'email'},
                 { name: 'isActive', required: true, align: 'center', label: 'Enabled', field: 'is_active' },
-                { name: 'isSuperuser', required: true, align: 'center', label: 'Superuser', field: 'is_superuser' }
+                { name: 'isSuperuser', required: true, align: 'center', label: 'Superuser', field: 'is_superuser' },
+                { name: 'userRoles', required: true, align: 'center', label: 'User Roles', field: 'id' }
             ],
             loadingTable: false,
             pagination: ref({
@@ -149,7 +159,7 @@ export default defineComponent({
             confirmDeletion: false,
             // user updates related
             usersToUpdate: [],
-            confirmUpdate: false,
+            confirmUpdate: false
         }
     },
 
@@ -160,11 +170,11 @@ export default defineComponent({
         // are not working out of the box. For now, we're using the browsers'
         // stock leave site confirmation dialogs.
         window.addEventListener('beforeunload', (event) => {
-          event.preventDefault()
-          if (this.usersToUpdate.length != 0 || this.usersToRemove != 0) {
-            // We need to set returnValue in order for chrome to show the pop up
-            event.returnValue = "Unsaved changes"
-            return
+            event.preventDefault()
+            if (this.usersToUpdate.length != 0 || this.usersToRemove != 0) {
+                // We need to set returnValue in order for chrome to show the pop up
+                event.returnValue = "Unsaved changes"
+                return
           }
         })
     },
@@ -201,6 +211,7 @@ export default defineComponent({
         },
 
         userPropertyChanged (user) {
+            // Check if the user is already in usersToUpdate
             let alreadyIncluded = this.usersToUpdate.indexOf(user.id)
             if (alreadyIncluded !== -1) {
                 let index = this.users.findIndex(u => u.id === user.id)
@@ -295,8 +306,13 @@ export default defineComponent({
             this.usersToRemove = []
             this.usersToUpdate = []
             this.loadUsers()
+        },
+
+        editUserRoles(user) {
+            this.$refs.userRolesEditor.user = user
+            this.$refs.userRolesEditor.open()
         }
-    },
+    }
 })
 </script>
 <style>
