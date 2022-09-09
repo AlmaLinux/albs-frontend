@@ -3,7 +3,7 @@
 </template>
 
 <script>
-  import { Notify } from 'quasar'
+  import { Loading, Notify } from 'quasar'
   import { defineComponent} from 'vue'
 
 export default defineComponent({
@@ -26,11 +26,14 @@ export default defineComponent({
   },
   methods: {
     renderArticle (chapter, article) {
+      Loading.show()
       this.$api.get(`/docs/document/${chapter}/${article}`)
         .then(response => {
+            Loading.hide()
             this.markdown = response.data
         })
         .catch(error => {
+            Loading.hide()
             Notify.create({
                 message: `${error.response.status}: ${error.response.statusText}`,
                 type: 'negative',
@@ -75,8 +78,9 @@ export default defineComponent({
     margin: 0;
     position: relative;
     font-size: 14px;
-    color: #424242;
-    background-color: #fdfdfd;
+    padding: 14px !important;
+    color: #0c5176 !important;
+    background-color: #f5f8fa !important;
     font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
     text-align: left;
     white-space: pre;

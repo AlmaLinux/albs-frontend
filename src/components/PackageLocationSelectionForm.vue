@@ -26,10 +26,11 @@
                     />
                     <template v-if="!viewOnly" >
                         <q-btn @click="saveRelease"
+                            :loading="loadingSave"
                             color="green">
                             Save
                         </q-btn>
-                        <q-btn  @click="commitRelease"
+                        <q-btn  @click="confirm = true"
                                 :loading="loading"
                                 color="primary">
                             Commit
@@ -91,9 +92,9 @@
                             transition-hide="scale">
                         </q-select>
                     </q-td>
-                    <q-td key="force_not_notarized" :props="props" v-if="!props.row.cas_hash">
+                    <q-td key="force_not_notarized" :props="props" v-if="NotNotarizedPackages().length !== 0">
                         <q-checkbox v-model="props.row.force_not_notarized"
-                            :disable="viewOnly && !props.row.cas_hash"
+                            :disable="viewOnly"
                             size="xs" @click="selectNotNotarized(props.row)"/>
                     </q-td>
                     <q-td key="force" :props="props">
@@ -176,6 +177,20 @@
             </template>
         </q-table>
     </div>
+    <q-dialog v-model="confirm" persistent>
+        <q-card style="width: 50%">
+            <q-card-section>
+                <div class="text-h6">Warning</div>
+            </q-card-section>
+            <q-card-section>
+                Are you sure you want to commit release ?
+            </q-card-section>
+            <q-card-actions align="right">
+                <q-btn flat label="Ok" color="primary" @click="commitRelease" :loading="loading" />
+                <q-btn flat text-color="negative" label="Cancel" v-close-popup/>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
 </template>
 
 <script>
@@ -211,11 +226,13 @@ export default defineComponent({
             releaseId: null,
             repositories: {},
             loading: false,
+            loadingSave: false,
             selected: [],
             selectedNotNotarized: [],
             forceAll: false,
             forceNotNotarizedAll: false,
-            modules: []
+            modules: [],
+            confirm: false
         }
     },
     created () {
@@ -487,7 +504,8 @@ export default defineComponent({
                     release: packLocation.release,
                     sha256: packLocation.sha256,
                     cas_hash: packLocation.cas_hash,
-                    version: packLocation.version
+                    version: packLocation.version,
+                    build_id: packLocation.build_id
                 }
                 this.archs.forEach(arch => {
                     if (packLocation[arch] && this.repositories[arch] && packLocation.destination) {
@@ -506,12 +524,15 @@ export default defineComponent({
             return plan
         },
         saveRelease () {
+            this.loadingSave = true
             this.$api.put(`/releases/${this.releaseId}/`, { plan: this.getPlan() })
                 .then(response => {
-                     Notify.create({message: `Release ${response.data.id} updated`, type: 'positive',
+                    this.loadingSave =  false
+                    Notify.create({message: `Release ${response.data.id} updated`, type: 'positive',
                         actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
                 })
                 .catch(error => {
+                    this.loadingSave =  false
                     Notify.create({message: 'Unable to update a release', type: 'negative',
                         actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
                 })
@@ -531,12 +552,14 @@ export default defineComponent({
                         })
                         .catch(error => {
                             this.loading = false
+                            this.confirm = false
                             Notify.create({message: 'Unable to commit a release', type: 'negative',
                                 actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
                         })
                 })
                 .catch(error => {
                     this.loading = false
+                    this.confirm = false
                     Notify.create({message: 'Unable to commit a release', type: 'negative',
                                 actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
                 })

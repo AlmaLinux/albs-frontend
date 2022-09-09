@@ -175,10 +175,14 @@
         </q-tab-panels>
       </q-card-section>
 
-      <q-card-section v-if="build.tasks[0].is_secure_boot">
-        <q-chip>
-          <q-avatar icon="shield" color="primary" text-color="white"/>
-          Secure boot build
+      <q-card-section >
+        <q-chip v-if="build.tasks[0].is_secure_boot">
+        	<q-avatar icon="shield" color="primary" text-color="white"/>
+        	Secure boot build
+        </q-chip>
+        <q-chip v-if="build.released">
+        	<q-avatar icon="cloud" color="green-8" text-color="white"/>
+        	Released
         </q-chip>
       </q-card-section>
 

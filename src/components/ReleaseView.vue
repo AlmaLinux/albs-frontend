@@ -1,24 +1,24 @@
 <template>
   <q-dialog position="top" v-model="opened" full-height full-width>
-        <q-card style="max-width: 1400px;">
-            <q-form>
+        <q-card style="max-width: 100%;">
+            <q-form style="max-width: 100%;">
                 <q-card-section class="bg-primary shadow-2">
                     <div class="text-h6 text-white" style="text-align: center;">Release info</div>
                 </q-card-section>
-                <q-card-section style="max-width: 1300px; margin-left: auto; margin-right: auto;">
+                <q-card-section style="width: 100%; margin-left: auto; margin-right: auto;">
                     <q-tabs
                         v-model="tab"
                         class="text-primary"      
                     >
                         <q-tab  name="summary" label="Summary" />
-                        <q-tab  name="errata" label="Errata/OVAL" />
+                        <!-- <q-tab  name="errata" label="Errata/OVAL" /> -->
                         <q-tab  name="pack_list" label="Packages list"/>
                         <q-tab  name="logs" label="Release Logs" />
                     </q-tabs>
 
-                    <q-tab-panels v-model="tab" animated>
+                    <q-tab-panels v-model="tab" animated style="width: 100%; height: 100%;">
                         <q-tab-panel name="summary">
-                            <div class="q-pa-md" style="max-width: 900px; margin-left: auto; margin-right: auto;">
+                            <div class="q-pa-md" style="max-width: 80%; margin-left: auto; margin-right: auto;">
                                 <q-markup-table>
                                     
                                 <thead>
@@ -61,13 +61,13 @@
                             </div>
                         </q-tab-panel>
 
-                        <q-tab-panel name="errata">
+                        <!-- <q-tab-panel name="errata">
                             <div class="text-h6">Errata/OVAL</div>
                             Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                        </q-tab-panel>
+                        </q-tab-panel> -->
 
-                        <q-tab-panel name="pack_list" style="max-width: 1300px">
-                            <q-scroll-area style="height: 500px;">
+                        <q-tab-panel name="pack_list" style="max-width: 100%;">
+                            <q-scroll-area style="height: 600px;">
                                 <package-location-selection-form :release="release" :viewOnly="true"/>
                             </q-scroll-area>
                         </q-tab-panel>

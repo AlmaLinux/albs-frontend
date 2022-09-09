@@ -1,71 +1,76 @@
 <template>
-  <q-page class="q-px-xl q-pt-md">
-    <q-toolbar class="bg-primary text-white shadow-2">
-        <q-toolbar-title>Products</q-toolbar-title>
-        <q-input dark dense standout
-               v-model="search"
-               clearable
-               class="q-ml-md q-bg-primary"
-               @keydown.enter.prevent="searchProducts()">
-            <template v-slot:append>
-                <q-icon name="search" class="cursor-pointer" @click="searchProducts()"/>
-            </template>
-        </q-input>
-    </q-toolbar>
-    <template v-if="products.length !== 0">
-        <q-list  separator>
-            <q-item v-for="(product, index) in products" :key="product.id"
-                    clickable :class="index % 2 == 0 ? 'bg-grey-2' : null"
-                    @click="onProductDetail(product.id)">
-                <q-item-section class="col-6">
-                    <q-item-label overline>
-                        <span class="text-weight-bold">
-                            {{ product.name }}
-                        </span>
-                    </q-item-label>
-                    <q-item-label>{{ product.title }}</q-item-label>
-                    <q-item-label caption style="width: 90%">
-                        <span>
-                            {{ product.description ? descriptionText(product.description)  : 'No description'  }}
-                            <q-tooltip v-if="product.description"
-                                    :delay="500"
-                                    :style="product.description.length >= 200 ? 'width: 25%' : 'max-width: 25%'">
-                                {{ product.description }}
+    <div class="row justify-center">
+        <q-page class="q-px-xl q-pt-md" style="width: 90%">
+            <q-toolbar class="shadow-2">
+                <q-toolbar-title>Products</q-toolbar-title>
+                <q-input dense borderless
+                    debounce="500"
+                    v-model="search"
+                    class="q-ml-md text-black"
+                    ref="searchField">
+                    <template v-slot:append>
+                        <q-icon name="search" color="primary" class="cursor-pointer" @click="focusSearch()" />
+                        <q-icon v-if="search !== ''" name="close" @click="search = ''" class="cursor-pointer clr-btn">
+                            <q-tooltip>
+                                Click to clear
                             </q-tooltip>
-                        </span> 
-                    </q-item-label>
-                </q-item-section>
-                
-                <q-item-section class="text-center">
-                    <q-item-label caption>Supported platforms:</q-item-label>
-                    <q-item-label v-for="platform in product.platforms" :key="platform.id">
-                        {{ platform.name }}
-                    </q-item-label>
-                </q-item-section>
-
-                <q-item-section class="text-center col-2">
-                    <q-item-label caption>Build count:</q-item-label>
-                    <q-item-label>{{ product.builds.length }}</q-item-label>
-                </q-item-section>
-
-                <q-item-section side top class="text-left col-2">
-                    <q-item-label caption>Created by
-                        <span class="text-weight-bold">{{ product.owner.username }}</span>
-                    </q-item-label>
-                </q-item-section>
-            </q-item>
-        </q-list>
-        <div class="q-pa-lg flex flex-center">
-        <q-pagination input :max="totalPages" v-model="currentPage" :disable="loading"/>
-        </div>
-    </template>
-    <div v-else class="q-pt-md full-width row flex-center q-gutter-sm">
-          <q-icon size="2em" name="warning" color="warning"/>
-          <span>
-            No data available
-          </span>
-    </div>
-  </q-page>
+                        </q-icon>
+                    </template>
+                </q-input>
+            </q-toolbar>
+            <template v-if="products.length !== 0">
+                <q-list separator class="shadow-2">
+                    <q-item v-for="(product, index) in products" :key="product.id"
+                            clickable :class="index % 2 === 0 ? 'bg-grey-2' : null"
+                            @click="onProductDetail(product.id)">
+                        <q-item-section class="col-6">
+                            <q-item-label overline class="text-dark" style="display: flex;">
+                                <span>
+                                    {{ product.owner.username }}
+                                </span>
+                                <span class="text-weight-bold">
+                                    /{{ product.name }}
+                                </span>
+                            </q-item-label>
+                            <q-item-label>{{ product.title }}</q-item-label>
+                            <q-item-label caption style="width: 90%">
+                                <span>
+                                    {{ product.description ? descriptionText(product.description)  : 'No description'  }}
+                                    <q-tooltip v-if="product.description"
+                                            :delay="500"
+                                            :style="product.description.length >= 200 ? 'width: 35%' : 'max-width: 35%'">
+                                        {{ product.description }}
+                                    </q-tooltip>
+                                </span> 
+                            </q-item-label>
+                        </q-item-section>
+                        
+                        <q-item-section class="text-center">
+                            <q-item-label caption>Supported platforms:</q-item-label>
+                            <q-item-label v-for="platform in product.platforms" :key="platform.id">
+                                {{ platform.name }}
+                            </q-item-label>
+                        </q-item-section>
+                        
+                        <!-- TODO: Add packages insteed of builds -->
+                        <q-item-section class="text-center col-2">
+                            <q-item-label caption>Build count:</q-item-label>
+                            <q-item-label>{{ product.builds.length }}</q-item-label>
+                        </q-item-section>
+                    </q-item>
+                </q-list>
+                <div class="q-pa-lg flex flex-center">
+                <q-pagination input :max="totalPages" v-model="currentPage" :disable="loading"/>
+                </div>
+            </template>
+            <div v-else class="q-pt-md full-width row flex-center q-gutter-sm">
+                <q-icon size="2em" name="warning" color="warning"/>
+                <span>
+                    No products found
+                </span>
+            </div>
+        </q-page>
+  </div>
 </template>
 
 <script>
@@ -98,7 +103,13 @@ export default defineComponent({
             }
         }
     },
+    watch: {
+        'search': 'searchProducts'
+    },
     methods: {
+        focusSearch () {
+            this.$refs.searchField.focus()
+        },
         searchProducts () {
             this.currentPage = 1
         },
@@ -135,3 +146,9 @@ export default defineComponent({
     }
 })
 </script>
+
+<style scoped>
+  .clr-btn:hover {
+      color: #ff4649;
+  }
+</style>
