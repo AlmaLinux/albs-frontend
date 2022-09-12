@@ -1,85 +1,58 @@
 <template>
   <q-dialog v-model="opened" @hide="close">
-    <q-card style="width: 80%; max-width: 30vw;">
+    <q-card style="width: 100%;">
 
       <!-- Title -->
       <q-card-section>
-        <div class="text-h5">Edit Roles for user <b>{{user.username}}</b></div>
+        <div class="text-h5">Edit Team Roles for user <b>{{user.username}}</b></div>
       </q-card-section>
 
       <q-card-section class="scroll">
-        <div class="row">
-
           <!-- Team selection -->
-          <div class="col-4">
-            <q-table
-                :class="teamTableClass"
-                title="Teams"
-                :rows="userTeamRoles"
-                :columns="teamsCols"
-                :rows-per-page-options="[0]"
-                row-key="id"
-                separator="none"
-                hide-header
-                hide-bottom
-                wrap-cells
-                borderless>
 
-                <template v-slot:top-left>
-                  <div class="text-h6">
-                    Teams
-                  </div>
-                  <q-separator />
-                </template>
+            <q-select
+                v-model="teamModel"
+                :options="options"
+                label="Select team"
+                use-input
+                input-debounce="0"
+                @update:model-value="onTeamSelected"
+                @filter="teamSelectFilter"
+            />
 
-                <!-- Team Rows -->
-                <template v-slot:body="props">
-                  <q-tr :props="props" style="cursor: pointer;">
-                    <q-td key="name" :props="props" @click="onTeamClick(props.row)">
-                      <div><li>{{ props.row.name }}</li></div>
-                    </q-td>
-                  </q-tr>
-                </template>
-  
-            </q-table>
-          </div>
-          <!-- Team roles selection -->
-          <div class="col-8">
-            <q-table class="roleTable"
-                title="Roles"
-                :rows="activeTeam.roles"
-                :columns="rolesCols"
-                :rows-per-page-options="[0]"
-                row-key="id"
-                separator="none"
-                hide-header
-                hide-bottom
-                wrap-cells
-                v-if="activeTeam.roles.length > 0"
-                borderless>
+            <SlideTransition>
+              <div v-show="activeTeam != noTeam">
+                <q-table
+                    class="roleTable"
+                    :rows="activeTeam.roles"
+                    :columns="rolesCols"
+                    :rows-per-page-options="[0]"
+                    row-key="id"
+                    separator="none"
+                    hide-header
+                    hide-bottom
+                    borderless>
 
-                <template v-slot:top-left>
-                  <div class="text-h6">
-                    Roles of {{this.activeTeam.name}} team
-                  </div>
-                  <q-separator />
-                </template>
-  
-                <!-- Roles Rows -->
-                <template v-slot:body="props">
-                  <q-tr :props="props">
-                    <q-td auto-width>
-                      <q-checkbox v-model="props.row.enabled"/>
-                    </q-td>
-                    <q-td key="name" :props="props">
-                      <div class="text-h7">{{ props.row.name }}</div>
-                    </q-td>
-                  </q-tr>
-                </template>
-            </q-table>
+                    <template v-slot:top-left>
+                      <div class="text-h6">
+                        Roles
+                      </div>
+                    </template>
 
-          </div>
-         </div>
+                    <template v-slot:body="props">
+                      <q-tr :props="props">
+                        <q-td auto-width>
+                          <q-checkbox size="sm" v-model="props.row.enabled" />
+                        </q-td>
+                        <q-td key="name" :props="props">
+                          <div class="text-h7">{{ props.row.name }}</div>
+                        </q-td>
+                      </q-tr>
+                    </template>
+                </q-table>
+              </div>
+            </SlideTransition>
+
       </q-card-section>
 
       <q-separator />
@@ -95,22 +68,20 @@
 
 <script>
 import { Loading, Notify } from 'quasar'
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { diff, getFromApi } from '../utils'
-
-const noTeam = {
-  id: null,
-  name: '',
-  roles: []
-}
+import SlideTransition from 'components/SlideTransition.vue'
 
 export default defineComponent({
+  components: {
+    SlideTransition
+  },
   data () {
     return {
       opened: false,
       user: Object,
       // For an easy manipulation of data, we hold
-      // all the equired info in userTeamRoles:
+      // all the required info in userTeamRoles:
       // [
       //   { id: int,          // team id
       //     name: str,        // team name
@@ -126,18 +97,29 @@ export default defineComponent({
 
       allRoles: [],
 
-      teamsCols: [
-        { name: 'name', align: 'left', field: 'name' },
-      ],
-      teamTableClass: 'teamTable',
+      // We need a noTeam in order to avoid complains
+      // from the q-table
+      noTeam: {
+        id: null,
+        name: '',
+        roles: []
+      },
+
+      teamModel: null,
+      options: null,
+      teamOptions: [],
+      activeTeam: null,
+
+      teamFilter: '',
+
       rolesCols: [
         { name: 'ticked', align: 'left', field: 'enabled'},
         { name: 'name', align: 'left', field: 'name' },
-      ],
-      activeTeam: noTeam
+      ]
     }
   },
   created () {
+    this.activeTeam = this.noTeam
     this.loadAllRoles()
   },
   computed: {
@@ -158,21 +140,28 @@ export default defineComponent({
       // Reset previous status
       this.userTeamRoles = []
       this.originalUserTeamRoles = []
-      if (this.teamTableClass.includes("teamTableNoRightBorder"))
-        this.teamTableClass = this.teamTableClass.replace('teamTableNoRightBorder', '')
       // Fill the data in
       this.loadData()
     },
 
     close () {
+      this.teamOptions = [],
+      this.activeTeam = this.noTeam
+      this.teamModel = null
       this.opened = false
-      this.activeTeam = noTeam
     },
 
     async loadData () {
       Loading.show({message: 'Loading user roles'})
       this.userTeamRoles = await this.generateUserTeamRoles()
       this.originalUserTeamRoles = JSON.parse(JSON.stringify(this.userTeamRoles))
+      this.userTeamRoles.forEach(team => {
+        this.teamOptions.push({
+          label: team.name,
+          id: team.id
+        })
+        this.options = ref(this.teamOptions)
+      })
       Loading.hide()
       this.opened = true
     },
@@ -218,12 +207,6 @@ export default defineComponent({
         })
       })
       return userTeamRoles
-    },
-
-    onTeamClick (team) {
-      this.activeTeam = this.userTeamRoles.find(t => t.id === team.id)
-      if (!this.teamTableClass.includes("teamTableNoRightBorder"))
-        this.teamTableClass += ' teamTableNoRightBorder'
     },
 
     saveUserRoles () {
@@ -274,6 +257,22 @@ export default defineComponent({
         .catch(error => {
           return error
         })
+    },
+
+    teamSelectFilter (value, update) {
+      update(() => {
+        this.options = this.teamOptions.filter(t =>
+          t.label.toLowerCase().indexOf(value.toLowerCase()) > -1
+        )
+      })
+    },
+
+    onTeamSelected(team) {
+      if (team) {
+        this.activeTeam = this.userTeamRoles.find(t => t.id === team.id)
+      } else {
+        this.activeTeam = this.noTeam
+      }
     }
   }
 })
@@ -281,6 +280,7 @@ export default defineComponent({
 
 
 <style scoped>
+
 /* We need to undo the tr style applied in the parent component.
    TODO: Is there a better way to do it?
 */
@@ -288,24 +288,9 @@ tr:nth-child(even) {
   background-color: #ffffff !important;
 }
 
-.teamTable {
-  box-shadow: none;
-  border-bottom: inset;
-  border-right: inset;
-  border-top-style: outset;
-  border-left-style: outset;
-}
-
-.teamTableNoRightBorder {
-  border-right: none;
-}
-
 .roleTable {
   box-shadow: none;
-  border-bottom: inset;
-  border-right: inset;
-  border-top-style: outset;
-  border-left-style: outset;
+  border: none;
 }
 
 </style>
