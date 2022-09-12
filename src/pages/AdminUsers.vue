@@ -258,14 +258,42 @@ export default defineComponent({
       })
 
       Promise.all(promises).then(result => {
-        // TODO: Catch when any of the promises returns an error
-        Notify.create({
+        let failedPromises = []
+        result.forEach(p => {
+          if (p.isAxiosError) {
+            failedPromises.push(p)
+          }
+        })
+
+        if (failedPromises.length > 0) { // At least one failed
+          if (failedPromises.length === promises.length) { // All failed
+            Notify.create({
+              message: 'None of the updates succeeded',
+              type: 'negative',
+              actions: [
+                // TODO: Maybe add details of the failure(s)?
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          } else { // Only a few failed
+            Notify.create({
+              message: 'Some of the updates did not succeed',
+              type: 'negative',
+              actions: [
+                // TODO: Maybe add details of the failure(s)?
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          }
+        } else { // All succeeded
+          Notify.create({
             message: 'Successfully updated all user(s) properties',
             type: 'positive',
             actions: [
               { label: 'Dismiss', color: 'white', handler: () => {} }
             ]
-        })
+          })
+        }
         this.loadUsers()
       })
     },
