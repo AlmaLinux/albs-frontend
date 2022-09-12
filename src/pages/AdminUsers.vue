@@ -248,6 +248,7 @@ export default defineComponent({
         if (changes.hasOwnProperty('is_active')) changes.is_verified = changes.is_active
         changes.id = user_id
 
+        // TODO: More fine grained errors can be provided if needed
         let promise = this.$api.put(`/users/${user_id}`, changes).then(response => {
           return response
         }).catch(error => {
@@ -268,7 +269,7 @@ export default defineComponent({
         if (failedPromises.length > 0) { // At least one failed
           if (failedPromises.length === promises.length) { // All failed
             Notify.create({
-              message: 'None of the updates succeeded',
+              message: 'Error: None of the updates succeeded',
               type: 'negative',
               actions: [
                 // TODO: Maybe add details of the failure(s)?
@@ -277,7 +278,7 @@ export default defineComponent({
             })
           } else { // Only a few failed
             Notify.create({
-              message: 'Some of the updates did not succeed',
+              message: 'Error: Some of the updates did not succeed',
               type: 'negative',
               actions: [
                 // TODO: Maybe add details of the failure(s)?

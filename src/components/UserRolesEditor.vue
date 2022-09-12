@@ -235,9 +235,15 @@ export default defineComponent({
         promises.push(promise)
       }
 
-      // TODO: Catch when any of the promises returns an error
-      Promise.all(promises)
-        .then(result => {
+      Promise.all(promises).then(result => {
+        let failedPromises = []
+        result.forEach(p => {
+          if (p.error) {
+            failedPromises.push(p)
+          }
+        })
+
+        if (failedPromises.length === 0) {
           Notify.create({
             message: `Successfully updated the roles of ${this.user.username}`,
             type: 'positive',
@@ -246,7 +252,19 @@ export default defineComponent({
             ]
           })
           this.close()
-        })
+        } else {
+          failedPromises.forEach(p => {
+            Notify.create({
+              message: `Error: Could not ${p.action} the selected roles`,
+              type: 'negative',
+              actions: [
+                // TODO: Maybe add details of the failure(s)?
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          })
+        }
+      })
     },
 
     patchRequest(action, updates) {
@@ -255,7 +273,10 @@ export default defineComponent({
           return response
         })
         .catch(error => {
-          return error
+          return {
+            error: error,
+            action: action
+          }
         })
     },
 
