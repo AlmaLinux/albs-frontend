@@ -251,7 +251,6 @@ export default defineComponent({
               { label: 'Dismiss', color: 'white', handler: () => {} }
             ]
           })
-          this.close()
         } else {
           failedPromises.forEach(p => {
             Notify.create({
@@ -264,6 +263,7 @@ export default defineComponent({
             })
           })
         }
+        this.close()
       })
     },
 
