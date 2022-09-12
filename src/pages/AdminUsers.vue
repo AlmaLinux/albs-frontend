@@ -47,9 +47,6 @@
               <q-td auto-width>
                 <q-checkbox v-model="props.selected" />
               </q-td>
-              <!--
-              <q-td key="id" :props="props">{{ props.row.id }}</q-td>
-              -->
               <q-td key="username" :props="props">{{ props.row.username }}</q-td>
               <q-td key="email" :props="props">
                 <a :href="`mailto:${props.row.email}`" target="_blank">{{ props.row.email }}</a>
@@ -130,189 +127,185 @@ import { diff } from '../utils'
 import UserRolesEditor from 'components/UserRolesEditor.vue'
 
 export default defineComponent({
-    components: {
-        UserRolesEditor
-    },
-    data() {
-        return {
-            // user list related
-            originalUsers: [], // keep an unaltered list of users
-            users: [],
-            columns: [
-                { name: 'deleteCheck', required: true, align: 'center', label: '', field: 'id'},
-            //    { name: 'id', required: true, align: 'center', label: 'Id', field: 'id'},
-                { name: 'username', required: true, align: 'center', label: 'Username', field: 'username' },
-                { name: 'email', required: true, align: 'center', label: 'Email', field: 'email'},
-                { name: 'isActive', required: true, align: 'center', label: 'Enabled', field: 'is_active' },
-                { name: 'isSuperuser', required: true, align: 'center', label: 'Superuser', field: 'is_superuser' },
-                { name: 'userRoles', required: true, align: 'center', label: 'User Roles', field: 'id' }
-            ],
-            loadingTable: false,
-            pagination: ref({
-                rowsPerPage: 10,
-                page: 1
-            }),
-            // search related
-            filter: ref(''),
-            // user deletion related
-            usersToRemove: [],
-            confirmDeletion: false,
-            // user updates related
-            usersToUpdate: [],
-            confirmUpdate: false
-        }
-    },
-
-    created () {
-        this.loadUsers()
-        // TODO: Explore the possibilities to achieve this ala vue-router way,
-        // because the in-component guards beforeRouteLeave and beforeRouteUpdate
-        // are not working out of the box. For now, we're using the browsers'
-        // stock leave site confirmation dialogs.
-        window.addEventListener('beforeunload', (event) => {
-            event.preventDefault()
-            if (this.usersToUpdate.length != 0 || this.usersToRemove != 0) {
-                // We need to set returnValue in order for chrome to show the pop up
-                event.returnValue = "Unsaved changes"
-                return
-          }
-        })
-    },
-
-    methods: {
-        loadUsers () {
-            Loading.show()
-            this.$api.get(`/users/all_users`)
-              .then(response => {
-                  Loading.hide()
-                  this.users = response.data
-                  // Deep copy the users list
-                  this.originalUsers = JSON.parse(JSON.stringify(this.users))
-                  this.usersToRemove = []
-                  this.usersToUpdate = []
-              })
-              .catch(error => {
-                  Loading.hide()
-                  if (+String(error.response.status)[0] === 4 ){
-                      Notify.create({
-                          message: error.response.data.detail, type: 'negative',
-                          actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
-                      })
-                  } else {
-                      Notify.create({
-                          message: `${error.response.status}: ${error.response.statusText}`,
-                          type: 'negative',
-                          actions: [
-                              { label: 'Dismiss', color: 'white', handler: () => {} }
-                          ]
-                      })
-                  }
-              })
-        },
-
-        userPropertyChanged (user) {
-            // Check if the user is already in usersToUpdate
-            let alreadyIncluded = this.usersToUpdate.indexOf(user.id)
-            if (alreadyIncluded !== -1) {
-                let index = this.users.findIndex(u => u.id === user.id)
-                let changes = diff(this.originalUsers[index], this.users[index])
-                if (Object.keys(changes).length === 0) {
-                    this.usersToUpdate.splice(alreadyIncluded, 1)
-                }
-            } else {
-                this.usersToUpdate.push(user.id)
-            }
-        },
-
-        // This method generates a JSON object that can be easily rendered in the
-        // update users confirmation dialog
-        generateUpdateSummary () {
-            let summary = []
-            this.usersToUpdate.forEach(user_id => {
-                let update = {}
-                let index = this.users.findIndex(u => u.id === user_id)
-                update.changes = diff(this.originalUsers[index], this.users[index])
-                // We do this rename to ensure consistency with UI, which uses
-                // the term 'enabled'
-                if (update.changes.hasOwnProperty('is_active')) {
-                  update.changes.is_enabled = update.changes.is_active
-                  delete update.changes.is_active
-                }
-                update.username = this.users[index].username
-                summary.push(update)
-            })
-            return summary
-        },
-
-        updateUsers () {
-            let promises = []
-            this.usersToUpdate.forEach(user_id => {
-                let index = this.users.findIndex(u => u.id === user_id)
-                let changes = diff(this.originalUsers[index], this.users[index])
-                if (changes.hasOwnProperty('is_active')) changes.is_verified = changes.is_active
-                changes.id = user_id
-
-                let promise = this.$api.put(`/users/${user_id}`, changes)
-                    .then(response => {
-                        return response
-                    })
-                    .catch(error => {
-                        return error
-                    })
-                promises.push(promise)
-            })
-            Promise.all(promises)
-                .then(result => {
-                    // TODO: Catch when any of the promises returns an error
-                    Notify.create({
-                        message: 'Successfully updated all user(s) properties',
-                        type: 'positive',
-                        actions: [
-                            { label: 'Dismiss', color: 'white', handler: () => {} }
-                        ]
-                    })
-                    this.loadUsers()
-                })
-        },
-
-        removeUsers () {
-            this.usersToRemove.forEach(user => {
-                this.$api.delete(`/users/${user.id}/remove`)
-                    .then(response => {
-                        Notify.create({
-                            message: `User ${user.username} has been queued for removal`,
-                            type: 'positive',
-                            actions: [
-                                { label: 'Dismiss', color: 'white', handler: () => {} }
-                            ]
-                        })
-                        this.loadUsers()
-                    })
-                    .catch(error => {
-                        Notify.create({
-                            message: error.response.data.detail,
-                            type: 'negative',
-                            timeout: 10000,
-                            actions: [
-                                { label: 'Dismiss', color: 'white', handler: () => {} }
-                            ]
-                        })
-                        this.loadUsers()
-                    })
-            })
-        },
-
-        discardChanges () {
-            this.usersToRemove = []
-            this.usersToUpdate = []
-            this.loadUsers()
-        },
-
-        editUserRoles(user) {
-            this.$refs.userRolesEditor.user = user
-            this.$refs.userRolesEditor.open()
-        }
+  components: {
+    UserRolesEditor
+  },
+  data() {
+    return {
+      // user list related
+      originalUsers: [], // keep an unaltered list of users
+      users: [],
+      columns: [
+        { name: 'deleteCheck', required: true, align: 'center', label: '', field: 'id'},
+        { name: 'username', required: true, align: 'center', label: 'Username', field: 'username' },
+        { name: 'email', required: true, align: 'center', label: 'Email', field: 'email'},
+        { name: 'isActive', required: true, align: 'center', label: 'Enabled', field: 'is_active' },
+        { name: 'isSuperuser', required: true, align: 'center', label: 'Superuser', field: 'is_superuser' },
+        { name: 'userRoles', required: true, align: 'center', label: 'User Roles', field: 'id' }
+      ],
+      loadingTable: false,
+      pagination: ref({
+        rowsPerPage: 10,
+        page: 1
+      }),
+      // search related
+      filter: ref(''),
+      // user deletion related
+      usersToRemove: [],
+      confirmDeletion: false,
+      // user updates related
+      usersToUpdate: [],
+      confirmUpdate: false
     }
+  },
+
+  created () {
+    this.loadUsers()
+    // TODO: ALBS-631
+    // Ideally, we should achieve this ala vue-router way, but the
+    // in-component guards beforeRouteLeave and beforeRouteUpdate
+    // are not working out of the box.
+    // For now, we're using the browsers' stock leave
+    // site confirmation dialogs.
+    window.addEventListener('beforeunload', (event) => {
+      event.preventDefault()
+      if (this.usersToUpdate.length != 0 || this.usersToRemove != 0) {
+        // We need to set returnValue in order for chrome to show the pop up
+        event.returnValue = "Unsaved changes"
+        return
+      }
+    })
+  },
+
+  methods: {
+    loadUsers () {
+      Loading.show()
+      this.$api.get(`/users/all_users`).then(response => {
+        Loading.hide()
+        this.users = response.data
+        // Deep copy the users list
+        this.originalUsers = JSON.parse(JSON.stringify(this.users))
+        this.usersToRemove = []
+        this.usersToUpdate = []
+      }).catch(error => {
+        Loading.hide()
+        if (+String(error.response.status)[0] === 4 ){
+          Notify.create({
+            message: error.response.data.detail, type: 'negative',
+            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+          })
+        } else {
+          Notify.create({
+            message: `${error.response.status}: ${error.response.statusText}`,
+            type: 'negative',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+        }
+      })
+    },
+
+    userPropertyChanged (user) {
+      // Check if the user is already in usersToUpdate
+      let alreadyIncluded = this.usersToUpdate.indexOf(user.id)
+      if (alreadyIncluded !== -1) {
+        let index = this.users.findIndex(u => u.id === user.id)
+        let changes = diff(this.originalUsers[index], this.users[index])
+        if (Object.keys(changes).length === 0) {
+            this.usersToUpdate.splice(alreadyIncluded, 1)
+        }
+      } else {
+        this.usersToUpdate.push(user.id)
+      }
+    },
+
+    // This method generates a JSON object that can be easily rendered in the
+    // update users confirmation dialog
+    generateUpdateSummary () {
+      let summary = []
+      this.usersToUpdate.forEach(user_id => {
+        let update = {}
+        let index = this.users.findIndex(u => u.id === user_id)
+        update.changes = diff(this.originalUsers[index], this.users[index])
+        // We do this rename to ensure consistency with UI, which uses
+        // the term 'enabled'
+        if (update.changes.hasOwnProperty('is_active')) {
+          update.changes.is_enabled = update.changes.is_active
+          delete update.changes.is_active
+        }
+        update.username = this.users[index].username
+        summary.push(update)
+      })
+      return summary
+    },
+
+    updateUsers () {
+      let promises = []
+      this.usersToUpdate.forEach(user_id => {
+        let index = this.users.findIndex(u => u.id === user_id)
+        let changes = diff(this.originalUsers[index], this.users[index])
+        if (changes.hasOwnProperty('is_active')) changes.is_verified = changes.is_active
+        changes.id = user_id
+
+        let promise = this.$api.put(`/users/${user_id}`, changes).then(response => {
+          return response
+        }).catch(error => {
+          return error
+        })
+
+        promises.push(promise)
+      })
+
+      Promise.all(promises).then(result => {
+        // TODO: Catch when any of the promises returns an error
+        Notify.create({
+            message: 'Successfully updated all user(s) properties',
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+        })
+        this.loadUsers()
+      })
+    },
+
+    removeUsers () {
+      this.usersToRemove.forEach(user => {
+        this.$api.delete(`/users/${user.id}/remove`).then(response => {
+          Notify.create({
+            message: `User ${user.username} has been queued for removal`,
+            type: 'positive',
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+          this.loadUsers()
+        }).catch(error => {
+          Notify.create({
+            message: error.response.data.detail,
+            type: 'negative',
+            timeout: 10000,
+            actions: [
+              { label: 'Dismiss', color: 'white', handler: () => {} }
+            ]
+          })
+          this.loadUsers()
+        })
+      })
+    },
+
+    discardChanges () {
+      this.usersToRemove = []
+      this.usersToUpdate = []
+      this.loadUsers()
+    },
+
+    editUserRoles(user) {
+      this.$refs.userRolesEditor.user = user
+      this.$refs.userRolesEditor.open()
+    }
+  }
 })
 </script>
 <style>
