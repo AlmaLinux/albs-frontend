@@ -94,7 +94,7 @@
                     </q-td>
                     <q-td key="force_not_notarized" :props="props" v-if="NotNotarizedPackages().length !== 0">
                         <q-checkbox v-model="props.row.force_not_notarized"
-                            :disable="viewOnly"
+                            :disable="viewOnly || props.row.cas_hash !== null"
                             size="xs" @click="selectNotNotarized(props.row)"/>
                     </q-td>
                     <q-td key="force" :props="props">
