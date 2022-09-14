@@ -5,6 +5,9 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     // is_superuser workaround
+    // This is required to prevent showing the admin
+    // section in the navbar if the user tampers with
+    // localStorage
     beforeEnter (to, from, next) {
       if (store.getters.isAuthenticated) {
         store.dispatch('users/setIsAdmin')
