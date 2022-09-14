@@ -42,13 +42,35 @@
                 <q-tr :props="props">
                 <q-th v-for="col in props.cols"
                       :key="col.name" :props="props">
-                <q-checkbox v-if="col.name === 'force' && !viewOnly"
-                            v-model="forceAll" :disable="loadingTable"
-                            size="xs" @click="selectForceAll"/>
-                <q-checkbox v-if="col.name === 'force_not_notarized' && !viewOnly"
-                            v-model="forceNotNotarizedAll" :disable="loadingTable"
-                            size="xs" @click="selectNotNotarizedAll"/>
-                    {{ col.label }}
+                    <template v-if="col.name === 'destination'">
+                        <span v-if="viewOnly">
+                            {{ col.label }}
+                        </span>
+                        <q-select v-else v-model="allPackagesRepo"
+                                  :disable="loadingTable"
+                                  :label="col.label"
+                                  :options="allPackagesRepoOptions"
+                                  dense transition-show="scale"
+                                  transition-hide="scale"
+                                  @update:model-value="updateAllPackagesRepo()">
+                            <q-tooltip anchor="top middle"
+                                       self="bottom middle"
+                                       transition-show="jump-up"
+                                       transition-hide="jump-down">
+                                Select destination(s) for ALL packages
+                            </q-tooltip>
+                        </q-select>
+                    </template>
+                    <template v-else>
+                        <q-checkbox v-if="col.name === 'force' && !viewOnly"
+                                v-model="forceAll" :disable="loadingTable"
+                                size="xs" @click="selectForceAll"/>
+                        <q-checkbox v-if="col.name === 'force_not_notarized' && !viewOnly"
+                                v-model="forceNotNotarizedAll" :disable="loadingTable"
+                                size="xs" @click="selectNotNotarizedAll"/>
+                    
+                        {{ col.label }}
+                    </template>
                 </q-th>
                 </q-tr>
             </template>
@@ -225,6 +247,8 @@ export default defineComponent({
             packagesLocation: [],
             releaseId: null,
             repositories: {},
+            allPackagesRepo: null,
+            allPackagesRepoOptions: [],
             loading: false,
             loadingSave: false,
             selected: [],
@@ -278,6 +302,7 @@ export default defineComponent({
             this.releaseId = data.id
             this.orig_repos = data.plan.repositories
             this.moduleLocation(data.plan.modules)
+            this.allPackagesRepoOptions = this.reposOptions(data.plan.repositories, 'nodebug')
             this.packagesLocation = []
             for (const item of packages) {
                 let pack = item.package
@@ -338,6 +363,11 @@ export default defineComponent({
             
             repos.forEach(rep => {
                 switch (arch) {
+                    case 'nodebug':
+                        if (!this.isDebug(rep.name)){
+                            reposNames.add(rep.name)
+                        }
+                        break;
                     case 'noarch':
                         reposNames.add(rep.name)
                         break;
@@ -359,6 +389,20 @@ export default defineComponent({
 
             return Array.from(reposNames, repName => {
                 return { label: repName, value: repName }
+            }).sort((a, b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0))
+        },
+        isDebug (name) {
+            const regex = /-debug(info|source)/g
+            return name.search(regex) === -1 ? false : true
+        },
+        updateAllPackagesRepo () {
+            this.packagesLocation.forEach(packLocation => {
+                packLocation.destination = packLocation.destinationOptions.find(opt => {
+                    return this.isDebug(packLocation.name) ? opt.value.includes(`${this.allPackagesRepo.value}-debug`) : opt.value === this.allPackagesRepo.value
+                })
+            })
+            this.modules.forEach(modLocation => {
+                modLocation.destination = modLocation.destinationOptions.find(opt => opt.value === this.allPackagesRepo.value)
             })
         },
         NotNotarizedPackages () {
