@@ -181,8 +181,11 @@
         	Secure boot build
         </q-chip>
         <q-chip v-if="build.released">
-        	<q-avatar icon="cloud" color="green-8" text-color="white"/>
+        	<q-avatar icon="cloud" color="green-8" text-color="white" :class="build.release_id ? 'cursor-pointer' : ''" @click="goToRelease()"/>
         	Released
+          <q-tooltip v-if="build.release_id">
+            Click to the cloud to see last release
+          </q-tooltip>
         </q-chip>
       </q-card-section>
 
@@ -459,11 +462,6 @@ export default defineComponent({
       mock_options: null,
       signLogText: '',
       signStatus: SignStatus
-    }
-  },
-  watch: {
-    $route (to, from) {
-      this.loadBuildInfo(to.params.buildId)
     }
   },
   computed: {
@@ -967,6 +965,11 @@ export default defineComponent({
           }
         })
     },
+    goToRelease () {
+      if (this.build.release_id){
+        this.$router.push(`/release/${this.build.release_id}`)
+      }
+    }
   },
   components: {
     BuildRef,

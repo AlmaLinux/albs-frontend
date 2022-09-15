@@ -1,13 +1,14 @@
 <template>
     <div class="q-pa-md">
         <q-table
-        :title="viewOnly ? 'Package location list' : 'Package location selector'"
+        :title="viewOnly ? '' : 'Package location selector'"
         :rows="packagesLocation"
         :columns="columns"
         row-key="id"
         color="primary"
         :loading="loadingTable"
         hide-pagination
+        :flat="viewOnly"
         :rows-per-page-options=[0]
         :filter="filter"
         >
@@ -84,6 +85,11 @@
             <template v-slot:body="props">
                 <q-tr :props="props">
                     <q-td key="nevra" :props="props">
+                        <q-btn v-if="props.row.build_id" class="add-btn" flat dense round icon="link" @click="goToBuild(props.row.build_id)">
+                            <q-tooltip>
+                                Click to go to the Build {{ props.row.build_id }}
+                            </q-tooltip>
+                        </q-btn>
                         {{ props.row.nevra }}
                         <q-badge v-if="!props.row.cas_hash" color="white" align="bottom" class="cursor-pointer">
                             <q-icon size="xs" name="key_off" color="negative">
@@ -122,9 +128,8 @@
                     <q-td key="force" :props="props">
                         <q-checkbox v-model="props.row.force" :disable="viewOnly" size="xs" @click="selectForce(props.row)"/>
                     </q-td>
-                    <q-td key="trustness" :props="props">
-                        <q-badge v-if="viewOnly" color="grey" />
-                        <q-badge v-else :color="trustness(props.row) ? 'green': 'negative'" />
+                    <q-td v-if="!viewOnly" key="trustness" :props="props">
+                        <q-badge :color="trustness(props.row) ? 'green': 'negative'" />
                     </q-td>
                     <q-td v-for="arch in archs" :key="arch" :props="props"
                             :class="viewOnly ? null : 'cursor-pointer'" @click="viewOnly ? null : props.row[arch] = !props.row[arch]">
@@ -151,6 +156,11 @@
                 </q-tr>
                 <q-tr v-for="build_module in modules" :key="build_module.arch">
                     <q-td>
+                        <q-btn v-if="build_module.build_id" class="add-btn" flat dense round icon="link" @click="goToBuild(build_module.build_id)">
+                            <q-tooltip>
+                                Click to go to the Build {{ build_module.build_id }}
+                            </q-tooltip>
+                        </q-btn>
                         {{ build_module.nsvca }}
                     </q-td>
                     <q-td>
@@ -175,9 +185,8 @@
                             </q-tooltip>
                         </q-checkbox>
                     </q-td>
-                    <q-td class="text-center">
-                        <q-badge v-if="viewOnly" color="grey" />
-                        <q-badge v-else :color="trustness(build_module) ? 'green': 'negative'" />
+                    <q-td v-if="!viewOnly" class="text-center">
+                        <q-badge :color="trustness(build_module) ? 'green': 'negative'" />
                     </q-td>
                     <q-td v-for="arch in archs" :key="arch"
                             :class="viewOnly || arch === 'src' ? null : 'cursor-pointer'" class="text-center"
@@ -238,8 +247,7 @@ export default defineComponent({
                     sortable: true
                 },
                 { name: 'destination', align: 'left', label: 'Destination(s)', field: 'destination' },
-                { name: 'force', align: 'left', label: 'Force', field: 'force' },
-                { name: 'trustness', label: 'Trustness', field: 'trustness', align: 'center', sortable: true }
+                { name: 'force', align: 'left', label: 'Force', field: 'force' }
             ],
             archs: ['src'],
             filter: '',
@@ -267,6 +275,9 @@ export default defineComponent({
         tableFullScreen(props){
             props.toggleFullscreen()
         },
+        goToBuild (build_id){
+            window.open(`/build/${build_id}`, '_blank')
+        },
         nevra (pack) {
             return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
         },
@@ -276,7 +287,8 @@ export default defineComponent({
                 this.archs.push(arch)
                 this.columns.push({ name: arch, label: arch, field: arch, align: 'center' })
             })
-            this.columns.push({ name: 'button', label: '', field: 'button', align: 'center'})
+            if (!this.viewOnly)
+                this.columns.push({ name: 'button', label: '', field: 'button', align: 'center'})
         },
         moduleLocation (modules) {
             if (modules.length) {
@@ -295,6 +307,8 @@ export default defineComponent({
             }
         },
         createTable(data){
+            if (!this.viewOnly)
+                this.columns.push({ name: 'trustness', label: 'Trustness', field: 'trustness', align: 'center', sortable: true })
             this.createArchColumns(data.platform.arch_list)
             this.build_ids = data.build_ids
             this.build_task_ids = data.build_task_ids

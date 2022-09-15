@@ -8,8 +8,8 @@ export const ReleaseFeedModule = {
     }
   },
   getters: {
-    releaseFeedQuery: (state, getters) => {
-      return { pageNumber: state.pageNumber }
+    releasePageNumber: (state, getters) => {
+      return state.pageNumber
     }
   },
   namespaced: true

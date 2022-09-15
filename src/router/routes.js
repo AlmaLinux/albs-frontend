@@ -76,8 +76,17 @@ const routes = [
       {
         path: 'release-feed',
         meta: { requiresAuth: true },
-        component: () => import('pages/ReleaseFeed.vue')
+        component: () => import('pages/ReleaseFeed.vue'),
+        beforeEnter (to, from, next) {
+          store.dispatch('platforms/loadPlatformList')
+            .then(next())
+            .catch(next())
+          store.dispatch('products/loadProductList')
+            .then(next())
+            .catch(next())
+        }
       },
+      { path: '/release/:releaseId', component: () => import('pages/ReleaseDetails.vue'), props: true},
       {
         path: 'release/create',
         meta: { requiresAuth: true },
