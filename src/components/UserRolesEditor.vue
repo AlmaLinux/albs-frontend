@@ -20,6 +20,7 @@
                 @filter="teamSelectFilter"
             />
 
+            <!-- TODO: Use q-slide-transition -->
             <SlideTransition>
               <div v-show="activeTeam != noTeam">
                 <q-table
