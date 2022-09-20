@@ -60,6 +60,21 @@ import store from '../store/index'
 
 const linksList = [
   {
+    title: 'Administration',
+    icon: 'settings',
+    expand: true,
+    // is_superuser workaround
+    // We update the allow value manually after the Link is populated
+    allow: false,
+    children: [
+      {
+        title: 'Users',
+        icon: 'manage_accounts',
+        link: 'users'
+      }
+    ]
+  },
+  {
     title: 'Feed',
     icon: 'view_list',
     link: '/',
@@ -136,7 +151,7 @@ export default defineComponent({
       return this.$route.name && this.$route.name.startsWith('BuildFeed')
     }
   },
-  mounted() {
+  mounted () {
     window.addEventListener('visibilitychange', (event) => {
       if (document.visibilityState === 'visible') {
         let user = LocalStorage.getItem('user')
@@ -163,6 +178,12 @@ export default defineComponent({
         }
       }
     })
+    // is_superuser workaround
+    // Here's where we show/hide the Admin section from the menu
+    if (store.getters.isAuthenticated && store.getters.isAdmin) {
+        let adminLink = this.essentialLinks.find(link => link.title === 'Administration')
+        adminLink.allow = true
+    }
   },
   setup () {
     const leftDrawerOpen = ref(false)

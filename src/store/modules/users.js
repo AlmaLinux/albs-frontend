@@ -8,7 +8,8 @@ import { api } from 'boot/api'
 export const UsersModule = {
   state: () => ({
     self: LocalStorage.getItem('user'),
-    users: []
+    users: [],
+    isAdmin: LocalStorage.getItem('isAdmin')
   }),
   mutations: {
     updateSelf (state, self) {
@@ -21,8 +22,13 @@ export const UsersModule = {
         state.users.push(user)
       }
     },
+    updateIsAdmin (state, isAdmin) {
+      state.isAdmin = isAdmin
+      LocalStorage.set('isAdmin', isAdmin)
+    },
     onLogout (state) {
       LocalStorage.remove('user')
+      LocalStorage.remove('isAdmin')
       state.self = null
     }
   },
@@ -33,6 +39,7 @@ export const UsersModule = {
       return api.get('/users/all_users')
         .then(response => {
           commit('updateUsersList', response.data)
+          return response.data
         })
         .catch(error => {
           Notify.create({
@@ -43,6 +50,14 @@ export const UsersModule = {
             ]
           })
         })
+    },
+    async setIsAdmin ({ dispatch, commit, state }) {
+      if (state.self != null) {
+        let users = await dispatch('loadUsersList')
+        let currentUser = users.find(u => u.id == state.self.user_id)
+        commit('updateIsAdmin', currentUser.is_superuser)
+        return currentUser.is_superuser
+      }
     }
   },
   namespaced: true

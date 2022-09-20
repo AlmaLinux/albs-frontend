@@ -22,7 +22,9 @@ export default defineComponent({
       let redirectPath = LocalStorage.getItem('redirectPath')
       if (redirectPath.startsWith('/auth')) redirectPath = '/'
 
-      this.$router.push(redirectPath)
+      this.$store.dispatch('users/setIsAdmin').then(isAdmin => {
+        this.$router.push(redirectPath)
+      })
     } catch (err) {
       console.log(err)
       Notify.create({
