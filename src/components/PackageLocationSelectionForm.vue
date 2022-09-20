@@ -11,6 +11,9 @@
         :flat="viewOnly"
         :rows-per-page-options=[0]
         :filter="filter"
+        no-results-label="No packages found"
+        :hide-no-data="!!(modules && modules.length)"
+        ref="table"
         >
             <template v-slot:top-right="props">
                 <q-input borderless dense debounce="300" class="q-pr-md" v-model="filter" placeholder="Search">
@@ -80,6 +83,12 @@
                     <q-th colspan="100%" class="text-left">
                         Packages
                     </q-th>
+                </q-tr>
+                <q-tr v-if="noFoundPackages()" no-hover>
+                    <q-td colspan="100%" class="text-left">
+                        <q-icon size="sm" name="warning" />
+                        No packages found
+                    </q-td>
                 </q-tr>
             </template>
             <template v-slot:body="props">
@@ -154,7 +163,13 @@
                         Modules
                     </q-th>
                 </q-tr>
-                <q-tr v-for="build_module in modules" :key="build_module.arch">
+                <q-tr v-if="moduleFilter().length === 0" no-hover>
+                    <q-td colspan="100%" class="text-left">
+                        <q-icon size="sm" name="warning" />
+                        No modules found
+                    </q-td>
+                </q-tr>
+                <q-tr v-for="build_module in moduleFilter()" :key="build_module.arch">
                     <q-td>
                         <q-btn v-if="build_module.build_id" class="add-btn" flat dense round icon="link" @click="goToBuild(build_module.build_id)">
                             <q-tooltip>
@@ -171,7 +186,7 @@
                             transition-hide="scale">
                         </q-select>
                     </q-td>
-                    <q-td>
+                    <q-td v-if="NotNotarizedPackages().length !== 0">
                         <q-checkbox v-model="build_module.force_not_notarized" disable size="xs">
                             <q-tooltip>
                                 Module cannot be force-released
@@ -289,6 +304,11 @@ export default defineComponent({
             })
             if (!this.viewOnly)
                 this.columns.push({ name: 'button', label: '', field: 'button', align: 'center'})
+        },
+        moduleFilter () {
+            return this.modules.filter(modul => {
+                return modul.nsvca.includes(this.filter)
+            })
         },
         moduleLocation (modules) {
             if (modules.length) {
@@ -517,6 +537,13 @@ export default defineComponent({
                 row.destination = ''
                 this.packagesLocation.splice(index + 1, 0, row)
             }
+        },
+        noFoundPackages () {
+            let noFound = false
+            if (this.$refs.table){
+                noFound = this.$refs.table.filteredSortedRows.length === 0
+            }
+            return noFound
         },
         getPlan() {
             let plan = {
