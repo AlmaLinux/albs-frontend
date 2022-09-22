@@ -55,8 +55,16 @@ export const UsersModule = {
       if (state.self != null) {
         let users = await dispatch('loadUsersList')
         let currentUser = users.find(u => u.id == state.self.user_id)
-        commit('updateIsAdmin', currentUser.is_superuser)
-        return currentUser.is_superuser
+        // ALBS-653: Ensure isAdmin is either false or true
+        // If for whatever reason, is_superuser is undefined,
+        // we must return false. Because if we pass undefined to
+        // updateIsAdmin, the string 'undefined' is stored as the
+        // value of isAdmin in localStorage, which evaluates to true
+        let isAdmin = currentUser.is_superuser !== undefined?
+          currentUser.is_superuser:
+          false
+        commit('updateIsAdmin', isAdmin)
+        return isAdmin
       }
     }
   },
