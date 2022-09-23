@@ -17,27 +17,31 @@
     <q-tab-panels v-model="tab" animated style="width: 100%; height: 100%;">
         <q-tab-panel name="urls">
             <div class="q-pa-md" style="max-width: 90%; margin-left: auto; margin-right: auto;">
-                <q-markup-table flat>
-                    
-                <thead>
-                    <tr>
-                        <th class="text-left">Name</th>
-                        <th class="text-left">Arch</th>
-                        <th class="text-center">Url</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="repo in publicationUrls()" :key="repo.id">
-                        <td class="text-left">{{ repo.name }}</td>
-                        <td class="text-left">{{ repo.arch }}</td>
-                        <td class="text-center">
-                            <a :href="repo.url">
-                                {{repo.url}}
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-                </q-markup-table>
+                <q-table
+                    :rows="publicationUrls()"
+                    :columns="columns"
+                    flat
+                    hide-pagination
+                    :rows-per-page-options=[0]>
+                    <template v-slot:body="props">
+                        <q-tr :props="props">
+                            <q-td key="name" :props="props">
+                                {{ props.row.name }}
+                            </q-td>
+                            <q-td key="arch" :props="props">
+                                {{ props.row.arch }}
+                            </q-td>
+                            <q-td key="name" :props="props">
+                                <a :href="props.row.url">
+                                    {{ props.row.url }}
+                                </a>
+                            </q-td>
+                            <q-td key="debug" :props="props">
+                                {{ debugValue(props.row.debug) }}
+                            </q-td>
+                        </q-tr>
+                    </template>
+                </q-table>
             </div>
         </q-tab-panel>
 
@@ -73,10 +77,19 @@ export default defineComponent({
         return {
             opened: false,
             tab: ref('urls'),
-            loading: false
+            loading: false,
+            columns: [
+                { name: 'name', required: true, align: 'left', label: 'Name', field: 'name', sortable: true },
+                { name: 'arch', required: true, align: 'left', label: 'Arch', field: 'arch', sortable: true },
+                { name: 'url', required: true, align: 'left', label: 'URL', field: 'url' },
+                { name: 'debug', required: true, align: 'left', label: 'Debug', field: 'debug', sortable: true }
+            ]
         }
     },
     methods: {
+        debugValue (value) {
+            return value ? 'Yes' : 'No'
+        },
         publicationUrls () {
             let repoUrl = new Set
             let repos = []
@@ -91,7 +104,7 @@ export default defineComponent({
                     })
                 });
             }
-            return repos
+            return repos.sort((a, b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0) )
         }
     },
     components: {
