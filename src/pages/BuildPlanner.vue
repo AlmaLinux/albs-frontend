@@ -15,21 +15,23 @@
 
         <q-select v-model="product"
                   :options="buildProducts"
-                  label="Product*:"
+                  label="Product:"
                   clearable
                   style="min-width: 250px; max-width: 300px"
                   ref="selectProduct"
                   :rules="[val => !!val || 'Product is required']"
+                  :hint="!product ? 'Product is required' : null"
         />
 
         <q-select v-model="buildPlan.platforms"
                   :options="buildPlatforms"
                   multiple
                   use-chips
-                  label="Build platform(s)*:"
+                  label="Build platform(s):"
                   style="min-width: 250px; max-width: 300px"
                   ref="selectPlatforms"
                   :rules="[val => !(val.length < 1) || 'Platforms is required']"
+                  :hint="buildPlan.platforms.length === 0 ? 'Platforms is required' : null"
         >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
@@ -46,10 +48,11 @@
                     :options="platform.archList"
                     multiple
                     chips
-                    :label="`${platform.label} selected architectures*`"
+                    :label="`${platform.label} selected architectures`"
                     style="min-width: 250px; max-width: 300px"
                     ref="selectArches"
                     :rules="[val => checkArchError(val) || 'Architectures is required']"
+                    :hint="!checkArchError(platformArches[platform.label]) ? 'Architectures is required' : null"
           />
         </template>
 
