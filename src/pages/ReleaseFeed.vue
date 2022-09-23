@@ -259,29 +259,41 @@ export default defineComponent({
             let packages = []
             let setPackages = new Set()
             plan.packages.forEach(pack => {
-                
-                if (pack.package.arch === 'src') {
-                    let buildId = null
-                    if (pack.package.build_id) {
-                        buildId = pack.package.build_id
+                let buildId = pack.package.build_id ? pack.package.build_id : null
+
+                if (pack.package.source) {
+                    let [name, version, release] = pack.package.source.split('-')
+                    if (!setPackages.has(name)) {
+                        packages.push(
+                            {
+                                name: name,
+                                version: version,
+                                release: release.replace('.src.rpm', ''),
+                                buildId: buildId
+                            }
+                        )
+                        setPackages.add(name)
                     }
-                    packages.push(
-                        {
-                            name: pack.package.name,
-                            version: pack.package.version,
-                            release: pack.package.release, buildId: buildId
-                        }
-                    )
+                } else if (pack.package.arch === 'src') {
+                    if (!setPackages.has(pack.package.name)) {
+                        packages.push(
+                            {
+                                name: pack.package.name,
+                                version: pack.package.version,
+                                release: pack.package.release,
+                                buildId: buildId
+                            }
+                        )
+                        setPackages.add(pack.package.name)
+                    }
                 }
             })
 
             if (packages.length === 0){
                 plan.packages.forEach(pack => {
                     if (!setPackages.has(pack.package.name)) {
-                        let buildId = null
-                        if (pack.package.build_id) {
-                            buildId = pack.package.build_id
-                        }
+                        let buildId = pack.package.build_id ? pack.package.build_id : null
+                        
                         packages.push(
                             {
                                 name: pack.package.name,
@@ -304,7 +316,6 @@ export default defineComponent({
             }
             return warning
         }
-
     }
 })
 </script>

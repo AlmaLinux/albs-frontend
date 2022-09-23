@@ -560,7 +560,8 @@ export default defineComponent({
                     name: moduleLocation.name,
                     stream: moduleLocation.stream,
                     template: moduleLocation.template,
-                    version: moduleLocation.version
+                    version: moduleLocation.version,
+                    source: moduleLocation.source
                 }
                 this.archs.forEach(arch => {
                     if (moduleLocation[arch] && this.repositories[arch] && moduleLocation.destination) {
@@ -590,7 +591,8 @@ export default defineComponent({
                     sha256: packLocation.sha256,
                     cas_hash: packLocation.cas_hash,
                     version: packLocation.version,
-                    build_id: packLocation.build_id
+                    build_id: packLocation.build_id,
+                    source: packLocation.source
                 }
                 this.archs.forEach(arch => {
                     if (packLocation[arch] && this.repositories[arch] && packLocation.destination) {
