@@ -262,13 +262,13 @@ export default defineComponent({
                 let buildId = pack.package.build_id ? pack.package.build_id : null
 
                 if (pack.package.source) {
-                    let [name, version, release] = pack.package.source.split('-')
+                    let name = pack.package.source.split(`-${pack.package.version}-`)[0]
                     if (!setPackages.has(name)) {
                         packages.push(
                             {
                                 name: name,
-                                version: version,
-                                release: release.replace('.src.rpm', ''),
+                                version: pack.package.version,
+                                release: pack.package.release,
                                 buildId: buildId
                             }
                         )
