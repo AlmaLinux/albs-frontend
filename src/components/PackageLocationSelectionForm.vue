@@ -590,7 +590,8 @@ export default defineComponent({
                     sha256: packLocation.sha256,
                     cas_hash: packLocation.cas_hash,
                     version: packLocation.version,
-                    build_id: packLocation.build_id
+                    build_id: packLocation.build_id,
+                    source: packLocation.source
                 }
                 this.archs.forEach(arch => {
                     if (packLocation[arch] && this.repositories[arch] && packLocation.destination) {
