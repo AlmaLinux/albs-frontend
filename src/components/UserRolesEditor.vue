@@ -18,7 +18,7 @@
                 input-debounce="0"
                 @update:model-value="onTeamSelected"
                 @filter="teamSelectFilter"
-                v-show="teamId != null"
+                v-show="!teamId"
             />
 
             <!-- TODO: Use q-slide-transition -->
@@ -172,7 +172,7 @@ export default defineComponent({
         this.options = ref(this.teamOptions)
       })
       Loading.hide()
-      this.activeTeam = this.userTeamRoles[0]
+      if (this.teamId) this.activeTeam = this.userTeamRoles[0]
       this.opened = true
     },
 
@@ -201,7 +201,7 @@ export default defineComponent({
       // john_project_one and john_project_two
       let userRoles = await this.getUserRoles()
       let userTeams = this.teamId?
-        [await this.getUserTeam()]: // We make an array to simplify things
+        [await this.getTeam()]: // We make an array to simplify things
         await this.getUserTeams()
 
       let userTeamRoles = []

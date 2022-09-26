@@ -368,7 +368,6 @@ export default defineComponent({
                     this.setCanEditRoles()
                 })
                 .catch(error => {
-                    console.log(error)
                     Loading.hide()
                     if (+String(error.response.status)[0] === 4 ){
                         Notify.create({
@@ -438,9 +437,12 @@ export default defineComponent({
             // superuser
             if (this.$store.state.users.isAdmin) canEdit = true
             // team owner
-            if (currentUserId === this.team.owner.id) canEdit = true
+            if (currentUserId == this.team.owner.id) canEdit = true
 
-            let managerRole = this.team.roles.find(role => role.name == `${this.team.name}_manager`)
+            let managerRole = this.team.roles.find(role =>
+                role.name == `${this.team.name}_manager`
+            )
+
             let userRoles = await this.getUserRoles(currentUserId)
             // team manager
             if (userRoles.find(role => role.id == managerRole.id)) canEdit = true
@@ -451,7 +453,7 @@ export default defineComponent({
         },
         editUserRoles(user) {
           this.$refs.userRolesEditor.user = user
-          this.$refs.teamId = this.teamId
+          this.$refs.userRolesEditor.teamId = this.teamId
           this.$refs.userRolesEditor.open()
         }
     }
