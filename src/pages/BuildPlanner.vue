@@ -7,7 +7,8 @@
       <q-step name="buildEnvironment"
               title="Build environment"
               style="height: auto;"
-              :error="buildPlan.platforms.length < 1" error-color="negative">
+              :done="currentStep != 'buildEnvironment'"
+              :error="checkError()" error-color="negative">
 
         <q-checkbox left-label class="text-grey-8 text-body1 q-pb-sm"
                     v-model="buildPlan.is_secure_boot" label="Secure Boot"/>
@@ -17,6 +18,9 @@
                   label="Product:"
                   clearable
                   style="min-width: 250px; max-width: 300px"
+                  ref="selectProduct"
+                  :rules="[val => !!val || 'Product is required']"
+                  :hint="!product ? 'Product is required' : null"
         />
 
         <q-select v-model="buildPlan.platforms"
@@ -25,7 +29,10 @@
                   use-chips
                   label="Build platform(s):"
                   style="min-width: 250px; max-width: 300px"
-         >
+                  ref="selectPlatforms"
+                  :rules="[val => !(val.length < 1) || 'Platforms is required']"
+                  :hint="buildPlan.platforms.length === 0 ? 'Platforms is required' : null"
+        >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
               <q-item-section>
@@ -37,13 +44,16 @@
         </q-select>
 
         <template v-for="platform in buildPlan.platforms" :key="platform.label">
-        <q-select v-model="platformArches[platform.label]"
-                  :options="platform.archList"
-                  multiple
-                  chips
-                  :label="`Build platform ${platform.label} selected architectures`"
-                  style="min-width: 250px; max-width: 300px"
-         />
+          <q-select v-model="platformArches[platform.label]"
+                    :options="platform.archList"
+                    multiple
+                    chips
+                    :label="`${platform.label} selected architectures`"
+                    style="min-width: 250px; max-width: 300px"
+                    ref="selectArches"
+                    :rules="[val => checkArchError(val) || 'Architectures is required']"
+                    :hint="!checkArchError(platformArches[platform.label]) ? 'Architectures is required' : null"
+          />
         </template>
 
         <q-select v-model="buildPlan.platform_flavors"
@@ -56,8 +66,8 @@
         </q-select>
 
         <q-input label="Linked builds" v-model="linked_builds_input" clearable @keydown.enter.prevent="addLinkedBuilds"
-                 style="min-width: 250px; max-width: 300px;" autogrow hint="Enter builds' ids"
-                 :rules="[linked_builds_input => linked_builds_input.length < 1 || 'Please don\'t forget to add entered builds\'s ids']">
+                style="min-width: 250px; max-width: 300px;" autogrow hint="Enter builds' ids"
+                :rules="[linked_builds_input => linked_builds_input.length < 1 || 'Please don\'t forget to add entered builds\'s ids']">
           <template v-slot:append v-if="linked_builds_input">
             <q-btn round dense flat icon="add" @click="addLinkedBuilds"/>
           </template>
@@ -72,14 +82,14 @@
             </q-item-section>
             <q-item-section side>
               <q-btn icon="delete" small round flat dense color="negative"
-                     @click="buildPlan.linked_builds.pop(linkedBuild)"/>
+                    @click="buildPlan.linked_builds.pop(linkedBuild)"/>
             </q-item-section>
           </q-item>
         </q-list>
 
         <q-field borderless style="margin-left: -15px; padding-top: 10px;">
           <q-btn label="Mock Options" flat icon-right="settings" color="grey-7"
-                 @click="onAddMockOptions"></q-btn>
+                @click="onAddMockOptions"></q-btn>
           <MockOptionsSelection ref="addMockOptions"
                                 :buildMockOpts="buildPlan.mock_options"
                                 @change="value => { buildPlan.mock_options = value }"/>
@@ -110,9 +120,9 @@
         </q-expansion-item>
       </q-step>
 
-      <q-step name="selectProjects" :disable="buildPlan.platforms.length < 1 || !product"
-              title="Select projects" :error="buildPlan.tasks.length < 1 || !product"
-              error-color="negative">
+      <q-step name="selectProjects" :disable="checkError()"
+              title="Select projects" :error="buildPlan.tasks.length < 1 && currentStep != 'buildEnvironment'"
+              error-color="negative" icon="format_list_numbered">
         <project-selector :buildItems="buildPlan.tasks"
                           :platformName="buildPlan.platforms[0].value"
                           :platformArches="platformArches"
@@ -197,6 +207,18 @@ export default defineComponent({
     },
   },
   methods: {
+    checkArchError (val) {
+      return val ? val.length !== 0 : false
+    },
+    checkError () {
+      if (this.buildPlan.platforms.length < 1 || !this.product) return true
+
+      let err =  false
+      this.buildPlan.platforms.forEach(platform => {
+        err = !this.checkArchError(this.platformArches[platform.label])
+      })
+      return err
+    },
     onAddMockOptions () {
       this.$refs.addMockOptions.open(this.buildPlan.mock_options)
     },
@@ -241,6 +263,19 @@ export default defineComponent({
       if (this.nextLabel === 'Create build') {
         this.createBuild()
         return
+      }
+
+      if (this.checkError()) {
+        this.$refs.selectProduct.validate()
+        this.$refs.selectPlatforms.validate()
+        if (this.$refs.selectArches && this.$refs.selectArches.length) {
+          this.$refs.selectArches.forEach(arches => {
+            arches.validate()
+          })
+        }
+
+        Notify.create({message: 'Please fill out all required fields', type: 'negative',
+            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
       }
       this.$refs.buildWizzard.next()
     },
