@@ -560,8 +560,7 @@ export default defineComponent({
                     name: moduleLocation.name,
                     stream: moduleLocation.stream,
                     template: moduleLocation.template,
-                    version: moduleLocation.version,
-                    source: moduleLocation.source
+                    version: moduleLocation.version
                 }
                 this.archs.forEach(arch => {
                     if (moduleLocation[arch] && this.repositories[arch] && moduleLocation.destination) {
