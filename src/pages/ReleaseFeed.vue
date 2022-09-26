@@ -32,9 +32,12 @@
                                 />
                                 <q-select
                                     v-model="product"
-                                    :options="products"
+                                    :options="productsOptions"
                                     label="Product"
                                     class="col"
+                                    input-debounce="300"
+                                    @filter="productFilter"
+                                    use-input
                                     clearable
                                     dense
                                 />
@@ -143,6 +146,7 @@ export default defineComponent({
         return {
             platform: null,
             product: null,
+            productsOptions: ref([]),
             status: null,
             loading: false,
             show: false,
@@ -171,7 +175,7 @@ export default defineComponent({
         products () {
             return this.$store.state.products.products.map(product => {
                 return {label: product.name, value: product.id }
-            })
+            }).sort((a, b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0) )
         },
         statuses () {
             return Object.values(this.releaseStatus.text).map((status, index) => {
@@ -191,6 +195,15 @@ export default defineComponent({
         }
     },
     methods: {
+        productFilter (val, update, abort) {
+            update(() => {
+                const needle = val.toLocaleLowerCase()
+                this.productsOptions = this.products.filter(v => v.label.toLocaleLowerCase().indexOf(needle) > -1)
+            })
+            abort(() => {
+                val = ''
+            })
+        },
         showSearch () {
             this.show = !this.show
             if (!this.show){

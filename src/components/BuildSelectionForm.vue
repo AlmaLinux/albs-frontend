@@ -2,9 +2,12 @@
     <q-form @submit="submit" >
         <div class="q-pa-lg row" style="float: left;">
             <q-select v-model="product" dense
-                        :options="existingProducts" label="Select Product"
+                        :options="productsOptions" label="Select Product"
                         :readonly="releaseId ? true : false"
                         clearable  style="width: 220px"
+                        input-debounce="300"
+                        @filter="productFilter"
+                        use-input autofocus
                         transition-show="scale"
                         transition-hide="scale"
                         :rules="[val => !!val || 'Field is required']">
@@ -135,7 +138,7 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { Notify } from 'quasar'
 import { BuildStatus, SignStatus } from '../constants.js'
 import BuildRef from 'components/BuildRef.vue'
@@ -155,6 +158,7 @@ export default defineComponent({
             uniqueBuildsId: new Set(),
             platform: this.releasePlatform,
             product: this.releseProduct,
+            productsOptions: ref([]),
             activeBuild: null,
             textValue: null,
             tableselected: [],
@@ -173,7 +177,7 @@ export default defineComponent({
         existingProducts () {
             return this.$store.state.products.products.map(product => {
                 return { label: product.name, value: product.id, description: product.title }
-            })
+            }).sort((a, b) => (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0) )
         },
         existingPlatfroms () {
             return this.$store.state.platforms.platforms.map(platform => {
@@ -182,6 +186,15 @@ export default defineComponent({
         }
     },
     methods: {
+        productFilter (val, update, abort) {
+            update(() => {
+                const needle = val.toLocaleLowerCase()
+                this.productsOptions = this.existingProducts.filter(v => v.label.toLocaleLowerCase().indexOf(needle) > -1)
+            })
+            abort(() => {
+                val = ''
+            })
+        },
         selectProject (active) {
             active.selected = []
             active.options.forEach( opt =>{
