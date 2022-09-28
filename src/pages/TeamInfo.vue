@@ -52,6 +52,7 @@
                         <q-table
                             :rows="team.members"
                             :columns="membersCol"
+                            :visibleColumns="visibleMembersCols"
                             color="primary"
                             wrap-cells
                             flat
@@ -103,6 +104,9 @@
                                     <q-td key="username" :props="props">{{ props.row.username}}</q-td>
                                     <q-td key="email" :props="props">
                                         <a :href="`mailto:${props.row.email}`" target="_blank">{{ props.row.email }}</a>
+                                    </q-td>
+                                    <q-td v-show="canEditRoles" style="text-align:center;">
+                                      <q-btn dense flat round field="edit" icon="edit" v-on:click="editUserRoles(props.row)"></q-btn>
                                     </q-td>
                                 </q-tr>
                             </template>
@@ -224,13 +228,20 @@
             </q-card-actions>
         </q-card>
     </q-dialog>
+
+    <UserRolesEditor ref="userRolesEditor" />
 </template>
 
 <script>
 import { Loading, Notify } from 'quasar'
 import { defineComponent, ref } from 'vue'
+import { getFromApi } from '../utils'
+import UserRolesEditor from 'components/UserRolesEditor.vue'
 
 export default defineComponent({
+    components: {
+        UserRolesEditor
+    },
     props: {
         teamId: String
     },
@@ -246,8 +257,10 @@ export default defineComponent({
             membersCol: [
                 { name: 'id', required: true, align: 'center', label: 'User ID', field: 'id'},
                 { name: 'username', required: true, align: 'center', label: 'Username', field: 'username' },
-                { name: 'email', required: true, align: 'center', label: 'Email', field: 'email'}
+                { name: 'email', required: true, align: 'center', label: 'Email', field: 'email'},
+                { name: 'roles', requird: true, align: 'center', label: 'User Roles', field: 'id' }
             ],
+            visibleMembersCols: ['id', 'username', 'email'],
             addNewMember: false,
             newMembers: [],
             loadAddUser: false,
@@ -258,7 +271,8 @@ export default defineComponent({
             ],
             rolesCol: [
                 { name: 'name', required: true, align: 'left', label: 'Name', field: 'name' }
-            ]
+            ],
+            canEditRoles: false
         }
     },
     created () {
@@ -347,10 +361,11 @@ export default defineComponent({
         },
         loadTeam (teamId) {
             Loading.show()
-            this.$api.get(`/teams/${teamId}/`)
+            return this.$api.get(`/teams/${teamId}/`)
                 .then(response => {
                     Loading.hide()
                     this.team = response.data
+                    this.setCanEditRoles()
                 })
                 .catch(error => {
                     Loading.hide()
@@ -409,6 +424,37 @@ export default defineComponent({
                         })
                     }
                 })
+        },
+        async getUserRoles (userId) {
+            return getFromApi(this.$api, `/users/${userId}/roles`)
+        },
+        async setCanEditRoles () {
+            // We only allow managers, team owners and superusers
+            // to edit the roles of the team members
+            let canEdit = false
+            let currentUserId = this.$store.state.users.self.user_id
+
+            // superuser
+            if (this.$store.state.users.isAdmin) canEdit = true
+            // team owner
+            if (currentUserId == this.team.owner.id) canEdit = true
+
+            let managerRole = this.team.roles.find(role =>
+                role.name == `${this.team.name}_manager`
+            )
+
+            let userRoles = await this.getUserRoles(currentUserId)
+            // team manager
+            if (userRoles.find(role => role.id == managerRole.id)) canEdit = true
+            this.canEditRoles = canEdit
+
+            // Show the roles column
+            if (canEdit) this.visibleMembersCols.push('roles')
+        },
+        editUserRoles(user) {
+          this.$refs.userRolesEditor.user = user
+          this.$refs.userRolesEditor.teamId = this.teamId
+          this.$refs.userRolesEditor.open()
         }
     }
 })

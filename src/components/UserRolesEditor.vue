@@ -18,6 +18,7 @@
                 input-debounce="0"
                 @update:model-value="onTeamSelected"
                 @filter="teamSelectFilter"
+                v-show="!teamId"
             />
 
             <!-- TODO: Use q-slide-transition -->
@@ -81,6 +82,13 @@ export default defineComponent({
     return {
       opened: false,
       user: Object,
+      // If we receive a teamId it means
+      // that the role editor has been created
+      // from the TeamInfo page, which involves:
+      //   * No team search box
+      //   * Retrieve info only for the team
+      teamId: null,
+
       // For an easy manipulation of data, we hold
       // all the required info in userTeamRoles:
       // [
@@ -164,6 +172,7 @@ export default defineComponent({
         this.options = ref(this.teamOptions)
       })
       Loading.hide()
+      if (this.teamId) this.activeTeam = this.userTeamRoles[0]
       this.opened = true
     },
 
@@ -171,7 +180,12 @@ export default defineComponent({
       this.allRoles = await getFromApi(this.$api, `/roles/`)
     },
 
+    async getTeam () {
+      return getFromApi(this.$api, `/teams/${this.teamId}`)
+    },
+
     async getUserTeams () {
+      // Take into account teamId
       return getFromApi(this.$api, `/users/${this.user.id}/teams`)
     },
 
@@ -186,7 +200,10 @@ export default defineComponent({
       // and there are many teams that are named similar, i.e.:
       // john_project_one and john_project_two
       let userRoles = await this.getUserRoles()
-      let userTeams = await this.getUserTeams()
+      let userTeams = this.teamId?
+        [await this.getTeam()]: // We make an array to simplify things
+        await this.getUserTeams()
+
       let userTeamRoles = []
 
       userTeams.forEach((team, index) => {
