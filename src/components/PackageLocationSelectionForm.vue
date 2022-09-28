@@ -632,9 +632,7 @@ export default defineComponent({
                             this.loading = false
                             Notify.create({message: response.data.message, type: 'positive',
                                 actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
-                            this.$router.push(`/release-feed`)                            
-                                this.$router.push(`/release-feed`)
-                            this.$router.push(`/release-feed`)                            
+                            this.$router.push(`/release-feed`)
                         })
                         .catch(error => {
                             this.loading = false
