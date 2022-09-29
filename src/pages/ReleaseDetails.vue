@@ -45,19 +45,6 @@
                 <q-card-section>
                     <release-view :release="release"/>
                 </q-card-section>
-                <template v-if="release.status === 1">
-                    <q-separator/>
-
-                    <q-card-actions align="right">
-                        <q-btn  @click="commitRelease"
-                                            color="primary"
-                                            v-if="release.status === 1"
-                                            :loading="loadingCommit">
-                                        Commit
-                        </q-btn>
-                    </q-card-actions>
-                </template>
-                
             </q-card>
         </div>
     </div>

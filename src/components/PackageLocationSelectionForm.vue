@@ -28,15 +28,23 @@
                         @click="tableFullScreen(props)"
                         class="q-ml-md"
                     />
-                    <template v-if="!viewOnly" >
-                        <q-btn @click="saveRelease"
+                    <template v-if="releaseStatus === releaseStatuses.SCHEDULED">
+                        <q-btn v-if="viewOnly" @click.stop 
+                            :to="{path: `/release/${releaseId}/update`}"
+                            color="grey"
+                        >
+                            Edit
+                        </q-btn>
+                        <q-btn v-else @click="saveRelease"
                             :loading="loadingSave"
-                            color="green">
+                            color="green"
+                        >
                             Save
                         </q-btn>
                         <q-btn  @click="confirm = true"
                                 :loading="loading"
-                                color="primary">
+                                color="primary"
+                        >
                             Commit
                         </q-btn>
                     </template>
@@ -243,6 +251,7 @@
 import { defineComponent } from 'vue'
 import { Notify } from 'quasar'
 import { nsvca } from '../utils';
+import { ReleaseStatus } from 'src/constants';
 
 export default defineComponent({
     props: {
@@ -279,7 +288,9 @@ export default defineComponent({
             forceAll: false,
             forceNotNotarizedAll: false,
             modules: [],
-            confirm: false
+            confirm: false,
+            releaseStatus: null,
+            releaseStatuses: ReleaseStatus
         }
     },
     created () {
@@ -332,6 +343,7 @@ export default defineComponent({
             this.createArchColumns(data.platform.arch_list)
             this.build_ids = data.build_ids
             this.build_task_ids = data.build_task_ids
+            this.releaseStatus = data.status
             let packages = data.plan.packages
             this.releaseId = data.id
             this.orig_repos = data.plan.repositories
