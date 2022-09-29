@@ -58,13 +58,16 @@
                         <span v-if="viewOnly">
                             {{ col.label }}
                         </span>
-                        <q-select v-else v-model="allPackagesRepo"
-                                  :disable="loadingTable"
-                                  :label="col.label"
-                                  :options="allPackagesRepoOptions"
-                                  dense transition-show="scale"
-                                  transition-hide="scale"
-                                  @update:model-value="updateAllPackagesRepo()">
+                        <q-select 
+                            v-else v-model="allPackagesRepo"
+                            :disable="loadingTable"
+                            :label="col.label"
+                            :options="allPackagesRepoOptions"
+                            dense transition-show="scale"
+                            transition-hide="scale"
+                            @update:model-value="updateAllPackagesRepo()"
+                            style="min-width: 150px"
+                        >
                             <q-tooltip anchor="top middle"
                                        self="bottom middle"
                                        transition-show="jump-up"
