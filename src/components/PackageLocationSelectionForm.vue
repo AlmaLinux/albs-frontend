@@ -137,8 +137,11 @@
                             v-model="props.row.destination" dense
                             :options="props.row.destinationOptions"
                             :readonly="viewOnly ? true : false"
+                            :rules="[val => !!val || 'Destination is required']"
                             transition-show="scale"
-                            transition-hide="scale">
+                            transition-hide="scale"
+                            :ref="'destination_' + props.rowIndex"
+                        >
                         </q-select>
                     </q-td>
                     <q-td key="force_not_notarized" :props="props" v-if="NotNotarizedPackages().length !== 0">
@@ -635,7 +638,20 @@ export default defineComponent({
             })
             return plan
         },
+        checkDestinations () {
+            let flag = false
+            for (const name in this.$refs) {
+                flag = name.includes('destination') && !this.$refs[name].validate()
+            }
+            return flag
+        },
         saveRelease () {
+            if (this.checkDestinations()) {
+                Notify.create({message: 'Please fill all destinations fields', type: 'negative',
+                                actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+                return
+            }
+
             this.loadingSave = true
             this.$api.put(`/releases/${this.releaseId}/`, { plan: this.getPlan() })
                 .then(response => {
@@ -650,6 +666,12 @@ export default defineComponent({
                 })
         },
         commitRelease () {
+            if (this.checkDestinations()) {
+                Notify.create({message: 'Please fill all destinations fields', type: 'negative',
+                                actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+                return
+            }
+
             this.loading = true
             this.$api.put(`/releases/${this.releaseId}/`, { plan: this.getPlan() })
                 .then(response => {
