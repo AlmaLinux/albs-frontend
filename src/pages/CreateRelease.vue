@@ -76,7 +76,6 @@ export default defineComponent({
             this.$refs.Releaser.next()
             if (this.releaseId && (request_body.build_tasks === this.release.build_task_ids)) {
                 this.$refs.packageLocationSelectionForm.createTable(this.release)
-                console.log('lol')
             } else {
                 this.release_id ? this.updateRelease(request_body) : this.createRelease(request_body) 
             }

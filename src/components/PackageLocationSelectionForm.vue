@@ -133,7 +133,8 @@
                         </q-badge>
                     </q-td>
                     <q-td key="destination" :props="props">
-                        <q-select v-model="props.row.destination" dense
+                        <q-select
+                            v-model="props.row.destination" dense
                             :options="props.row.destinationOptions"
                             :readonly="viewOnly ? true : false"
                             transition-show="scale"
@@ -273,8 +274,18 @@ export default defineComponent({
                     format: val => `${val}`,
                     sortable: true
                 },
-                { name: 'destination', align: 'left', label: 'Destination(s)', field: 'destination' },
-                { name: 'force', align: 'left', label: 'Force', field: 'force' }
+                { 
+                    name: 'destination',
+                    align: 'left',
+                    label: 'Destination(s)',
+                    field: 'destination'
+                },
+                { 
+                    name: 'force',
+                    align: 'left',
+                    label: 'Force',
+                    field: 'force'
+                }
             ],
             archs: ['src'],
             filter: '',
