@@ -398,6 +398,8 @@ export default defineComponent({
                 }
                 this.packagesLocation.push(pack)
             }
+            this.setForceAll()
+            this.setNotNotarizedAll()
             if (this.NotNotarizedPackages().length !== 0) {
                 let col = {
                     name: 'force_not_notarized',
@@ -472,17 +474,7 @@ export default defineComponent({
             let notNotarized = this.packagesLocation.filter( pack => !pack.cas_hash)
             return notNotarized
         },
-        selectNotNotarized (row) {
-            if (this.viewOnly) return
-
-            if (row.cas_hash) return
-
-            if (row.force_not_notarized){
-                this.selectedNotNotarized.push(row)
-            } else {
-                let index = this.selectedNotNotarized.indexOf(row)
-                this.selectedNotNotarized = [ ...this.selectedNotNotarized.slice(0, index), ...this.selectedNotNotarized.slice(index + 1) ]
-            }
+        setNotNotarizedAll () {
             switch (this.selectedNotNotarized.length) {
                 case this.NotNotarizedPackages().length:
                     this.forceNotNotarizedAll = true
@@ -494,6 +486,19 @@ export default defineComponent({
                     this.forceNotNotarizedAll = null
                     break;
             }
+        },
+        selectNotNotarized (row) {
+            if (this.viewOnly) return
+
+            if (row.cas_hash) return
+
+            if (row.force_not_notarized){
+                this.selectedNotNotarized.push(row)
+            } else {
+                let index = this.selectedNotNotarized.indexOf(row)
+                this.selectedNotNotarized = [ ...this.selectedNotNotarized.slice(0, index), ...this.selectedNotNotarized.slice(index + 1) ]
+            }
+            this.setNotNotarizedAll()
         },
         selectNotNotarizedAll () {
             if (this.viewOnly) return
@@ -512,15 +517,7 @@ export default defineComponent({
                 pack.force = this.forceAll
             })
         },
-        selectForce (row) {
-            if (this.viewOnly) return
-
-            if (row.force){
-                this.selected.push(row)
-            } else {
-                let index = this.selected.indexOf(row)
-                this.selected = [ ...this.selected.slice(0, index), ...this.selected.slice(index + 1) ]
-            }
+        setForceAll () {
             switch (this.selected.length) {
                 case this.packagesLocation.length:
                     this.forceAll = true
@@ -532,6 +529,17 @@ export default defineComponent({
                     this.forceAll = null
                     break;
             }
+        },
+        selectForce (row) {
+            if (this.viewOnly) return
+
+            if (row.force){
+                this.selected.push(row)
+            } else {
+                let index = this.selected.indexOf(row)
+                this.selected = [ ...this.selected.slice(0, index), ...this.selected.slice(index + 1) ]
+            }
+            this.setForceAll()
         },
         trustness (pack) {
             let trustness = false
