@@ -1,20 +1,25 @@
 <template>
-    <q-form @submit="submit" >
+    <q-form @submit="submit">
         <div class="q-pa-lg row" style="float: left;">
-            <q-select v-model="product" dense
-                        :options="productsOptions" label="Select Product"
-                        :readonly="releaseId ? true : false"
-                        clearable  style="width: 220px"
-                        input-debounce="300"
-                        @filter="productFilter"
-                        use-input autofocus
-                        transition-show="scale"
-                        transition-hide="scale"
-                        :rules="[val => !!val || 'Field is required']">
+            <q-select 
+                v-model="product"
+                dense
+                :options="existingProducts"
+                label="Select Product"
+                :readonly="releaseId ? true : false"
+                clearable
+                style="width: 220px"
+                input-debounce="300"
+                @filter="productFilter"
+                use-input autofocus
+                transition-show="scale"
+                transition-hide="scale"
+                :rules="[val => !!val || 'Field is required']"
+            >
                 <template v-slot:option="scope">
-                    <q-item v-bind="scope.itemProps">              
+                    <q-item v-bind="scope.itemProps">
                         <q-item-section>
-                            <q-item-label class="text-center" v-html="scope.opt.label" ></q-item-label>
+                            <q-item-label class="text-center" v-html="scope.opt.label"/>
                             <q-item-label v-if="scope.opt.description" class="text-center" caption>
                                 {{ scope.opt.description }}
                             </q-item-label>
@@ -24,18 +29,22 @@
             </q-select>
         </div>
         <div class="q-pa-lg row" style="float: left;">
-            
-            <q-select v-model="platform" dense
-                        :options="existingPlatfroms" label="Select Platform"
-                        :readonly="releaseId ? true : false"
-                        clearable  style="width: 220px"
-                        transition-show="scale"
-                        transition-hide="scale"
-                        :rules="[val => !!val || 'Field is required']">
+            <q-select
+                v-model="platform"
+                dense
+                :options="existingPlatfroms"
+                label="Select Platform"
+                :readonly="releaseId ? true : false"
+                clearable
+                style="width: 220px"
+                transition-show="scale"
+                transition-hide="scale"
+                :rules="[val => !!val || 'Field is required']"
+            >
                 <template v-slot:option="scope">
-                    <q-item v-bind="scope.itemProps">              
+                    <q-item v-bind="scope.itemProps">
                         <q-item-section>
-                            <q-item-label class="text-center" v-html="scope.opt.label" ></q-item-label>
+                            <q-item-label class="text-center" v-html="scope.opt.label"/>
                             <q-item-label v-if="scope.opt.description" class="text-center" caption>
                                 {{ scope.opt.description }}
                             </q-item-label>
@@ -46,43 +55,74 @@
         </div>
 
         <div class="q-pa-lg" style="float: left;">
-            <q-input v-model="textValue" label="Enter Build ID or Build link" style="width: 280px"
-                    dense @keydown.enter.prevent="parseBuildId(textValue)">
+            <q-input
+                v-model="textValue"
+                label="Enter Build ID or Build link"
+                style="width: 280px"
+                dense
+                @keydown.enter.prevent="parseBuildId(textValue)"
+            >
                 <template v-slot:after>
-                    <q-btn round dense flat color="primary" icon="add" @click="parseBuildId(textValue)" :loading="loading"/>
+                    <q-btn
+                        round
+                        dense
+                        flat
+                        color="primary"
+                        icon="add"
+                        @click="parseBuildId(textValue)"
+                        :loading="loading"
+                    />
                 </template>
             </q-input>
         </div>
 
         <div class="q-pa-lg q-gutter-xs" style="position: absolute; right: 0;">
-            <q-btn class="shadow-2" color="primary" icon-right="send" label="Submit" type="submit" />
+            <q-btn
+                class="shadow-2"
+                color="primary"
+                icon-right="send"
+                label="Submit"
+                type="submit"
+            />
         </div>
     </q-form>
 
     <div style="width: 100%; float: right">
         <div class="q-pa-md" style="width: 450px; float: left">
-
             <q-list v-if="builds.length" separator bordered class="rounded-borders shadow-2">
-
                 <q-item-label header>Builds list</q-item-label>
 
-                <q-item v-for="build in builds" :key="build.id" v-ripple clickable style="width: 100%;"
-                        :active="activeBuild === build" active-class="bg-grey-4" @click="this.activeBuild = build">
-
+                <q-item
+                    v-for="build in builds" :key="build.id"
+                    v-ripple
+                    clickable
+                    style="width: 100%;"
+                    :active="activeBuild === build"
+                    active-class="bg-grey-4"
+                    @click="this.activeBuild = build"
+                >
                     <q-item-section avatar middle>
                         <q-icon v-if="build.warning" name="warning" color="orange" size="30px">
-                            <q-tooltip anchor="bottom middle" self="top middle" max-width="90px"
-                                    transition-show="scale" transition-hide="scale">
-                                one or more projects failed for some arch
+                            <q-tooltip
+                                anchor="bottom middle"
+                                self="top middle"
+                                max-width="90px"
+                                transition-show="scale"
+                                transition-hide="scale"
+                            >
+                                One or more projects failed for some arch
                             </q-tooltip>
                         </q-icon>
-                        
                         <q-icon v-else name="build_circle" color="black" size="30px" />
                     </q-item-section>
 
                     <q-item-section middle class="col-2" style="width:100px">
                         <q-item-label lines="1">
-                            <router-link class="q-mt-sm cursor-pointer text-black" :to="{path: `/build/${build.id}`}" target="_blank">
+                            <router-link
+                                class="q-mt-sm cursor-pointer text-black"
+                                :to="{path: `/build/${build.id}`}"
+                                target="_blank"
+                            >
                                 Build {{ build.id }}
                             </router-link>
                         </q-item-label>
@@ -90,17 +130,26 @@
 
                     <q-item-section middle>
                         <q-item-label lines="1">
-                            <span> {{`Selected ${build.selected.length} / Total ${build.options.length}`}} </span>
+                            <span>
+                                {{`Selected ${build.selected.length} / Total ${build.options.length}`}}
+                            </span>
                         </q-item-label>
                     </q-item-section>
 
                     <q-item-section top side>
                         <div class="text-grey-8 q-gutter-xs">
-                            <q-btn class="del-btn" size="15px" flat dense round icon="delete" @click="deleteBuild(build.id)"/>
+                            <q-btn
+                                class="del-btn"
+                                size="15px"
+                                flat
+                                dense
+                                round
+                                icon="delete"
+                                @click="deleteBuild(build.id)"
+                            />
                         </div>
                     </q-item-section>
                 </q-item>
-
             </q-list>
         </div>
 
@@ -115,17 +164,17 @@
                         hide-header
                         hide-bottom
                         :rows-per-page-options="[0]"
-                    >   
+                    >
                         <template v-slot:top-right>
-                            <q-btn round dense flat icon="close" @click="this.activeBuild = null"/>
+                            <q-btn round dense flat icon="close" @click="this.activeBuild = null" />
                         </template>
 
                         <template v-slot:body="props">
                             <q-tr :props="props">
                                 <q-td auto-width>
-                                    <q-toggle v-model="props.row.selected" @click="selectProject(activeBuild)"/>
+                                    <q-toggle v-model="props.row.selected" @click="selectProject(activeBuild)" />
                                 </q-td>
-                                <q-td key="label" :props="props" >
+                                <q-td key="label" :props="props">
                                     <build-ref :buildRef="props.row.ref" />
                                 </q-td>
                             </q-tr>
@@ -230,14 +279,14 @@ export default defineComponent({
                 return
             }
             if (this.loading) return
-            
+
             this.loading = true
             this.$api.get(`/builds/${buildId}/`)
                 .then(response => {
                     this.loading = false
                     let build = response.data
                     this.uniqueBuildsId.add(+buildId)
-                    
+
                     let successful = new Set()
                     let failed = new Set()
                     let options = {}
@@ -247,7 +296,7 @@ export default defineComponent({
                     if (build.sign_tasks.length) {
                         buildSigned = build.sign_tasks[build.sign_tasks.length - 1].status === SignStatus.DONE
                     }
-                    
+
                     build.tasks.forEach( task => {
                         if (!task.is_cas_authenticated) {
                             buildAuthenticated = false
@@ -255,7 +304,7 @@ export default defineComponent({
                         switch (task.status) {
                             case BuildStatus.COMPLETED:
                                 failed.has(task.index) ? build.warning = true : successful.add(task.index)
-                                
+
                                 if (options[task.index]){
                                     options[task.index].ids.push(task.id)
                                 } else {
@@ -273,7 +322,7 @@ export default defineComponent({
                                     build.warning = true
                                     options[task.index].selected = false
                                     successful.delete(task.index)
-                                } 
+                                }
                                 break;
                             case BuildStatus.EXCLUDED:
                                 break;

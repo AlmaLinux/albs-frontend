@@ -124,7 +124,8 @@
                                 This release has additional info in logs
                             </q-tooltip>
                         </q-icon>
-                            <q-btn class="gt-xs" flat dense round icon="info" @click="onReleaseView(props.row)" />
+                            <q-btn class="gt-xs" flat dense round icon="info" @click.stop 
+                                   :to="{path: `/release/${props.row.id}`}" />
                         </q-td>
                     </q-tr>
                 </template>
@@ -215,9 +216,6 @@ export default defineComponent({
         },
         searchReleases () {
             this.currentPage = 1
-        },
-        onReleaseView (release) {
-            this.$router.push(`/release/${release.id}`)
         },
         loadFeedPage () {
             this.loading = true

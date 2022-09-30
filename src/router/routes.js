@@ -120,6 +120,11 @@ const routes = [
         }
       },
       { path: '/release/:releaseId', component: () => import('pages/ReleaseDetails.vue'), props: true},
+      { path: '/release/:releaseId/update',
+        meta: { requiresAuth: true },
+        component: () => import('pages/CreateRelease.vue'),
+        props: true
+      },
       {
         path: 'release/create',
         meta: { requiresAuth: true },

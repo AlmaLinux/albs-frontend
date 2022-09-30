@@ -28,15 +28,23 @@
                         @click="tableFullScreen(props)"
                         class="q-ml-md"
                     />
-                    <template v-if="!viewOnly" >
-                        <q-btn @click="saveRelease"
+                    <template v-if="releaseStatus === releaseStatuses.SCHEDULED">
+                        <q-btn v-if="viewOnly" @click.stop 
+                            :to="{path: `/release/${releaseId}/update`}"
+                            color="grey"
+                        >
+                            Edit
+                        </q-btn>
+                        <q-btn v-else @click="saveRelease"
                             :loading="loadingSave"
-                            color="green">
+                            color="green"
+                        >
                             Save
                         </q-btn>
                         <q-btn  @click="confirm = true"
                                 :loading="loading"
-                                color="primary">
+                                color="primary"
+                        >
                             Commit
                         </q-btn>
                     </template>
@@ -50,13 +58,16 @@
                         <span v-if="viewOnly">
                             {{ col.label }}
                         </span>
-                        <q-select v-else v-model="allPackagesRepo"
-                                  :disable="loadingTable"
-                                  :label="col.label"
-                                  :options="allPackagesRepoOptions"
-                                  dense transition-show="scale"
-                                  transition-hide="scale"
-                                  @update:model-value="updateAllPackagesRepo()">
+                        <q-select 
+                            v-else v-model="allPackagesRepo"
+                            :disable="loadingTable"
+                            :label="col.label"
+                            :options="allPackagesRepoOptions"
+                            dense transition-show="scale"
+                            transition-hide="scale"
+                            @update:model-value="updateAllPackagesRepo()"
+                            style="min-width: 150px"
+                        >
                             <q-tooltip anchor="top middle"
                                        self="bottom middle"
                                        transition-show="jump-up"
@@ -122,11 +133,15 @@
                         </q-badge>
                     </q-td>
                     <q-td key="destination" :props="props">
-                        <q-select v-model="props.row.destination" dense
+                        <q-select
+                            v-model="props.row.destination" dense
                             :options="props.row.destinationOptions"
                             :readonly="viewOnly ? true : false"
+                            :rules="[val => !!val || 'Destination is required']"
                             transition-show="scale"
-                            transition-hide="scale">
+                            transition-hide="scale"
+                            :ref="'destination_' + props.rowIndex"
+                        >
                         </q-select>
                     </q-td>
                     <q-td key="force_not_notarized" :props="props" v-if="NotNotarizedPackages().length !== 0">
@@ -243,6 +258,7 @@
 import { defineComponent } from 'vue'
 import { Notify } from 'quasar'
 import { nsvca } from '../utils';
+import { ReleaseStatus } from 'src/constants';
 
 export default defineComponent({
     props: {
@@ -261,8 +277,18 @@ export default defineComponent({
                     format: val => `${val}`,
                     sortable: true
                 },
-                { name: 'destination', align: 'left', label: 'Destination(s)', field: 'destination' },
-                { name: 'force', align: 'left', label: 'Force', field: 'force' }
+                { 
+                    name: 'destination',
+                    align: 'left',
+                    label: 'Destination(s)',
+                    field: 'destination'
+                },
+                { 
+                    name: 'force',
+                    align: 'left',
+                    label: 'Force',
+                    field: 'force'
+                }
             ],
             archs: ['src'],
             filter: '',
@@ -279,7 +305,9 @@ export default defineComponent({
             forceAll: false,
             forceNotNotarizedAll: false,
             modules: [],
-            confirm: false
+            confirm: false,
+            releaseStatus: null,
+            releaseStatuses: ReleaseStatus
         }
     },
     created () {
@@ -332,6 +360,7 @@ export default defineComponent({
             this.createArchColumns(data.platform.arch_list)
             this.build_ids = data.build_ids
             this.build_task_ids = data.build_task_ids
+            this.releaseStatus = data.status
             let packages = data.plan.packages
             this.releaseId = data.id
             this.orig_repos = data.plan.repositories
@@ -369,6 +398,8 @@ export default defineComponent({
                 }
                 this.packagesLocation.push(pack)
             }
+            this.setForceAll()
+            this.setNotNotarizedAll()
             if (this.NotNotarizedPackages().length !== 0) {
                 let col = {
                     name: 'force_not_notarized',
@@ -443,17 +474,7 @@ export default defineComponent({
             let notNotarized = this.packagesLocation.filter( pack => !pack.cas_hash)
             return notNotarized
         },
-        selectNotNotarized (row) {
-            if (this.viewOnly) return
-
-            if (row.cas_hash) return
-
-            if (row.force_not_notarized){
-                this.selectedNotNotarized.push(row)
-            } else {
-                let index = this.selectedNotNotarized.indexOf(row)
-                this.selectedNotNotarized = [ ...this.selectedNotNotarized.slice(0, index), ...this.selectedNotNotarized.slice(index + 1) ]
-            }
+        setNotNotarizedAll () {
             switch (this.selectedNotNotarized.length) {
                 case this.NotNotarizedPackages().length:
                     this.forceNotNotarizedAll = true
@@ -465,6 +486,19 @@ export default defineComponent({
                     this.forceNotNotarizedAll = null
                     break;
             }
+        },
+        selectNotNotarized (row) {
+            if (this.viewOnly) return
+
+            if (row.cas_hash) return
+
+            if (row.force_not_notarized){
+                this.selectedNotNotarized.push(row)
+            } else {
+                let index = this.selectedNotNotarized.indexOf(row)
+                this.selectedNotNotarized = [ ...this.selectedNotNotarized.slice(0, index), ...this.selectedNotNotarized.slice(index + 1) ]
+            }
+            this.setNotNotarizedAll()
         },
         selectNotNotarizedAll () {
             if (this.viewOnly) return
@@ -483,15 +517,7 @@ export default defineComponent({
                 pack.force = this.forceAll
             })
         },
-        selectForce (row) {
-            if (this.viewOnly) return
-
-            if (row.force){
-                this.selected.push(row)
-            } else {
-                let index = this.selected.indexOf(row)
-                this.selected = [ ...this.selected.slice(0, index), ...this.selected.slice(index + 1) ]
-            }
+        setForceAll () {
             switch (this.selected.length) {
                 case this.packagesLocation.length:
                     this.forceAll = true
@@ -503,6 +529,17 @@ export default defineComponent({
                     this.forceAll = null
                     break;
             }
+        },
+        selectForce (row) {
+            if (this.viewOnly) return
+
+            if (row.force){
+                this.selected.push(row)
+            } else {
+                let index = this.selected.indexOf(row)
+                this.selected = [ ...this.selected.slice(0, index), ...this.selected.slice(index + 1) ]
+            }
+            this.setForceAll()
         },
         trustness (pack) {
             let trustness = false
@@ -609,7 +646,20 @@ export default defineComponent({
             })
             return plan
         },
+        checkDestinations () {
+            let flag = false
+            for (const name in this.$refs) {
+                flag = name.includes('destination') && !this.$refs[name].validate()
+            }
+            return flag
+        },
         saveRelease () {
+            if (this.checkDestinations()) {
+                Notify.create({message: 'Please fill all destinations fields', type: 'negative',
+                                actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+                return
+            }
+
             this.loadingSave = true
             this.$api.put(`/releases/${this.releaseId}/`, { plan: this.getPlan() })
                 .then(response => {
@@ -624,6 +674,12 @@ export default defineComponent({
                 })
         },
         commitRelease () {
+            if (this.checkDestinations()) {
+                Notify.create({message: 'Please fill all destinations fields', type: 'negative',
+                                actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+                return
+            }
+
             this.loading = true
             this.$api.put(`/releases/${this.releaseId}/`, { plan: this.getPlan() })
                 .then(response => {
@@ -632,9 +688,7 @@ export default defineComponent({
                             this.loading = false
                             Notify.create({message: response.data.message, type: 'positive',
                                 actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
-                            this.$router.push(`/release-feed`)                            
-                                this.$router.push(`/release-feed`)
-                            this.$router.push(`/release-feed`)                            
+                            this.$router.push(`/release-feed`)
                         })
                         .catch(error => {
                             this.loading = false
