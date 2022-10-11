@@ -2,8 +2,8 @@
     <div class="row justify-center q-col-gutter-sm q-ma-xs q-pl-xl">
         <div style="width: 70%">
             <q-card flat bordered>
-                <q-card-section horizontal>
-                    <q-card-section class="q-pt-xs" style="width: 100%">
+                <q-card-section class="row" horizontal>
+                    <q-card-section class="q-pt-xs col" style="width: 100%">
                         <template v-if="loadingPage">
                             <q-skeleton type="text" style="width:30%"/>
                             <q-skeleton type="text" style="width:50%" class="text-h5 q-mt-sm q-mb-xs"/>
@@ -26,16 +26,18 @@
                             <q-skeleton type="text" class="q-pt-lg"/>
                         </template>
                         <template v-else>
-                            <div>
-                                <b>Supported platforms:&nbsp;</b> <br/>
-                                <span v-for="platform in product.platforms" :key="platform.id">
-                                    {{ platform.name }} <br/>
-                                </span>
-                                <div class="q-pt-md">
-                                    <b>Team:&nbsp;</b>
-                                    <router-link :to="{path: `/teams/${product.team.id}`, query: { tab: 'products' } }">
-                                        {{ product.team.name }}
-                                    </router-link>
+                            <div class="row justify-end q-gutter-lg">
+                                <div>
+                                    <b>Supported platforms:&nbsp;</b> <br/>
+                                    <span v-for="platform in product.platforms" :key="platform.id">
+                                        {{ platform.name }} <br/>
+                                    </span>
+                                    <div class="q-pt-md">
+                                        <b>Team:&nbsp;</b>
+                                        <router-link :to="{path: `/teams/${product.team.id}`, query: { tab: 'products' } }">
+                                            {{ product.team.name }}
+                                        </router-link>
+                                    </div>
                                 </div>
                             </div>
                         </template>
@@ -97,6 +99,36 @@
                 <q-card-section class="q-px-md q-py-xs" v-if="loadingPage">
                     <q-skeleton type="rect" style="height: 40px" />
                 </q-card-section>
+                <q-card-section v-if="!loadingPage && product.sign_key" class="q-px-none q-py-xs">
+                    <q-expansion-item label="Sign key" expand-separator
+                                      icon="lock">
+                        <q-table
+                            :rows="[product.sign_key]"
+                            :columns="keyRows"
+                            flat
+                            style="width: 100%"
+                            wrap-cells
+                            hide-pagination
+                            :rows-per-page-options=[0]
+                        >
+                        <template v-slot:body="props">
+                            <q-tr :props="props">
+                                <q-td key="keyid" :props="props">{{ props.row.keyid }}</q-td>
+                                <q-td key="name" :props="props">{{ props.row.name }}</q-td>
+                                <q-td key="inserted" :props="props">
+                                    {{ createdAt(props.row.inserted) }}
+                                </q-td>
+                                <q-td key="public_url" :props="props">
+                                    <a :href="props.row.public_url" target="_blank">{{ props.row.public_url }}</a>
+                                </q-td>
+                            </q-tr>
+                        </template>
+                        </q-table>
+                    </q-expansion-item>
+                </q-card-section>
+                <q-card-section class="q-px-md q-py-xs" v-if="loadingPage">
+                    <q-skeleton type="rect" style="height: 40px" />
+                </q-card-section>
                 <q-card-section v-if="!loadingPage && product.builds.length !== 0" class="q-px-none q-py-xs">
                     <q-expansion-item label="Builds" expand-separator
                                       icon="build_circle">
@@ -131,7 +163,21 @@
                 </q-card-section>
                 <q-separator/>
 
-                <q-card-actions class="row justify-end q-gutter-sm q-pr-sm">
+                <q-card-actions class="row justify-end q-gutter-lg q-pr-sm">  
+                    <div v-if="!loadingPage">
+                        <q-btn
+                            v-if="!product.sign_key"
+                            color="green-6"
+                            icon="enhanced_encryption"
+                            round
+                            @click="confirm_key = true"
+                            :loading="loadingKey"
+                        >
+                            <q-tooltip>
+                                Add sign key
+                            </q-tooltip>
+                        </q-btn>
+                    </div>
                     <q-skeleton type="circle" v-if="loadingPage"/>
                     <q-btn v-else color="negative" icon="delete" round @click="confirm = true" :loading="loading">
                         <q-tooltip>
@@ -142,13 +188,27 @@
             </q-card>
         </div>
     </div>
+    <q-dialog v-model="confirm_key" persistent>
+        <q-card style="width: 50%">
+            <q-card-section>
+                <div class="text-h6">Warning</div>
+            </q-card-section>
+            <q-card-section>
+                Are you sure you want to <b>create a new sign key</b> for the product ?
+            </q-card-section>
+            <q-card-actions align="right">
+                <q-btn flat label="Ok" color="primary" @click="addSignKey()" :loading="loadingKey"/>
+                <q-btn flat text-color="negative" label="Cancel" v-close-popup/>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
     <q-dialog v-model="confirm" persistent>
         <q-card style="width: 50%">
             <q-card-section>
                 <div class="text-h6">Warning</div>
             </q-card-section>
             <q-card-section>
-                Are you sure you want to delete the product ?
+                Are you sure you want to <b>delete</b> the product ?
             </q-card-section>
             <q-card-actions align="right">
                 <q-btn flat label="Ok" color="primary" @click="deleteProduct()" :loading="loading" />
@@ -183,9 +243,17 @@ export default defineComponent({
         return {
             product: null,
             confirm: false,
+            confirm_key: false,
             doc: false,
             loadingPage: false,
             loading: false,
+            loadingKey: false,
+            keyRows: [
+                { name: 'keyid', required: true, align: 'left', label: 'ID', field: 'keyid' },
+                { name: 'name', required: true, align: 'left', label: 'Name', field: 'name' },
+                { name: 'inserted', required: true, align: 'center', label: 'Created at', field: 'inserted' },
+                { name: 'public_url', required: true, align: 'left', label: 'URL', field: 'public_url' }
+            ],
             // mockPackages: [
             //     { name: 'alsa-sof-firmware', version: '#1.9.3-4.el8_6'},
             //     { name: 'cheese', version: '#3.28.0-4.el8_6'},
@@ -208,6 +276,9 @@ export default defineComponent({
         copyToClipboard: copyToClipboard,
         installationString () {
             return `dnf copr --hub ${window.location.host} enable ${this.product.owner.username}/${this.product.name}`
+        },
+        createdAt (date) {
+            return new Date(date).toLocaleString()
         },
         loadProduct (productId) {
             this.loadingPage = true
@@ -244,6 +315,43 @@ export default defineComponent({
                             { label: 'Dismiss', color: 'white', handler: () => {} }
                         ]
                     })
+                })
+        },
+        addSignKey () {
+            this.loadingKey = true
+            this.$api.post(`products/${this.productId}/create-sign-key/`)
+                .then(response => {
+                    if (response.error) {
+                        Notify.create({
+                            message: response.error,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    }
+                    this.loadingKey = false
+                    this.confirm_key = false
+                    this.loadProduct(response.product_id)
+                })
+                .catch(error => {
+                    console.log(error)
+                    this.loadingKey = false
+                    this.confirm_key = false
+                    if (+String(error.response.status)[0] === 4 ){
+                        Notify.create({
+                            message: error.response.data.detail, type: 'negative',
+                            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+                        })
+                    } else {
+                        Notify.create({
+                            message: `${error.response.status}: ${error.response.statusText}`,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    }
                 })
         }
     }
