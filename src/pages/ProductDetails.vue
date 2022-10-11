@@ -332,7 +332,7 @@ export default defineComponent({
                     }
                     this.loadingKey = false
                     this.confirm_key = false
-                    this.loadProduct(response.product_id)
+                    this.loadProduct(this.productId)
                 })
                 .catch(error => {
                     console.log(error)
