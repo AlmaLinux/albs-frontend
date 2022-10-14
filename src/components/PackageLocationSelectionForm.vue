@@ -649,7 +649,9 @@ export default defineComponent({
         checkDestinations () {
             let flag = false
             for (const name in this.$refs) {
-                flag = name.includes('destination') && !this.$refs[name].validate()
+                if (this.$refs[name]) {
+                    flag = name.includes('destination') && !this.$refs[name].validate()
+                }
             }
             return flag
         },
