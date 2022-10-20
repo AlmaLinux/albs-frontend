@@ -13,6 +13,9 @@
         <q-checkbox left-label class="text-grey-8 text-body1 q-pb-sm"
                     v-model="buildPlan.is_secure_boot" label="Secure Boot"/>
 
+        <q-checkbox left-label class="text-grey-8 text-body1 q-pb-sm"
+                    v-model="parallelMode" label="Parallel mode"/>
+
         <q-select v-model="product"
                   :options="buildProducts"
                   label="Product:"
@@ -172,6 +175,7 @@ export default defineComponent({
         platform_flavors: []
       },
       product: null,
+      parallelMode: true,
       platformArches: platformArches,
       currentStep: 'buildEnvironment',
       linked_builds_input: '',
@@ -294,7 +298,11 @@ export default defineComponent({
       let platforms = []
       let cachePlatforms = this.buildPlan.platforms
       for (let platform of this.buildPlan.platforms) {
-        platforms.push({name: platform.value, arch_list: this.platformArches[platform.value]})
+        platforms.push({
+          name: platform.value,
+          arch_list: this.platformArches[platform.value],
+          parallel_mode_enabled: this.parallelMode
+        })
       }
       this.buildPlan.platforms = platforms
       let flavors = []
