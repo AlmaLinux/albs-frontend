@@ -282,6 +282,14 @@
                 <q-item-label>Rebuild failed build items</q-item-label>
               </q-item-section>
             </q-item>
+            <q-item clickable v-close-popup @click="onRebuildFailedItems(true)" v-if="failedItems">
+              <q-item-section avatar>
+                <q-avatar icon="repeat"/>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Rebuild failed build items in parallel</q-item-label>
+              </q-item-section>
+            </q-item>
             <q-item clickable v-close-popup @click="add_to_product = true" v-if="allowProductModify">
               <q-item-section avatar>
                 <q-avatar icon="playlist_add_check"/>
@@ -665,9 +673,12 @@ export default defineComponent({
           })
         })
     },
-    onRebuildFailedItems () {
+    onRebuildFailedItems (parallelMode) {
       Loading.show()
-      this.$api.patch(`/builds/${this.buildId}/restart-failed`, {})
+      let endpoint = parallelMode ?
+        `/builds/${this.buildId}/parallel-restart-failed` :
+        `/builds/${this.buildId}/restart-failed`
+      this.$api.patch(endpoint, {})
         .then(() => {
           Loading.hide()
           Notify.create({
