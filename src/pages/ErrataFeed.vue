@@ -11,11 +11,13 @@
                     clearable
                 />
 
-                <q-input
-                    v-model="bulletinTitle"
+                <q-select
+                    v-model="status"
+                    :options="statuses"
+                    label="Status"
                     class="col"
-                    label="Bulletin title"
-                    @keydown.enter.prevent="searchErrata()"
+                    style="width: 5%"
+                    clearable
                 />
             </div>
             <div class="q-py-md q-gutter-md row items-start">
@@ -30,6 +32,14 @@
                     v-model="cveId"
                     label="CVE ID"
                     class="col"
+                    @keydown.enter.prevent="searchErrata()"
+                />
+            </div>
+            <div class="q-py-md q-gutter-md row items-start">
+                <q-input
+                    v-model="bulletinTitle"
+                    class="col"
+                    label="Bulletin title"
                     @keydown.enter.prevent="searchErrata()"
                 />
             </div>
@@ -53,6 +63,16 @@
                     <q-tr :props="props" class="cursor-pointer"
                             :class="markAdvisory(props.row.id)"
                             @click="loadAdvisory(props.row.id)">
+                        <q-td key="release_status" :props="props">
+                            <q-chip
+                                :color="statusColor(props.row)"
+                                text-color="white"
+                                dense
+                                class="text-weight-bolder"
+                                square>
+                                {{ props.row.release_status }}
+                            </q-chip>
+                        </q-td>
                         <q-td key="updated_date" :props="props">{{ formatDate(props.row.updated_date) }}</q-td>
                         <q-td key="id" :props="props">{{ props.row.id }}</q-td>
                         <q-td key="original_title" :props="props">{{ title(props.row) }}</q-td>
@@ -74,6 +94,7 @@
 import { defineComponent, ref } from 'vue'
 import { Notify } from 'quasar'
 import ErrataInfo from 'components/ErrataInfo.vue'
+import { ErrataReleaseStatus } from 'src/constants'
 
 export default defineComponent({
   data () {
@@ -81,15 +102,19 @@ export default defineComponent({
         bulletinTitle: '',
         id: '',
         cveId: '',
+        status: '',
         platform: null,
         loading: false,
         loadingTable: false,
         totalPages: ref(1),
         selectedAdvisory: null,
         columns: [ 
+            { name: 'release_status', required: true, align: 'left', label: 'Status', field: 'release_status' },
             { name: 'updated_date', required: true, label: 'Update date', align: 'left', field: 'updated_date', headerStyle: 'width: 120px' },
             { name: 'id', required: true, align: 'left', label: 'ID', field: 'id'},
-            { name: 'original_title', required: true, align: 'left', label: 'Bulletin title', field: 'original_title' }],
+            { name: 'original_title', required: true, align: 'left', label: 'Bulletin title', field: 'original_title' },
+        ],
+        errataStatuses: ErrataReleaseStatus,
         advisors: [],
     }
   },
@@ -102,8 +127,13 @@ export default defineComponent({
             return {label: platform.name, value: platform.id, arch_list: platform.arch_list }
         })
     },
+    statuses () {
+        return Object.values(this.errataStatuses.text).map((status, _) => {
+            return { label: status, value: status }
+        })
+    },
     errataPageNumber () {
-            return this.$store.getters['errataFeed/errataPageNumber']
+        return this.$store.getters['errataFeed/errataPageNumber']
     },
     currentPage: {
         get () { return this.$store.state.errataFeed.pageNumber },
@@ -118,13 +148,32 @@ export default defineComponent({
         this.loading = true
         this.currentPage = 1
     },
+    statusColor(record) {
+        let col = ''
+        switch (record.release_status) {
+            case this.errataStatuses.NOT_RELEASED:
+                col = 'grey'
+                break;
+            case this.errataStatuses.IN_PROGRESS:
+                col = 'primary'
+                break;
+            case this.errataStatuses.RELEASED:
+                col = 'green'
+                break;
+            case this.errataStatuses.FAILED:
+                col = 'negative'
+                break;
+        }
+        return col
+    },
     loadAdvisors () {
         let query = {
             title: this.bulletinTitle,
             id: this.id,
             cveId: this.cveId,
-            pageNumber: this.errataPageNumber
+            pageNumber: this.errataPageNumber,
         }
+        if (this.status) query.status = this.status.value
         if (this.platform) query.platformId = this.platform.value 
         this.loadingTable = true
         this.$api.get(`/errata/query/`, {params: query})
