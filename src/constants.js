@@ -117,11 +117,32 @@ const ReleaseStatus = {
     4: 'negative'
   }
 }
+
+const ErrataReleaseStatus = {
+  NOT_RELEASED: 'not released',
+  IN_PROGRESS: 'in progress',
+  RELEASED: 'released',
+  FAILED: 'failed',
+  text: {
+    NOT_RELEASED: 'not released',
+    IN_PROGRESS: 'in progress',
+    RELEASED: 'released',
+    FAILED: 'failed'
+  },
+  color: {
+    NOT_RELEASED: 'faded',
+    IN_PROGRESS: 'faded',
+    RELEASED: 'primary',
+    FAILED: 'negative'
+  }
+}
+
 export {
   BuildStatus,
   BuildTaskRefType,
   TestStatus,
   TestTapStatus,
   SignStatus,
-  ReleaseStatus
+  ReleaseStatus,
+  ErrataReleaseStatus,
 }

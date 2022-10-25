@@ -65,6 +65,7 @@
                     >
                         <q-tab name="patchInfo" no-caps label="Patch Info"/>
                         <q-tab name="packages" no-caps label="Packages"/>
+                        <q-tab name="logs" no-caps label="Latest release log"/>
                     </q-tabs>
 
                     <q-separator />
@@ -307,6 +308,13 @@
                                 </q-tr>
                             </template>
                             </q-table>
+                        </q-tab-panel>
+                        <q-tab-panel name="logs">
+                            <div class="row justify-center q-pt-none log-container">
+                                <pre>
+                                    {{ advisory.last_release_log ? `${advisory.last_release_log}`: "This record doesn't have any logs" }}
+                                </pre>
+                            </div>
                         </q-tab-panel>
                     </q-tab-panels>
             </q-card-section>
@@ -755,24 +763,14 @@ export default defineComponent({
             this.$api.post(`/errata/release_record/${this.advisory.id}/`)
             .then(response => {
                 this.loadingRelease = false
-                if (!response.data.ok) {
-                    Notify.create({
-                        message: response.data.error,
-                        timeout: 0,
-                        type: 'negative',
-                        actions: [
-                            { label: 'Dismiss', color: 'white', handler: () => {} }
-                        ]
-                    })
-                } else {
-                    Notify.create({
-                        message: `Record ${this.advisory.id} is released`,
-                        type: 'positive',
-                        actions: [
-                            { label: 'Dismiss', color: 'white', handler: () => {} }
-                        ]
-                    })
-                }
+                Notify.create({
+                    message: `${response.data.message}`,
+                    type: 'positive',
+                    actions: [
+                        { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                })
+                this.$emit('updateFeed')
             })
             .catch(error => {
                 this.loadingRelease = false
@@ -793,4 +791,18 @@ export default defineComponent({
 </script>
 
 <style scoped>
+  .log-container {
+    font-size: small;
+    overflow-y: auto;
+    padding-left: 2em;
+    background-color: #f5f8fa !important;
+  }
+
+  .log-container pre {
+    white-space: pre-line;
+    word-break: break-all;
+    color: #0c5176 !important;
+    font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+    text-align: left;
+  }
 </style>
