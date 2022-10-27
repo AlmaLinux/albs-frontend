@@ -3,5 +3,15 @@
   "vetur.format.enable": false,
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"],
   
-  "vetur.experimental.templateInterpolationService": true
+  "vetur.experimental.templateInterpolationService": true,
+  "prettier.configPath": ".prettierrc",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "json.format.enable": true,
+  "html.format.enable": true,
+  "javascript.format.enable": true,
+  "typescript.format.enable": true,
+  "css.format.enable": true,
+  "less.format.enable": true,
+  "scss.format.enable": true,
+  "prettier.enableDebugLogs": true
 }
