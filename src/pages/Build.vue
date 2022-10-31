@@ -189,6 +189,17 @@
         </q-chip>
       </q-card-section>
 
+      <q-card-section v-if="build.products.length">
+        <q-expansion-item label="Products" expand-separator
+                          icon="list">
+          <q-item v-for="product in build.products" :key="product.id">
+            <router-link :to="`/product/${product.id}`">
+              {{ product.name }}
+            </router-link>
+          </q-item>
+        </q-expansion-item>
+      </q-card-section>
+
       <q-card-section v-if="signs.length">
         <q-expansion-item label="Sign" expand-separator
                           icon="lock">
@@ -332,11 +343,11 @@
         <q-card-section>
           <div class="text-h6">Add to a product</div>
         </q-card-section>
-        <q-form @submit="AddToProduct">
+        <q-form @submit="addToProduct">
           <q-card-section>
             <q-select v-model="current_product" label="Choose product to add to"
                       :rules="[val => !!val || 'Product name is required']"
-                      :options="existingProducts"/>
+                      :options="productsToAdd"/>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat text-color="primary" label="Add" style="width: 150px"
@@ -353,11 +364,11 @@
         <q-card-section>
           <div class="text-h6">Remove from a product</div>
         </q-card-section>
-        <q-form @submit="RemoveFromProduct">
+        <q-form @submit="removeFromProduct">
           <q-card-section>
             <q-select v-model="current_product" label="Choose product to remove from"
                       :rules="[val => !!val || 'Product name is required']"
-                      :options="existingProducts"/>
+                      :options="productsToRemove"/>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat text-color="primary" label="Remove" style="width: 150px"
@@ -487,6 +498,16 @@ export default defineComponent({
         return {label: product.name, value: product.name}
       })
     },
+    productsToAdd () {
+      return this.existingProducts.filter(product => {
+        return !this.build.products.find(p => p.name === product.label)
+      })
+    },
+    productsToRemove () {
+      return this.existingProducts.filter(product => {
+        return this.build.products.find(p => p.name === product.label)
+      })
+    },
     existingKeys () {
       return this.$store.state.keys.keys.map(key => {
         return {label: key.name, value: key.id}
@@ -598,14 +619,14 @@ export default defineComponent({
     changeStatus (task, status) {
       if (task.status < status) task.status = status
     },
-    AddToProduct () {
+    addToProduct () {
       this.loading = true
       this.$api.post(`/products/add/${this.buildId}/${this.current_product.label}/`)
         .then(() => {
           this.loading = false
           this.add_to_product = false
           Notify.create({
-            message: `Packages of build ${this.buildId} has been added to ${this.current_product.label} product`,
+            message: `Packages of build ${this.buildId} have been added to ${this.current_product.label} product`,
             type: 'positive',
             actions: [
               { label: 'Dismiss', color: 'white', handler: () => {} }
@@ -624,14 +645,14 @@ export default defineComponent({
           })
         })
     },
-    RemoveFromProduct () {
+    removeFromProduct () {
       this.loading = true
       this.$api.post(`/products/remove/${this.buildId}/${this.current_product.label}/`)
         .then(() => {
           this.loading = false
           this.remove_from_product = false
           Notify.create({
-            message: `Packages of build ${this.buildId} has been removed to ${this.current_product.label} product`,
+            message: `Packages of build ${this.buildId} have been removed from ${this.current_product.label} product`,
             type: 'positive',
             actions: [
               { label: 'Dismiss', color: 'white', handler: () => {} }
