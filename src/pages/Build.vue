@@ -480,7 +480,8 @@ export default defineComponent({
       current_product: null,
       mock_options: null,
       signLogText: '',
-      signStatus: SignStatus
+      signStatus: SignStatus,
+      previousProducts: null
     }
   },
   computed: {
@@ -599,6 +600,7 @@ export default defineComponent({
     // update the build state every minute
     this.refreshTimer = setInterval(() => {
       if (this.reload) {
+        this.previousProducts = this.build.products
         this.loadBuildInfo(this.buildId)
       }
     }, 60000)
@@ -839,6 +841,36 @@ export default defineComponent({
           Loading.hide()
           this.buildLoad = false
           this.reload = true
+          if (this.previousProducts) {
+            if (this.previousProducts.length != this.build.products.length) {
+                let previousProducts = this.previousProducts.map(p => p.name)
+                let currentProducts = this.build.products.map(p => p.name)
+                let addedProducts = currentProducts
+                  .filter(p => !previousProducts.includes(p))
+                let removedProducts = previousProducts
+                  .filter(p => !currentProducts.includes(p))
+                if (addedProducts.length) {
+                  let msg = `Build successfully added to ${addedProducts.join(", ")} product(s)`
+                  Notify.create({
+                    message: msg,
+                    type: 'positive',
+                    actions: [
+                      { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                  })
+                }
+                if (removedProducts.length) {
+                  let msg = `Build successfully removed from ${removedProducts.join(", ")} product(s)`
+                  Notify.create({
+                    message: msg,
+                    type: 'positive',
+                    actions: [
+                      { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                  })
+                }
+            }
+          }
         })
         .catch(error => {
           Loading.hide()
