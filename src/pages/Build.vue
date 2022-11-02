@@ -440,7 +440,7 @@ import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import ModuleYaml from 'components/ModuleYaml.vue'
 import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
-import { nsvca, copyToClipboard } from '../utils';
+import { nsvca, copyToClipboard, deepDiff, isEmptyObject } from '../utils';
 import axios from 'axios'
 
 export default defineComponent({
@@ -469,7 +469,8 @@ export default defineComponent({
       current_product: null,
       mock_options: null,
       signLogText: '',
-      signStatus: SignStatus
+      signStatus: SignStatus,
+      previousBuildInfo: null
     }
   },
   computed: {
@@ -790,33 +791,59 @@ export default defineComponent({
           })
         })
     },
-    loadBuildInfo (buildId) {
+    renderBuildInfo () {
       this.reload = false
       this.linked_builds = null
       this.mock_options = null
       this.buildLoad = true
       Loading.show()
+
+      this.build.tasks.forEach(task => {
+        if (task.rpm_module) {
+          this.rpm_module[`${task.platform.name}.${task.arch}`] = task.rpm_module
+        }
+        if (task.status === BuildStatus.COMPLETED) {
+          this.loadTestsInfo(task)
+        }
+      })
+      this.loadSignInfo(this.build.id)
+      if (this.build.mock_options) {
+        this.mock_options = this.build.mock_options
+      }
+      if (this.build.linked_builds.length) {
+        this.linked_builds = this.build.linked_builds
+      }
+      Loading.hide()
+      this.buildLoad = false
+      this.reload = true
+    },
+    loadBuildInfo (buildId) {
       this.$api.get(`/builds/${buildId}/`)
         .then(response => {
-          this.build = response.data
-          this.build.tasks.forEach(task => {
-            if (task.rpm_module) {
-              this.rpm_module[`${task.platform.name}.${task.arch}`] = task.rpm_module
+          let buildInfo = response.data
+          if (!this.previousBuildInfo) {
+            this.build = buildInfo
+            this.previousBuildInfo = JSON.parse(JSON.stringify(buildInfo))
+            this.renderBuildInfo()
+          } else {
+            let changes = deepDiff(
+              JSON.parse(JSON.stringify(this.previousBuildInfo)),
+              JSON.parse(JSON.stringify(buildInfo))
+            )
+            // TODO: Remove log statements before merging
+            console.log("new buildInfo: ", buildInfo)
+            console.log("previous buildInfo: ", this.previousBuildInfo)
+            console.log("changes in new buildInfo: ", changes)
+            // This can be handled in a more fine grained way, because not all
+            // the changes mean that we need to reload. In any case, this
+            // approach already saves the user from waiting for page reloads
+            if (!isEmptyObject(changes)) {
+              console.log("RE-DRAW BUILD PAGE!")
+              this.build = buildInfo
+              this.previousBuildInfo = JSON.parse(JSON.stringify(buildInfo))
+              this.renderBuildInfo()
             }
-            if (task.status === BuildStatus.COMPLETED) {
-              this.loadTestsInfo(task)
-            }
-          })
-          this.loadSignInfo(buildId)
-          if (this.build.mock_options) {
-            this.mock_options = this.build.mock_options
           }
-          if (this.build.linked_builds.length) {
-            this.linked_builds = this.build.linked_builds
-          }
-          Loading.hide()
-          this.buildLoad = false
-          this.reload = true
         })
         .catch(error => {
           Loading.hide()
