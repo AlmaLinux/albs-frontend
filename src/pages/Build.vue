@@ -142,7 +142,7 @@
                         size="sm"
                         title="Restart build task tests"
                         v-if="buildFinished && userAuthenticated()"
-                        @click="RestartTestTask(task.id)"/>
+                        @click="restartTestTask(task.id)"/>
                     </td>
                   </template>
                 </tr>
@@ -317,7 +317,7 @@
                 <q-item-label>Remove from a product</q-item-label>
               </q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="RestartBuildTests()" v-if="testingCompleted">
+            <q-item clickable v-close-popup @click="restartBuildTests()" v-if="testingCompleted">
               <q-item-section avatar>
                 <q-avatar icon="restart_alt"/>
               </q-item-section>
@@ -347,7 +347,7 @@
           <q-card-section>
             <q-select v-model="current_product" label="Choose product to add to"
                       :rules="[val => !!val || 'Product name is required']"
-                      :options="productsToAdd"/>
+                      :options="addableProducts"/>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat text-color="primary" label="Add" style="width: 150px"
@@ -368,7 +368,7 @@
           <q-card-section>
             <q-select v-model="current_product" label="Choose product to remove from"
                       :rules="[val => !!val || 'Product name is required']"
-                      :options="productsToRemove"/>
+                      :options="removableProducts"/>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat text-color="primary" label="Remove" style="width: 150px"
@@ -498,12 +498,12 @@ export default defineComponent({
         return {label: product.name, value: product.name}
       })
     },
-    productsToAdd () {
+    addableProducts () {
       return this.existingProducts.filter(product => {
         return !this.build.products.find(p => p.name === product.label)
       })
     },
-    productsToRemove () {
+    removableProducts () {
       return this.existingProducts.filter(product => {
         return this.build.products.find(p => p.name === product.label)
       })
@@ -622,11 +622,11 @@ export default defineComponent({
     addToProduct () {
       this.loading = true
       this.$api.post(`/products/add/${this.buildId}/${this.current_product.label}/`)
-        .then(() => {
+        .then(res => {
           this.loading = false
           this.add_to_product = false
           Notify.create({
-            message: `Packages of build ${this.buildId} have been added to ${this.current_product.label} product`,
+            message: res.data.message,
             type: 'positive',
             actions: [
               { label: 'Dismiss', color: 'white', handler: () => {} }
@@ -648,11 +648,11 @@ export default defineComponent({
     removeFromProduct () {
       this.loading = true
       this.$api.post(`/products/remove/${this.buildId}/${this.current_product.label}/`)
-        .then(() => {
+        .then(res => {
           this.loading = false
           this.remove_from_product = false
           Notify.create({
-            message: `Packages of build ${this.buildId} have been removed from ${this.current_product.label} product`,
+            message: res.data.message,
             type: 'positive',
             actions: [
               { label: 'Dismiss', color: 'white', handler: () => {} }
@@ -666,7 +666,8 @@ export default defineComponent({
             message: error.response.data.detail, type: 'negative',
             actions: [
                 { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]})
+            ]
+          })
         })
     },
     deleteBuild () {
@@ -723,7 +724,7 @@ export default defineComponent({
           this.reload = true
         })
     },
-    RestartBuildTests () {
+    restartBuildTests () {
       this.$api.put(`/tests/build/${this.buildId}/restart`)
         .then(() =>{
           Notify.create({
@@ -735,7 +736,7 @@ export default defineComponent({
           })
         })
     },
-    RestartTestTask (taskId) {
+    restartTestTask (taskId) {
       this.$api.put(`/tests/build_task/${taskId}/restart`)
         .then(() =>{
           Notify.create({
