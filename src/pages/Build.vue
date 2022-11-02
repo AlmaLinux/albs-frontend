@@ -85,7 +85,7 @@
                   <th><td/></th>
                   <th>Status</th>
                   <th>Packages</th>
-                  <th v-if="userAuthenticated()" >Actions</th>
+                  <th class="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -134,15 +134,27 @@
                         </q-badge>
                       </div>
                     </td>
-                    <td>
-                      <q-btn
-                        round
-                        color="primary"
-                        icon="restart_alt"
-                        size="sm"
-                        title="Restart build task tests"
-                        v-if="buildFinished && userAuthenticated()"
-                        @click="RestartTestTask(task.id)"/>
+                    <td class="text-center">
+                      <div class="q-gutter-xs">
+                        <q-btn
+                          round
+                          color="primary"
+                          icon="settings"
+                          size="sm"
+                          title="Show mock options"
+                          v-if="checkMockOptions(task)"
+                          @click="showMock(task)"
+                        />
+                        <q-btn
+                          round
+                          color="primary"
+                          icon="restart_alt"
+                          size="sm"
+                          title="Restart build task tests"
+                          v-if="buildFinished && userAuthenticated()"
+                          @click="RestartTestTask(task.id)"
+                        />
+                      </div>
                     </td>
                   </template>
                 </tr>
@@ -234,28 +246,28 @@
         </q-expansion-item>
       </q-card-section>
       <q-card-section v-if="mock_options && Object.keys(mock_options).length !== 0">
-        <q-expansion-item label="Mock Options" expand-separator
+        <q-expansion-item label="Global Mock Options" expand-separator
                           icon="settings">
-          <q-card>
+          <q-card class="mock-options">
             <q-card-section>
-              <q-item-section v-if="mock_options.with" style="font-size: 10pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.with">
                 --with '{{ mock_options.with.join(' ') }}'
               </q-item-section>
-              <q-item-section v-if="mock_options.without" style="font-size: 10pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.without">
                 --without '{{ mock_options.without.join(' ') }}'
               </q-item-section>
-              <q-item-section v-if="mock_options.target_arch" style="font-size: 10pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.target_arch">
                 --target '{{ mock_options.target_arch }}'
               </q-item-section>
-              <q-item-section v-if="mock_options.yum_exclude" style="font-size: 10pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.yum_exclude">
                 -x '{{ mock_options.yum_exclude.join(' ') }}'
               </q-item-section>
-              <q-item-section v-if="mock_options.definitions" style="font-size: 10pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.definitions">
                 <q-item-section v-for="name in Object.keys(mock_options.definitions)" :key="name">
                   --define '{{ name }} {{ mock_options.definitions[name] }}'
                 </q-item-section>
               </q-item-section>
-              <q-item-section v-if="mock_options.module_enable" style="font-size: 10pt; letter-spacing: 1pt;">
+              <q-item-section v-if="mock_options.module_enable">
                 enabled modules : {{ mock_options.module_enable.join(' ') }}
               </q-item-section>
             </q-card-section>
@@ -327,6 +339,30 @@
       </q-card-actions>
 
     </q-card>
+    <q-dialog v-model="taskMock">
+      <q-card style="showMockStyle()" v-if="selectedTask">
+        <q-card-section class="bg-primary shadow-2">
+            <div
+              class="text-h6 text-white text-center ref-link-white"
+            >
+              <buildRef
+                :buildRef="selectedTask.ref"
+                cssClass="ref-link-white"
+              />
+            </div>
+        </q-card-section>
+        <mock-options-show :mock_options="selectedTask.mock_options"/>
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            text-color="negative"
+            label="Close"
+            @click="selectedTask = null; taskMock = false"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-dialog v-model="add_to_product">
       <q-card style="width: 400px;">
         <q-card-section>
@@ -417,7 +453,6 @@
           <div class="text-h6">Sign log</div>
         </q-card-section>
           <q-infinite-scroll
-              ref="logContent"
               :style="{height: innerHeight - 150 + 'px'}"
               class="log-container" inline
           >
@@ -439,6 +474,7 @@ import {exportFile, Loading, Notify} from 'quasar'
 import BuildRef from 'components/BuildRef.vue'
 import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import ModuleYaml from 'components/ModuleYaml.vue'
+import MockOptionsShow from 'components/MockOptionsShow.vue'
 import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
 import { nsvca, copyToClipboard } from '../utils';
 import axios from 'axios'
@@ -468,11 +504,16 @@ export default defineComponent({
       current_sign: null,
       current_product: null,
       mock_options: null,
+      selectedTask: null,
+      taskMock: false,
       signLogText: '',
       signStatus: SignStatus
     }
   },
   computed: {
+    innerHeight: function () {
+      return window.innerHeight
+    },
     allowProductModify () {
       let allow_modify = true
       for (let i=0; i < this.build.tasks.length; i++) {
@@ -980,12 +1021,32 @@ export default defineComponent({
       if (this.build.release_id){
         this.$router.push(`/release/${this.build.release_id}`)
       }
+    },
+    checkMockOptions (task) {
+      if (!task.mock_options || Object.keys(task.mock_options).length === 0) return false
+
+      if (Object.keys(task.mock_options).length === 1
+            && task.mock_options.definitions
+            && Object.keys(task.mock_options.definitions).length === 0)
+        return false
+
+      return true
+    },
+    showMock (task) {
+      if (task.mock_options && Object.keys(task.mock_options).length !== 0){
+        this.selectedTask = task
+        this.taskMock = true
+      }
+    },
+    showMockStyle () {
+      return `max-height: ${innerHeight - 250}px; width: 600px`
     }
   },
   components: {
     BuildRef,
     BuildStatusCircle,
-    ModuleYaml
+    ModuleYaml,
+    MockOptionsShow
   }
 })
 </script>
@@ -999,15 +1060,12 @@ export default defineComponent({
     border: none !important;
   }
 
-  .mock-options dd {
+  .mock-options {
     font-family: monospace;
-    font-size: medium;
+    font-size: 10pt;
+    letter-spacing: 1pt;
     padding: 0.5em 0 1em 1em;
     width: 30vw;
-  }
-
-  .mock-options dd:last-child {
-    padding-bottom: 0;
   }
 
   th.platform-name {
