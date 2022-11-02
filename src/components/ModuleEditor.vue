@@ -510,6 +510,7 @@
           name: name,
           stream: stream,
           enable: true,
+          no_stream: !stream,
           mock: true,
         }
         this.moduleInfo.enabled_modules_table.forEach((m) => {
