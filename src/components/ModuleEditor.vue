@@ -516,9 +516,10 @@
         this.moduleInfo.enabled_modules_table.forEach((m) => {
           if (m.name === name) {
             mock_module.buildtime = !!m.buildtime
-            mock_module.add_to_buildtime = !!m.buildtime
+            mock_module.add_to_buildtime =
+              !!m.buildtime && !mock_module.no_stream
             mock_module.runtime = !!m.runtime
-            mock_module.add_to_runtime = !!m.runtime
+            mock_module.add_to_runtime = !!m.runtime && !mock_module.no_stream
             if (m.no_stream) {
               m.add_to_buildtime = false
               m.add_to_runtime = false
