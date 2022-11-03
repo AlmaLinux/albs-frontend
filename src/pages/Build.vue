@@ -152,7 +152,7 @@
                           size="sm"
                           title="Restart build task tests"
                           v-if="buildFinished && userAuthenticated()"
-                          @click="RestartTestTask(task.id)"
+                          @click="restartTestTask(task.id)"
                         />
                       </div>
                     </td>
@@ -199,6 +199,17 @@
             Click to the cloud to see last release
           </q-tooltip>
         </q-chip>
+      </q-card-section>
+
+      <q-card-section v-if="build.products.length">
+        <q-expansion-item label="Products" expand-separator
+                          icon="list">
+          <q-item v-for="product in build.products" :key="product.id">
+            <router-link :to="`/product/${product.id}`">
+              {{ product.name }}
+            </router-link>
+          </q-item>
+        </q-expansion-item>
       </q-card-section>
 
       <q-card-section v-if="signs.length">
@@ -318,7 +329,7 @@
                 <q-item-label>Remove from a product</q-item-label>
               </q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="RestartBuildTests()" v-if="testingCompleted">
+            <q-item clickable v-close-popup @click="restartBuildTests()" v-if="testingCompleted">
               <q-item-section avatar>
                 <q-avatar icon="restart_alt"/>
               </q-item-section>
@@ -368,11 +379,11 @@
         <q-card-section>
           <div class="text-h6">Add to a product</div>
         </q-card-section>
-        <q-form @submit="AddToProduct">
+        <q-form @submit="addToProduct">
           <q-card-section>
             <q-select v-model="current_product" label="Choose product to add to"
                       :rules="[val => !!val || 'Product name is required']"
-                      :options="existingProducts"/>
+                      :options="addableProducts"/>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat text-color="primary" label="Add" style="width: 150px"
@@ -389,11 +400,11 @@
         <q-card-section>
           <div class="text-h6">Remove from a product</div>
         </q-card-section>
-        <q-form @submit="RemoveFromProduct">
+        <q-form @submit="removeFromProduct">
           <q-card-section>
             <q-select v-model="current_product" label="Choose product to remove from"
                       :rules="[val => !!val || 'Product name is required']"
-                      :options="existingProducts"/>
+                      :options="removableProducts"/>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat text-color="primary" label="Remove" style="width: 150px"
@@ -507,7 +518,8 @@ export default defineComponent({
       selectedTask: null,
       taskMock: false,
       signLogText: '',
-      signStatus: SignStatus
+      signStatus: SignStatus,
+      previousProducts: null
     }
   },
   computed: {
@@ -526,6 +538,16 @@ export default defineComponent({
     existingProducts () {
       return this.$store.state.products.products.map(product => {
         return {label: product.name, value: product.name}
+      })
+    },
+    addableProducts () {
+      return this.existingProducts.filter(product => {
+        return !this.build.products.find(p => p.name === product.label)
+      })
+    },
+    removableProducts () {
+      return this.existingProducts.filter(product => {
+        return this.build.products.find(p => p.name === product.label)
       })
     },
     existingKeys () {
@@ -619,6 +641,7 @@ export default defineComponent({
     // update the build state every minute
     this.refreshTimer = setInterval(() => {
       if (this.reload) {
+        this.previousProducts = this.build.products
         this.loadBuildInfo(this.buildId)
       }
     }, 60000)
@@ -639,14 +662,14 @@ export default defineComponent({
     changeStatus (task, status) {
       if (task.status < status) task.status = status
     },
-    AddToProduct () {
+    addToProduct () {
       this.loading = true
       this.$api.post(`/products/add/${this.buildId}/${this.current_product.label}/`)
-        .then(() => {
+        .then(res => {
           this.loading = false
           this.add_to_product = false
           Notify.create({
-            message: `Packages of build ${this.buildId} has been added to ${this.current_product.label} product`,
+            message: res.data.message,
             type: 'positive',
             actions: [
               { label: 'Dismiss', color: 'white', handler: () => {} }
@@ -665,14 +688,14 @@ export default defineComponent({
           })
         })
     },
-    RemoveFromProduct () {
+    removeFromProduct () {
       this.loading = true
       this.$api.post(`/products/remove/${this.buildId}/${this.current_product.label}/`)
-        .then(() => {
+        .then(res => {
           this.loading = false
           this.remove_from_product = false
           Notify.create({
-            message: `Packages of build ${this.buildId} has been removed to ${this.current_product.label} product`,
+            message: res.data.message,
             type: 'positive',
             actions: [
               { label: 'Dismiss', color: 'white', handler: () => {} }
@@ -686,7 +709,8 @@ export default defineComponent({
             message: error.response.data.detail, type: 'negative',
             actions: [
                 { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]})
+            ]
+          })
         })
     },
     deleteBuild () {
@@ -743,7 +767,7 @@ export default defineComponent({
           this.reload = true
         })
     },
-    RestartBuildTests () {
+    restartBuildTests () {
       this.$api.put(`/tests/build/${this.buildId}/restart`)
         .then(() =>{
           Notify.create({
@@ -755,7 +779,7 @@ export default defineComponent({
           })
         })
     },
-    RestartTestTask (taskId) {
+    restartTestTask (taskId) {
       this.$api.put(`/tests/build_task/${taskId}/restart`)
         .then(() =>{
           Notify.create({
@@ -858,6 +882,36 @@ export default defineComponent({
           Loading.hide()
           this.buildLoad = false
           this.reload = true
+          if (this.previousProducts) {
+            if (this.previousProducts.length != this.build.products.length) {
+                let previousProducts = this.previousProducts.map(p => p.name)
+                let currentProducts = this.build.products.map(p => p.name)
+                let addedProducts = currentProducts
+                  .filter(p => !previousProducts.includes(p))
+                let removedProducts = previousProducts
+                  .filter(p => !currentProducts.includes(p))
+                if (addedProducts.length) {
+                  let msg = `Build successfully added to ${addedProducts.join(", ")} product(s)`
+                  Notify.create({
+                    message: msg,
+                    type: 'positive',
+                    actions: [
+                      { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                  })
+                }
+                if (removedProducts.length) {
+                  let msg = `Build successfully removed from ${removedProducts.join(", ")} product(s)`
+                  Notify.create({
+                    message: msg,
+                    type: 'positive',
+                    actions: [
+                      { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                  })
+                }
+            }
+          }
         })
         .catch(error => {
           Loading.hide()
