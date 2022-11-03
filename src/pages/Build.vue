@@ -827,18 +827,14 @@ export default defineComponent({
             this.renderBuildInfo()
           } else {
             let changes = deepDiff(
-              JSON.parse(JSON.stringify(this.previousBuildInfo)),
-              JSON.parse(JSON.stringify(buildInfo))
+              JSON.parse(JSON.stringify(buildInfo)),
+              JSON.parse(JSON.stringify(this.previousBuildInfo))
             )
-            // TODO: Remove log statements before merging
-            console.log("new buildInfo: ", buildInfo)
-            console.log("previous buildInfo: ", this.previousBuildInfo)
-            console.log("changes in new buildInfo: ", changes)
             // This can be handled in a more fine grained way, because not all
             // the changes mean that we need to reload. In any case, this
-            // approach already saves the user from waiting for page reloads
+            // approach already saves the user from waiting for unnecessary
+            // build page reloads
             if (!isEmptyObject(changes)) {
-              console.log("RE-DRAW BUILD PAGE!")
               this.build = buildInfo
               this.previousBuildInfo = JSON.parse(JSON.stringify(buildInfo))
               this.renderBuildInfo()
