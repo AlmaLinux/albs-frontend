@@ -151,6 +151,7 @@ export default defineComponent({
   methods: {
     open () {
       this.opened = true
+      this.almaGitRepo = null
     },
     close () {
       this.opened = false
@@ -175,7 +176,6 @@ export default defineComponent({
           else if (repo[0].branches.includes(ref.git_ref)) {
             ref.ref_type = BuildTaskRefType.GIT_BRANCH
           }
-          this.almaGitRepo = null
           break
         case 'srpm_url':
           ref.ref_type = BuildTaskRefType.SRPM_URL

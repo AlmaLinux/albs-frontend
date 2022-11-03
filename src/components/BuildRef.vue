@@ -129,4 +129,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
+  .ref-link-white a:any-link{
+    color: white;
+  }
 </style>
