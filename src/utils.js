@@ -152,6 +152,10 @@ export function deepDiff (obj1, obj2) {
             change = deepDiff(obj1[key], obj2[key]);
             if (isEmptyObject(change) === false) {
                 result[key] = change;
+            // Workaround to be able to show notifications
+            // when the list of products change
+            } else if (key == 'products') {
+                result[key] = change;
             }
         }
         else if (obj2[key] != obj1[key]) {
