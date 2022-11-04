@@ -795,6 +795,7 @@ export default defineComponent({
     font-size: small;
     overflow-y: auto;
     padding-left: 2em;
+    padding-right: 2em;
     background-color: #f5f8fa !important;
   }
 
