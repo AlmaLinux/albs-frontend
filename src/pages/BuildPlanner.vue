@@ -468,13 +468,27 @@
             this.$router.push('/')
           })
           .catch((error) => {
+            console.log(error)
             this.buildPlan.platforms = cachePlatforms
             this.buildPlan.tasks = cacheTasks
-            Notify.create({
-              message: 'Unable to create a build',
-              type: 'negative',
-              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
-            })
+            if (+String(error.response.status)[0] === 4) {
+              Notify.create({
+                message: error.response.data.detail[0].msg,
+                type: 'negative',
+                actions: [
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
+              })
+            } else {
+              Notify.create({
+                message: `${error.response.status}: ${error.response.statusText}
+                          Unable to create a build`,
+                type: 'negative',
+                actions: [
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
+              })
+            }
             this.loading = false
           })
       },
