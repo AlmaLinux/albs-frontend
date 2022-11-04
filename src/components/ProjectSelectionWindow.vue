@@ -43,7 +43,14 @@
         </template>
 
         <template v-if="projectType === 'srpm_url'">
-          <q-input v-model="srpmUrl" type="url" />
+          <q-input
+            v-model="srpmUrl"
+            ref="urlSRPM"
+            type="url"
+            lazy-rules="ondemand"
+            @keydown.enter.prevent="onSubmit"
+            :rules="[(val) => validateSRPMUrl(val) || 'It is not src-rpm URL']"
+          />
         </template>
 
         <template v-if="projectType === 'git_ref'">
@@ -172,8 +179,15 @@
         this.git = {git_ref: null, url: null}
         this.almaGitRepo = null
       },
+      validateSRPMUrl(url) {
+        const re = /^https?:\/\/.*\.src\.rpm$/
+        return re.test(url)
+      },
       onSubmit() {
-        let ref = {url: this.srpmUrl}
+        if (this.projectType === 'srpm_url') {
+          if (!this.$refs.urlSRPM.validate()) return
+        }
+        let ref = {}
         if (!this.srpmUrl) {
           ref = JSON.parse(JSON.stringify(this.git))
         }
@@ -189,7 +203,10 @@
             }
             break
           case 'srpm_url':
-            ref.ref_type = BuildTaskRefType.SRPM_URL
+            ref = {
+              url: decodeURIComponent(this.srpmUrl),
+              ref_type: BuildTaskRefType.SRPM_URL,
+            }
             break
           case 'git_ref':
             ref.ref_type = BuildTaskRefType.GIT_REF

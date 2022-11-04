@@ -54,7 +54,7 @@ export default defineComponent({
   computed: {
     hasTooltip () {
       let gitRef = this.buildRef.git_ref
-      let refUrl = this.buildRef.url
+      let refUrl = decodeURIComponent(this.buildRef.url)
       if (refUrl.includes('.src.rpm') && !this.buildRef.ref_type) {
         return refUrl
       }
@@ -91,7 +91,7 @@ export default defineComponent({
     },
     refUrl () {
       let url = ''
-      let refUrl = this.buildRef.url
+      let refUrl = decodeURIComponent(this.buildRef.url)
       let pkgUrl = refUrl ? refUrl.replace(/\.git$/, "") : ''
       switch (this.buildRef.ref_type) {
         case BuildTaskRefType.SRPM_URL:
@@ -105,7 +105,7 @@ export default defineComponent({
       }
     },
     text () {
-      let refUrl = this.buildRef.url
+      let refUrl = decodeURIComponent(this.buildRef.url)
       switch (this.buildRef.ref_type) {
         case BuildTaskRefType.SRPM_URL:
           const pkgInfo = splitRpmFileName(refUrl)
