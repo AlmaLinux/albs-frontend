@@ -100,6 +100,17 @@ const routes = [
         }
       },
       {
+        path: 'errata/:id',
+        component: () => import('pages/ErrataFeed.vue'),
+        props: true,
+        meta: { requiresAuth: true },
+        beforeEnter (to, from, next) {
+          store.dispatch('platforms/loadPlatformList')
+            .then(next())
+            .catch(next())
+        }
+      },
+      {
         path: 'errata/release',
         name: 'ErrataRelease',
         meta: { requiresAuth: true },

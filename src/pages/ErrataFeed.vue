@@ -158,6 +158,8 @@
     },
     created() {
       this.loadAdvisors({pageNumber: this.errataPageNumber})
+      if (this.$route.query.id)
+        this.loadAdvisory(this.$route.query.id)
     },
     computed: {
       platforms() {
@@ -246,6 +248,7 @@
           .then((response) => {
             this.loadingTable = false
             this.selectedAdvisory = response.data
+            this.$router.push({query: {id: this.selectedAdvisory.id}})
             this.$refs.errataInfo.open(this.selectedAdvisory)
           })
           .catch((error) => {
