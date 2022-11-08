@@ -30,14 +30,28 @@
 
         <q-select
           v-model="product"
-          :options="buildProducts"
+          :options="productsOptions"
           label="Product:"
           clearable
           style="min-width: 250px; max-width: 300px"
           ref="selectProduct"
+          input-debounce="300"
+          @filter="productFilter"
+          use-input
           :rules="[(val) => !!val || 'Product is required']"
           :hint="!product ? 'Product is required' : null"
-        />
+        >
+          <template v-slot:option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section>
+                <q-item-label v-html="scope.opt.label" />
+                <q-item-label v-if="scope.opt.description" caption>
+                  {{ scope.opt.description }}
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
 
         <q-select
           v-model="buildPlan.platforms"
@@ -246,7 +260,7 @@
 </template>
 
 <script>
-  import {defineComponent} from 'vue'
+  import {defineComponent, ref} from 'vue'
   import {Loading, Notify} from 'quasar'
   import ProjectSelector from 'components/ProjectSelector.vue'
   import MockOptionsSelection from 'components/MockOptionsSelection.vue'
@@ -275,6 +289,7 @@
         loading: false,
         mock_options: false,
         modularity: false,
+        productsOptions: ref([]),
       }
     },
     computed: {
@@ -304,12 +319,29 @@
         })
       },
       buildProducts() {
-        return this.$store.state.products.products.map((product) => {
-          return {label: product.name, value: product.id}
-        })
+        return this.$store.state.products.products
+          .map((product) => {
+            return {
+              label: product.name,
+              value: product.id,
+              description: product.title,
+            }
+          })
+          .sort((a, b) => (a.value > b.value ? 1 : b.value > a.value ? -1 : 0))
       },
     },
     methods: {
+      productFilter(val, update, abort) {
+        update(() => {
+          const needle = val.toLocaleLowerCase()
+          this.productsOptions = this.buildProducts.filter(
+            (v) => v.label.toLocaleLowerCase().indexOf(needle) > -1
+          )
+        })
+        abort(() => {
+          val = ''
+        })
+      },
       checkArchError(val) {
         return val ? val.length !== 0 : false
       },
