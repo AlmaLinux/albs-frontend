@@ -27,7 +27,7 @@ export function splitRpmFileName (url) {
  * @returns String
  */
 export function buildRefText (buildRef) {
-  let refUrl = buildRef.url
+  let refUrl = decodeURIComponent(buildRef.url)
   switch (buildRef.ref_type) {
     case BuildTaskRefType.SRPM_URL:
       const pkgInfo = splitRpmFileName(refUrl)
