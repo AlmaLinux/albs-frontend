@@ -459,22 +459,32 @@
     </q-dialog>
 
     <q-dialog v-model="sign_log">
-      <q-card style="width: 800px;">
+      <q-card style="max-width: 900px">
         <q-card-section>
           <div class="text-h6">Sign log</div>
         </q-card-section>
-          <q-infinite-scroll
-              :style="{height: innerHeight - 150 + 'px'}"
-              class="log-container" inline
-          >
-          <pre>{{ signLogText }}</pre>
-          </q-infinite-scroll>
-          <q-card-actions align="right">
-            <q-btn flat text-color="primary" label="Ok" style="width: 150px" v-close-popup/>
-          </q-card-actions>
+        <q-card-section>
+          <div class="row justify-center q-pt-none log-container">
+            <q-infinite-scroll
+              :style="{height: innerHeight - 350 + 'px'}"
+              inline
+            >
+              <pre>{{ signLogText }}</pre>
+            </q-infinite-scroll>
+          </div>
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            text-color="primary"
+            label="Ok"
+            style="width: 150px"
+            v-close-popup
+          />
+        </q-card-actions>
       </q-card>
     </q-dialog>
-    <module-yaml ref="showModuleYaml"/>
+    <module-yaml ref="showModuleYaml" />
   </div>
 </template>
 
@@ -1155,10 +1165,15 @@ export default defineComponent({
     font-size: small;
     overflow-y: auto;
     padding-left: 2em;
+    padding-right: 2em;
+    background-color: #f5f8fa !important;
   }
 
   .log-container pre {
-    white-space: pre-wrap;
+    white-space: pre-line;
     word-break: break-all;
+    color: #0c5176 !important;
+    font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+    text-align: left;
   }
 </style>
