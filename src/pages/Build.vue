@@ -487,7 +487,7 @@ import BuildStatusCircle from 'components/BuildStatusCircle.vue'
 import ModuleYaml from 'components/ModuleYaml.vue'
 import MockOptionsShow from 'components/MockOptionsShow.vue'
 import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
-import { nsvca, copyToClipboard } from '../utils';
+import { nsvca, copyToClipboard, deepDiff, isEmptyObject } from '../utils';
 import axios from 'axios'
 
 export default defineComponent({
@@ -519,6 +519,7 @@ export default defineComponent({
       taskMock: false,
       signLogText: '',
       signStatus: SignStatus,
+      previousBuildInfo: null,
       previousProducts: null
     }
   },
@@ -855,61 +856,83 @@ export default defineComponent({
           })
         })
     },
-    loadBuildInfo (buildId) {
+    renderBuildInfo () {
       this.reload = false
       this.linked_builds = null
       this.mock_options = null
       this.buildLoad = true
       Loading.show()
+
+      this.build.tasks.forEach(task => {
+        if (task.rpm_module) {
+          this.rpm_module[`${task.platform.name}.${task.arch}`] = task.rpm_module
+        }
+        if (task.status === BuildStatus.COMPLETED) {
+          this.loadTestsInfo(task)
+        }
+      })
+      this.loadSignInfo(this.build.id)
+      if (this.build.mock_options) {
+        this.mock_options = this.build.mock_options
+      }
+      if (this.build.linked_builds.length) {
+        this.linked_builds = this.build.linked_builds
+      }
+      Loading.hide()
+      this.buildLoad = false
+      this.reload = true
+      if (this.previousProducts) {
+        if (this.previousProducts.length != this.build.products.length) {
+          let previousProducts = this.previousProducts.map(p => p.name)
+          let currentProducts = this.build.products.map(p => p.name)
+          let addedProducts = currentProducts
+            .filter(p => !previousProducts.includes(p))
+          let removedProducts = previousProducts
+            .filter(p => !currentProducts.includes(p))
+          if (addedProducts.length) {
+            let msg = `Build successfully added to ${addedProducts.join(", ")} product(s)`
+            Notify.create({
+              message: msg,
+              type: 'positive',
+              actions: [
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          }
+          if (removedProducts.length) {
+            let msg = `Build successfully removed from ${removedProducts.join(", ")} product(s)`
+            Notify.create({
+              message: msg,
+              type: 'positive',
+              actions: [
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          }
+        }
+      }
+    },
+    loadBuildInfo (buildId) {
       this.$api.get(`/builds/${buildId}/`)
         .then(response => {
-          this.build = response.data
-          this.build.tasks.forEach(task => {
-            if (task.rpm_module) {
-              this.rpm_module[`${task.platform.name}.${task.arch}`] = task.rpm_module
-            }
-            if (task.status === BuildStatus.COMPLETED) {
-              this.loadTestsInfo(task)
-            }
-          })
-          this.loadSignInfo(buildId)
-          if (this.build.mock_options) {
-            this.mock_options = this.build.mock_options
-          }
-          if (this.build.linked_builds.length) {
-            this.linked_builds = this.build.linked_builds
-          }
-          Loading.hide()
-          this.buildLoad = false
-          this.reload = true
-          if (this.previousProducts) {
-            if (this.previousProducts.length != this.build.products.length) {
-                let previousProducts = this.previousProducts.map(p => p.name)
-                let currentProducts = this.build.products.map(p => p.name)
-                let addedProducts = currentProducts
-                  .filter(p => !previousProducts.includes(p))
-                let removedProducts = previousProducts
-                  .filter(p => !currentProducts.includes(p))
-                if (addedProducts.length) {
-                  let msg = `Build successfully added to ${addedProducts.join(", ")} product(s)`
-                  Notify.create({
-                    message: msg,
-                    type: 'positive',
-                    actions: [
-                      { label: 'Dismiss', color: 'white', handler: () => {} }
-                    ]
-                  })
-                }
-                if (removedProducts.length) {
-                  let msg = `Build successfully removed from ${removedProducts.join(", ")} product(s)`
-                  Notify.create({
-                    message: msg,
-                    type: 'positive',
-                    actions: [
-                      { label: 'Dismiss', color: 'white', handler: () => {} }
-                    ]
-                  })
-                }
+          let buildInfo = response.data
+          if (!this.previousBuildInfo) {
+            this.build = buildInfo
+            this.previousBuildInfo = JSON.parse(JSON.stringify(buildInfo))
+            this.renderBuildInfo()
+          } else {
+            let changes = deepDiff(
+              JSON.parse(JSON.stringify(buildInfo)),
+              JSON.parse(JSON.stringify(this.previousBuildInfo))
+            )
+            // This can be handled in a more fine grained way, because not all
+            // the changes mean that we need to reload. In any case, this
+            // approach already saves the user from waiting for unnecessary
+            // build page reloads
+            if (!isEmptyObject(changes)) {
+              this.build = buildInfo
+              this.previousBuildInfo = JSON.parse(JSON.stringify(buildInfo))
+              this.renderBuildInfo()
             }
           }
         })

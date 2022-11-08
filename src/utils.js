@@ -121,6 +121,50 @@ export function diff(obj1, obj2) {
     return result;
 }
 
+
+export function isEmptyObject (obj) {
+  return (obj &&
+	  Object.keys(obj).length === 0 &&
+	  Object.getPrototypeOf(obj) === Object.prototype)
+};
+
+
+/**
+ * Yet another function to obtain the difference between two JSON Objects
+ *
+ * A function that returns the differences between two JSON objects
+ * Taken from: https://stackoverflow.com/a/25175871
+ * This version removes empty nested nodes, which breaks the code that
+ * uses the diff function in some of the users admin page functionalities.
+ * TODO: Ideally, this should supersed the diff function, but we need
+ * to ensure that we don't break the funcionality that it is
+ * used for. Mostly, in the users admin pages.
+ *
+ * @param {Object} Object A
+ * @param {Object} Object B
+ * @returns {Object}
+ */
+export function deepDiff (obj1, obj2) {
+    var result = {};
+    var change;
+    for (var key in obj1) {
+        if (typeof obj2[key] == 'object' && typeof obj1[key] == 'object') {
+            change = deepDiff(obj1[key], obj2[key]);
+            if (isEmptyObject(change) === false) {
+                result[key] = change;
+            // Workaround to be able to show notifications
+            // when the list of products change
+            } else if (key == 'products') {
+                result[key] = change;
+            }
+        }
+        else if (obj2[key] != obj1[key]) {
+            result[key] = obj2[key];
+        }
+    }
+    return result;
+};
+
 export async function getFromApi (api, endpoint) {
   return new Promise(resolve => {
     api.get(endpoint)
