@@ -913,8 +913,11 @@ export default defineComponent({
       }
     },
     loadBuildInfo (buildId) {
+      this.reload = false
+      if (!this.build) Loading.show()
       this.$api.get(`/builds/${buildId}/`)
         .then(response => {
+          this.reload = true
           let buildInfo = response.data
           if (!this.previousBuildInfo) {
             this.build = buildInfo
