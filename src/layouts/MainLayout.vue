@@ -1,6 +1,11 @@
 <template>
   <q-layout view="lHh LpR lFf">
-    <q-drawer v-model="leftDrawerOpen" side="left" class="bg-grey-1 shadow-4">
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      side="left"
+      class="bg-grey-1 shadow-4"
+    >
       <q-list>
         <EssentialLink
           v-for="link in essentialLinks"
