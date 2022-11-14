@@ -286,10 +286,11 @@
         moduleInfo.enabled_modules_table = []
         moduleInfo.selectedModules = new Set()
 
-        let main_modules = [
-          moduleInfo.module_name,
-          `${moduleInfo.module_name}-devel`,
-        ]
+        let main_modules = [moduleInfo.module_name]
+        if (!moduleInfo.module_name.includes('-devel')) {
+          main_modules.push(`${moduleInfo.module_name}-devel`)
+        }
+
         main_modules.forEach((main_module) => {
           moduleInfo.enabled_modules_table.push({
             name: main_module,
