@@ -297,7 +297,7 @@
                 <q-item-label>Sign</q-item-label>
               </q-item-section>
             </q-item>
-            <q-item clickable v-close-popup @click="onRebuildFailedItems" v-if="failedItems">
+            <q-item clickable v-close-popup @click="onRebuildFailedItems(false)" v-if="failedItems">
               <q-item-section avatar>
                 <q-avatar icon="repeat"/>
               </q-item-section>
