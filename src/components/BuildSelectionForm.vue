@@ -303,9 +303,9 @@
       parseBuildId(textValue) {
         if (
           textValue.match(`${window.origin}/build/`) &&
-          textValue.match(/(?<=build\/)\d+/)
+          textValue.match(/build\/(\d+)/)
         ) {
-          this.loadBuildInfo(textValue.match(/(?<=build\/)\d+/)[0])
+          this.loadBuildInfo(textValue.match(/build\/(\d+)/)[1])
         } else if (parseInt(textValue)) {
           this.loadBuildInfo(textValue)
         } else {
