@@ -309,7 +309,9 @@
             value: platform.name,
             description: platform.arch_list.join(', '),
             archList: platform.arch_list,
-            modularityVersions: platform.modularity.versions,
+            modularityVersions: platform.modularity
+              ? platform.modularity.versions
+              : '',
           }
         })
       },
