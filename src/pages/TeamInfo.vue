@@ -72,6 +72,7 @@
                                            :loading="loadAddUser"
                                            icon="person_add"
                                            @click="addNewMember = true"
+                                           id="team-info-q-btn-add-new-member"
                                     >
                                         <q-tooltip>
                                             Add members
@@ -83,6 +84,7 @@
                                            :loading="loadRemoveUser"
                                            icon="person_remove"
                                            @click="removeMembers"
+                                           id="team-info-q-btn-remove-member"
                                     >
                                         <q-tooltip>
                                             Remove members
@@ -194,7 +196,8 @@
                             option-value="id" option-label="username" multiple use-chips
                             input-debounce="0" @filter="userFilter" use-input autofocus
                             ref="userSelect" @add="clearFilter" clearable
-                            :rules="[val => usersRule(val) || 'Please select at least one user']" >
+                            :rules="[val => usersRule(val) || 'Please select at least one user']"
+                            id="team-info-q-select-add-new-member">
                                 <template v-slot:no-option>
                                     <q-item>
                                         <q-item-section class="text-italic text-grey">
@@ -206,9 +209,9 @@
                 </q-card-section>
                 <q-card-actions align="right">
                     <q-btn flat text-color="negative" label="Cancel"
-                        v-close-popup @click="newMembers = null"/>
+                        v-close-popup @click="newMembers = null" id="team-info-q-btn-add-member-cancel"/>
                     <q-btn flat text-color="primary" label="Add" style="width: 20%"
-                        :loading="loadAddUser" type="submit">
+                        :loading="loadAddUser" type="submit"  id="team-info-q-btn-add-member-add">
                     </q-btn>
                 </q-card-actions>
             </q-form>

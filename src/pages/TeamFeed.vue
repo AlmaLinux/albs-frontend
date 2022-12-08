@@ -10,14 +10,15 @@
                 :loading="loading"
                 :rows-per-page-options="[0]"
                 hide-pagination
-            >   
+            >
                 <template v-slot:top-right>
                     <div class="q-gutter-md">
-                        <q-btn @click="addNewTeam = true" 
+                        <q-btn @click="addNewTeam = true"
                             icon-right="group_add"
                             no-caps
                             color="green">
                             New
+                            id="team-feed-q-btn-add-new-team"
                         </q-btn>
                     </div>
                 </template>
@@ -44,12 +45,12 @@
                             <a :href="`mailto:${props.row.owner.email}`">{{ props.row.owner.username }}</a>
                         </q-td>
                         <q-td key="products" :props="props">
-                            <router-link :to="{path: `/teams/${props.row.id}`, query: { tab: 'products' } }">
+                            <router-link :to="{path: `/teams/${props.row.id}`, query: { tab: 'products' } }" :id="`team-feed-link-products-${props.row.id}`">
                                 {{ props.row.products.length }}
                             </router-link>
                         </q-td>
                         <q-td key="members" :props="props">
-                            <router-link :to="{path: `/teams/${props.row.id}`, query: { tab: 'members' } }">
+                            <router-link :to="{path: `/teams/${props.row.id}`, query: { tab: 'members' } }" :id="`team-feed-link-members-${props.row.id}`">
                                 {{ props.row.members.length }}
                             </router-link>
                         </q-td>
@@ -70,7 +71,7 @@
                 <div class="text-h6">
                     New Team
                     <q-icon name="group_add" color="primary" size="lg" />
-                </div>  
+                </div>
             </q-card-section>
             <q-form @submit="newTeam">
                 <q-card-section>
@@ -120,7 +121,7 @@ export default defineComponent({
                 { name: 'name', required: true, align: 'left', label: 'Name', field: 'name'},
                 { name: 'owner', required: true, align: 'left', label: 'Owner', field: 'owner'},
                 { name: 'products', required: true, align: 'center', label: 'Products', field: 'products' },
-                { name: 'members', required: true, align: 'center', label: 'Members', field: 'members' }  
+                { name: 'members', required: true, align: 'center', label: 'Members', field: 'members' }
             ],
             addNewTeam: false,
             newTeamName: '',
@@ -243,7 +244,7 @@ export default defineComponent({
                 })
         }
     }
-    
+
 })
 </script>
 
