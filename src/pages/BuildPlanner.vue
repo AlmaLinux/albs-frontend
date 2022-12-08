@@ -19,6 +19,7 @@
           class="text-grey-8 text-body1 q-pb-sm"
           v-model="buildPlan.is_secure_boot"
           label="Secure Boot"
+          id="build-planner-q-checkbox-secure-boot"
         />
 
         <q-checkbox
@@ -26,6 +27,7 @@
           class="text-grey-8 text-body1 q-pb-sm"
           v-model="parallelMode"
           label="Parallel mode"
+          id="build-planner-q-checkbox-parallel-mode"
         />
 
         <q-select
@@ -40,6 +42,7 @@
           use-input
           :rules="[(val) => !!val || 'Product is required']"
           :hint="!product ? 'Product is required' : null"
+          id="build-planner-q-select-select-product"
         >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
@@ -65,6 +68,7 @@
           :hint="
             buildPlan.platforms.length === 0 ? 'Platforms is required' : null
           "
+          id="build-planner-q-select-select-platforms"
         >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
@@ -93,6 +97,7 @@
                 ? 'Architectures is required'
                 : null
             "
+            id="build-planner-q-select-select-arch"
           />
         </template>
 
@@ -103,6 +108,7 @@
           use-chips
           label="Build flavors:"
           style="min-width: 250px; max-width: 300px"
+          id="build-planner-q-select-build-flavors"
         >
         </q-select>
 
@@ -119,6 +125,7 @@
               linked_builds_input.length < 1 ||
               'Please don\'t forget to add entered builds\'s ids',
           ]"
+          id="build-planner-q-input-linked-builds"
         >
           <template v-slot:append v-if="linked_builds_input">
             <q-btn round dense flat icon="add" @click="addLinkedBuilds" />
@@ -159,6 +166,7 @@
             icon-right="settings"
             color="grey-7"
             @click="onAddMockOptions"
+            id="build-planner-q-btn-add-mock-options"
           ></q-btn>
           <MockOptionsSelection
             ref="addMockOptions"
