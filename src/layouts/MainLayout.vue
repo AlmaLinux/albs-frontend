@@ -11,11 +11,13 @@
           v-for="link in essentialLinks"
           :key="link.title"
           v-bind="link"
+          :id="link.id"
         />
         <q-item
           v-if="$store.getters.isAuthenticated"
           clickable
           @click="onLogout"
+          id="left-drawer-link-logout"
         >
           <q-item-section avatar>
             <q-icon name="logout" />
@@ -24,7 +26,12 @@
             <q-item-label>Logout</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item v-else clickable @click="onLogin">
+        <q-item
+          v-else
+          clickable
+          @click="onLogin"
+          id="left-drawer-link-login"
+        >
           <q-item-section avatar>
             <q-icon name="login" />
           </q-item-section>
@@ -52,10 +59,17 @@
           class="shadow-4"
           icon="menu"
           @click="toggleLeftDrawer"
+          id="q-btn-toggle-left-drawer"
         />
       </q-page-sticky>
       <q-page-sticky v-if="onBuildFeed" position="top-right" :offset="[5, 10]">
-        <q-btn round color="primary" icon="search" @click="toggleRightDrawer" />
+        <q-btn
+          round
+          color="primary"
+          icon="search"
+          @click="toggleRightDrawer"
+          id="q-btn-toggle-right-drawer"
+        />
       </q-page-sticky>
     </q-page-container>
   </q-layout>
@@ -69,6 +83,7 @@
   const linksList = [
     {
       title: 'Administration',
+      id: 'left-drawer-link-administration',
       icon: 'settings',
       expand: true,
       // is_superuser workaround
@@ -77,6 +92,7 @@
       children: [
         {
           title: 'Users',
+          id: 'left-drawer-link-administration-users',
           icon: 'manage_accounts',
           link: 'users',
         },
@@ -84,35 +100,41 @@
     },
     {
       title: 'Feed',
+      id: 'left-drawer-link-feed',
       icon: 'view_list',
       link: '/',
       allow: true,
     },
     {
       title: 'New build',
+      id: 'left-drawer-link-new-build',
       icon: 'create',
       link: 'build/create',
       allow: store.getters.isAuthenticated,
     },
     {
       title: 'Errata',
+      id: 'left-drawer-link-errata',
       icon: 'bug_report',
       link: '/errata',
       allow: store.getters.isAuthenticated,
     },
     {
       title: 'Releases',
+      id: 'left-drawer-link-releases',
       icon: 'cloud',
       expand: true,
       allow: store.getters.isAuthenticated,
       children: [
         {
           title: 'Release Feed',
+          id: 'left-drawer-link-releases-release-feed',
           icon: 'cloud_circle',
           link: 'release-feed',
         },
         {
           title: 'New release',
+          id: 'left-drawer-link-releases-new-release',
           icon: 'cloud_upload',
           link: 'release/create',
         },
@@ -120,17 +142,20 @@
     },
     {
       title: 'Products',
+      id: 'left-drawer-link-products',
       icon: 'category',
       expand: true,
       allow: store.getters.isAuthenticated,
       children: [
         {
           title: 'Products Feed',
+          id: 'left-drawer-link-products-products-feed',
           icon: 'list',
           link: 'product-feed',
         },
         {
           title: 'New product',
+          id: 'left-drawer-link-products-new-product',
           icon: 'earbuds',
           link: 'product/new',
         },
@@ -138,6 +163,7 @@
     },
     {
       title: 'Teams',
+      id: 'left-drawer-link-teams',
       icon: 'groups',
       link: 'team-feed',
       allow: store.getters.isAuthenticated,
