@@ -97,7 +97,7 @@
                 ? 'Architectures is required'
                 : null
             "
-            id="build-planner-q-select-select-arch"
+            :id="`build-planner-q-select-arch-${platform.label.toLowerCase()}`"
           />
         </template>
 
