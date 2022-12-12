@@ -128,7 +128,7 @@
           id="build-planner-q-input-linked-builds"
         >
           <template v-slot:append v-if="linked_builds_input">
-            <q-btn round dense flat icon="add" @click="addLinkedBuilds" />
+            <q-btn round dense flat icon="add" @click="addLinkedBuilds" id="build-planner-q-btn-add-project" />
           </template>
         </q-input>
 
@@ -228,6 +228,7 @@
         :error="buildPlan.tasks.length < 1 && currentStep != 'buildEnvironment'"
         error-color="negative"
         icon="format_list_numbered"
+        id="build-planner-q-step-select-projects"
       >
         <project-selector
           :buildItems="buildPlan.tasks"
@@ -250,6 +251,7 @@
             flat
             color="primary"
             v-if="currentStep !== 'buildEnvironment'"
+            id="build-planner-q-btn-back"
           >
             Back
           </q-btn>
@@ -258,6 +260,7 @@
             :loading="loading"
             icon-right="chevron_right"
             color="primary"
+            id="build-planner-q-btn-create-build"
           >
             {{ nextLabel }}
           </q-btn>
