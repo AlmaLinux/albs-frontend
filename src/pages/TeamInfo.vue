@@ -187,7 +187,7 @@
             <q-card-section>
                 <div class="text-h6">
                     New members
-                    <q-icon name="person_add" color="primary" size="lg" />
+                    <q-icon name="person_add" color="primary" size="lg" id="team-info-q-icon-add-new-member-arrow"/>
                 </div>
             </q-card-section>
             <q-form @submit="addUsers">
@@ -200,7 +200,7 @@
                             id="team-info-q-select-add-new-member">
                                 <template v-slot:no-option>
                                     <q-item>
-                                        <q-item-section class="text-italic text-grey">
+                                        <q-item-section class="text-italic text-grey" id="team-info-q-item-section-add-new-member">
                                             No users
                                         </q-item-section>
                                     </q-item>
