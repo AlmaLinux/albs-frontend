@@ -11,6 +11,7 @@
           v-for="child in children"
           :key="child.title"
           :href="child.link"
+          :id="child.id"
         >
           <q-item-section
             v-if="child.icon"
