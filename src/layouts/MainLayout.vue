@@ -17,7 +17,7 @@
           v-if="$store.getters.isAuthenticated"
           clickable
           @click="onLogout"
-          id="left-drawer-link-logout"
+          id="mla-li-logout"
         >
           <q-item-section avatar>
             <q-icon name="logout" />
@@ -30,7 +30,7 @@
           v-else
           clickable
           @click="onLogin"
-          id="left-drawer-link-login"
+          id="mla-li-login"
         >
           <q-item-section avatar>
             <q-icon name="login" />
@@ -59,7 +59,7 @@
           class="shadow-4"
           icon="menu"
           @click="toggleLeftDrawer"
-          id="q-btn-toggle-left-drawer"
+          id="mla-qb-menu"
         />
       </q-page-sticky>
       <q-page-sticky v-if="onBuildFeed" position="top-right" :offset="[5, 10]">
@@ -68,7 +68,7 @@
           color="primary"
           icon="search"
           @click="toggleRightDrawer"
-          id="q-btn-toggle-right-drawer"
+          id="mla-qb-search"
         />
       </q-page-sticky>
     </q-page-container>
@@ -83,7 +83,7 @@
   const linksList = [
     {
       title: 'Administration',
-      id: 'left-drawer-link-administration',
+      id: 'mla-li-admin',
       icon: 'settings',
       expand: true,
       // is_superuser workaround
@@ -92,7 +92,7 @@
       children: [
         {
           title: 'Users',
-          id: 'left-drawer-link-administration-users',
+          id: 'mla-li-admin-users',
           icon: 'manage_accounts',
           link: 'users',
         },
@@ -100,41 +100,41 @@
     },
     {
       title: 'Feed',
-      id: 'left-drawer-link-feed',
+      id: 'mla-li-feed',
       icon: 'view_list',
       link: '/',
       allow: true,
     },
     {
       title: 'New build',
-      id: 'left-drawer-link-new-build',
+      id: 'mla-li-new-build',
       icon: 'create',
       link: 'build/create',
       allow: store.getters.isAuthenticated,
     },
     {
       title: 'Errata',
-      id: 'left-drawer-link-errata',
+      id: 'mla-li-errata',
       icon: 'bug_report',
       link: '/errata',
       allow: store.getters.isAuthenticated,
     },
     {
       title: 'Releases',
-      id: 'left-drawer-link-releases',
+      id: 'mla-li-releases',
       icon: 'cloud',
       expand: true,
       allow: store.getters.isAuthenticated,
       children: [
         {
           title: 'Release Feed',
-          id: 'left-drawer-link-releases-release-feed',
+          id: 'mla-li-releases-feed',
           icon: 'cloud_circle',
           link: 'release-feed',
         },
         {
           title: 'New release',
-          id: 'left-drawer-link-releases-new-release',
+          id: 'mla-li-releases-new',
           icon: 'cloud_upload',
           link: 'release/create',
         },
@@ -142,20 +142,20 @@
     },
     {
       title: 'Products',
-      id: 'left-drawer-link-products',
+      id: 'mla-li-products',
       icon: 'category',
       expand: true,
       allow: store.getters.isAuthenticated,
       children: [
         {
           title: 'Products Feed',
-          id: 'left-drawer-link-products-products-feed',
+          id: 'mla-li-products-feed',
           icon: 'list',
           link: 'product-feed',
         },
         {
           title: 'New product',
-          id: 'left-drawer-link-products-new-product',
+          id: 'mla-li-products-new',
           icon: 'earbuds',
           link: 'product/new',
         },
@@ -163,7 +163,7 @@
     },
     {
       title: 'Teams',
-      id: 'left-drawer-link-teams',
+      id: 'mla-li-teams',
       icon: 'groups',
       link: 'team-feed',
       allow: store.getters.isAuthenticated,
