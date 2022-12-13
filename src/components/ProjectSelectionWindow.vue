@@ -2,10 +2,10 @@
   <q-dialog position="top" :content-css="{minWidth: '35vw'}" v-model="opened">
     <q-card style="width: 700px; height: 320px; max-width: 80vw">
       <q-card-section>
-        <div v-if="modularity" class="text-h6" id="project-selection-div-dialog-title">
+        <div v-if="modularity" class="text-h6" id="psw-dv-dialog-title">
           Add a module to the build
         </div>
-        <div v-else class="text-h6" id="project-selection-div-dialog-title">
+        <div v-else class="text-h6" id="psw-dv-dialog-title">
           Add a project to the build
         </div>
       </q-card-section>
@@ -17,14 +17,14 @@
             :options="sourceTypes"
             type="radio"
             inline
-            id="project-selection-q-option-group-repo-type"
+            id="psw-qo-repo-type"
           />
           <q-toggle
             v-if="!moduleRefs"
             class="text-grey-8 text-body1 q-pb-sm"
             v-model="modularity"
             :label="modularity ? 'Modules' : 'Projects'"
-            id="project-selection-q-toggle-group-modularity"
+            id="psw-qt-modularity"
           />
         </div>
 
@@ -37,7 +37,7 @@
             input-debounce="0"
             @update:model-value="onAlmalinuxRepoSelected"
             @filter="almaGitSelectFilter"
-            id="project-selection-q-select-repo"
+            id="psw-qs-repo"
           />
           <q-select
             v-model="git.git_ref"
@@ -46,7 +46,7 @@
             use-input
             @filter="GitRefFilter"
             input-debounce="0"
-            id="project-selection-q-select-repo-tag-branches"
+            id="psw-qs-repo-tag-branches"
           />
         </template>
 
@@ -58,7 +58,7 @@
             lazy-rules="ondemand"
             @keydown.enter.prevent="onSubmit"
             :rules="[(val) => validateSRPMUrl(val) || 'It is not src-rpm URL']"
-            id="project-selection-q-select-repo"
+            id="psw-qi-repo"
           />
         </template>
 
@@ -68,7 +68,7 @@
             v-model="git.git_ref"
             type="url"
             label="Reference (branch/tag name)"
-            id="project-selection-q-select-repo-tag-branches"
+            id="psw-qi-repo-tag-branches"
           />
         </template>
       </q-card-section>
@@ -78,7 +78,7 @@
           flat label="Cancel"
           color="primary"
           @click="close"
-          id="project-selection-q-btn-cancel"
+          id="psw-qb-cancel"
         />
         <q-btn
           flat
@@ -87,7 +87,7 @@
           :disabled="!isProjectSelected"
           :loading="moduleRefsLoading"
           @click="onSubmit"
-          id="project-selection-q-btn-submit"
+          id="psw-qb-submit"
         >
           <template v-slot:loading>
             <q-spinner class="on-left" />

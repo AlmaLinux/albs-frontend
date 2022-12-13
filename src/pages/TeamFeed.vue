@@ -17,7 +17,7 @@
                             icon-right="group_add"
                             no-caps
                             color="green"
-                            id="team-feed-q-btn-add-new-team"
+                            id="tfe-qb-add-new-team"
                         >
                           New
                         </q-btn>
@@ -46,12 +46,12 @@
                             <a :href="`mailto:${props.row.owner.email}`">{{ props.row.owner.username }}</a>
                         </q-td>
                         <q-td key="products" :props="props">
-                            <router-link :to="{path: `/teams/${props.row.id}`, query: { tab: 'products' } }" :id="`team-feed-link-products-${props.row.id}`">
+                            <router-link :to="{path: `/teams/${props.row.id}`, query: { tab: 'products' } }" :id="`tfe-li-products-${props.row.id}`">
                                 {{ props.row.products.length }}
                             </router-link>
                         </q-td>
                         <q-td key="members" :props="props">
-                            <router-link :to="{path: `/teams/${props.row.id}`, query: { tab: 'members' } }" :id="`team-feed-link-members-${props.row.id}`">
+                            <router-link :to="{path: `/teams/${props.row.id}`, query: { tab: 'members' } }" :id="`tfe-li-members-${props.row.id}`">
                                 {{ props.row.members.length }}
                             </router-link>
                         </q-td>
@@ -77,17 +77,17 @@
             <q-form @submit="newTeam">
                 <q-card-section>
                     <q-input v-model="newTeamName" label="Name*" hint="Enter a name for a new team"
-                            id="team-feed-q-input-add-new-team"
+                            id="tfe-qi-add-new-team"
                             :rules="[val => !!val || 'Team name is required']"/>
                 </q-card-section>
                 <q-card-actions align="right">
                     <q-btn flat text-color="negative" label="Cancel"
                         v-close-popup @click="newTeamName = null"
-                        id="team-feed-q-btn-add-new-team-cancel"
+                        id="tfe-qb-new-team-cancel"
                     />
                     <q-btn flat text-color="primary" label="Add" style="width: 20%"
                         :loading="addLoading" type="submit"
-                        id="team-feed-q-btn-add-new-team-add"
+                        id="tfe-qb-new-team-add"
                     />
                 </q-card-actions>
             </q-form>

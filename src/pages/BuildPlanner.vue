@@ -19,7 +19,7 @@
           class="text-grey-8 text-body1 q-pb-sm"
           v-model="buildPlan.is_secure_boot"
           label="Secure Boot"
-          id="build-planner-q-checkbox-secure-boot"
+          id="bpl-qc-secure-boot"
         />
 
         <q-checkbox
@@ -27,7 +27,7 @@
           class="text-grey-8 text-body1 q-pb-sm"
           v-model="parallelMode"
           label="Parallel mode"
-          id="build-planner-q-checkbox-parallel-mode"
+          id="bpl-qc-parallel-mode"
         />
 
         <q-select
@@ -42,7 +42,7 @@
           use-input
           :rules="[(val) => !!val || 'Product is required']"
           :hint="!product ? 'Product is required' : null"
-          id="build-planner-q-select-select-product"
+          id="bpl-qs-select-product"
         >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
@@ -68,7 +68,7 @@
           :hint="
             buildPlan.platforms.length === 0 ? 'Platforms is required' : null
           "
-          id="build-planner-q-select-select-platforms"
+          id="bpl-qs-select-platforms"
         >
           <template v-slot:option="scope">
             <q-item v-bind="scope.itemProps">
@@ -97,7 +97,7 @@
                 ? 'Architectures is required'
                 : null
             "
-            :id="`build-planner-q-select-arch-${platform.label.toLowerCase()}`"
+            :id="`bpl-qs-arch-${platform.label.toLowerCase()}`"
           />
         </template>
 
@@ -108,7 +108,7 @@
           use-chips
           label="Build flavors:"
           style="min-width: 250px; max-width: 300px"
-          id="build-planner-q-select-build-flavors"
+          id="bpl-qs-build-flavors"
         >
         </q-select>
 
@@ -125,10 +125,10 @@
               linked_builds_input.length < 1 ||
               'Please don\'t forget to add entered builds\'s ids',
           ]"
-          id="build-planner-q-input-linked-builds"
+          id="bpl-qi-linked-builds"
         >
           <template v-slot:append v-if="linked_builds_input">
-            <q-btn round dense flat icon="add" @click="addLinkedBuilds" id="build-planner-q-btn-add-project" />
+            <q-btn round dense flat icon="add" @click="addLinkedBuilds" id="bpl-qb-add-linked-build" />
           </template>
         </q-input>
 
@@ -166,7 +166,7 @@
             icon-right="settings"
             color="grey-7"
             @click="onAddMockOptions"
-            id="build-planner-q-btn-add-mock-options"
+            id="bpl-qb-add-mock-options"
           ></q-btn>
           <MockOptionsSelection
             ref="addMockOptions"
@@ -228,7 +228,6 @@
         :error="buildPlan.tasks.length < 1 && currentStep != 'buildEnvironment'"
         error-color="negative"
         icon="format_list_numbered"
-        id="build-planner-q-step-select-projects"
       >
         <project-selector
           :buildItems="buildPlan.tasks"
@@ -251,7 +250,7 @@
             flat
             color="primary"
             v-if="currentStep !== 'buildEnvironment'"
-            id="build-planner-q-btn-back"
+            id="bpl-qb-back"
           >
             Back
           </q-btn>
@@ -260,7 +259,7 @@
             :loading="loading"
             icon-right="chevron_right"
             color="primary"
-            id="build-planner-q-btn-create-build"
+            id="bpl-qb-create-build"
           >
             {{ nextLabel }}
           </q-btn>

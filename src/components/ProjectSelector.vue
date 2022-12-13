@@ -138,7 +138,7 @@
     </q-scroll-area>
 
     <div class="group row justify-end">
-      <q-btn @click="onAddProject" icon="add" color="secondary">
+      <q-btn @click="onAddProject" icon="add" color="secondary" id="pse-qb-add-project">
         Add project
       </q-btn>
     </div>
