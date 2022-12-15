@@ -16,7 +16,7 @@
 
       <q-card-section>
 
-        <q-tabs v-model="tab">
+        <q-tabs v-model="tab" id="bui-qt-tab-menu">
          <q-tab name="summary" label="Summary"/>
           <q-tab
               v-for="target of Object.keys(buildTasks)"
@@ -98,9 +98,10 @@
                       :cas_hash="tasks[0].alma_commit_cas_hash"
                     />
                   </td>
-                  <template v-for="task in buildTasks[target][tasks[0].index]" :key="task.id">
+                  <template v-for="task in buildTasks[target][tasks[0].index]" :key="task.id" :id="`bui-tm-task-${task.id}-item`">
                     <td :class="getTaskCSS(task)"
                         @click="openTaskLogs(task)"
+                        :id="`bui-tm-task-${task.id}-status`"
                     >
                       {{ getTextStatus(task) }}
                     </td>
@@ -161,7 +162,7 @@
               </tbody>
             </table>
             <q-card-section class="no-padding">
-              <q-expansion-item label="Repositories" expand-separator icon="storage">
+              <q-expansion-item label="Repositories" expand-separator icon="storage" id="bui-qe-exp-repos">
                 <q-card>
                   <q-card-section v-for="repo in buildRepos(target)" :key="repo"
                                   class="no-padding">
