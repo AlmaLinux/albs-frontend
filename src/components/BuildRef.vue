@@ -127,6 +127,7 @@
             }
             return refUrl
               .split('/')
+              .filter(r => r !== '')
               .pop()
               .replace(/\.git$/, '')
         }
