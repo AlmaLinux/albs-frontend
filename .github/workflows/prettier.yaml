@@ -1,0 +1,23 @@
+name: Prettier
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 12
+      - name: Install prettier
+        run: npm i prettier
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+      - name: Execute prettier
+        run: |
+          npx prettier --check ${{ steps.changed-files.outputs.all_changed_files }}
