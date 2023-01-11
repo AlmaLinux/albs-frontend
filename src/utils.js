@@ -9,7 +9,7 @@ import {Notify} from 'quasar'
  */
 export function splitRpmFileName(url) {
   const re =
-    /(?:\/|^)([\w\-\+|.]+?)-([\w\^~.]+?)-([\w.+]+?)\.(src|noarch|x86_64|i[3456]86)\.rpm$/i
+    /(?:\/|^)([\w\-\+|.]+?)-([\w\^\+~.]+?)-([\w.+]+?)\.(src|noarch|x86_64|i[3456]86)\.rpm$/i
   const rslt = url.match(re)
   if (rslt) {
     return {
