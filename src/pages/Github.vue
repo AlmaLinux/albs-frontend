@@ -15,7 +15,7 @@
       try {
         let parsedToken = parseJwt(token)
         let user = {
-          user_id: parsedToken.user_id,
+          user_id: parsedToken.sub,
           jwt_token: token
         }
         this.$store.commit('users/updateSelf', user)
