@@ -26,7 +26,12 @@
             <q-item-label>Logout</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item v-else clickable @click="onLogin" id="mla-li-login">
+        <q-item
+          v-else
+          clickable
+          @click="onLogin"
+          id="mla-li-login"
+        >
           <q-item-section avatar>
             <q-icon name="login" />
           </q-item-section>
