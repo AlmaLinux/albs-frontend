@@ -82,7 +82,7 @@
              <table class="text-left q-table horizontal-separator build-info-table">
               <thead>
                 <tr>
-                  <th><td/></th>
+                  <th></th>
                   <th>Status</th>
                   <th>Packages</th>
                   <th class="text-center">Actions</th>
