@@ -100,7 +100,7 @@
                   <template v-for="task in buildTasks[target][tasks[0].index]" :key="task.id">
                     <td :class="getTaskCSS(task)"
                         @click="openTaskLogs(task)"
-                        :id="`bui-tm-task-${task.id}-status`"
+                        :id="`bui-tm-task-status-${task.id}`"
                     >
                       {{ getTextStatus(task) }}
                     </td>
@@ -108,6 +108,7 @@
                       <div
                         v-for="pkg in sortTaskPackage(getTaskPackages(task))"
                         :key="pkg.name" class="row"
+                        :id="`bui-tm-task-packages-${task.id}`"
                       >
                         <div v-if="pkgNameSrc(pkg.name)" class="q-pb-sm q-pt-md">
                           <a class="text-tertiary" :href="pkg.downloadUrl">
