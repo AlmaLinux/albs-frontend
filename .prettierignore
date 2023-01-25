@@ -5,5 +5,13 @@
 /src-cordova
 /.quasar
 /node_modules
+/.github
+/.vscode
 .eslintrc.js
 babel.config.js
+.postcssrc.js
+.prettierrc
+.prettierignore
+jsconfig.json
+quasar.conf.js
+README.md
