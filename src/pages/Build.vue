@@ -38,6 +38,7 @@
              <table class="text-left q-table horizontal-separator build-info-table">
               <thead>
                 <tr>
+                  <th><td/></th>
                   <th v-for="targetName of Object.keys(buildTasks)" :key="targetName" class="platform-name text-center">
                     {{ targetName }}
                   </th>
