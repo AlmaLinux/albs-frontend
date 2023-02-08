@@ -111,7 +111,7 @@ export default defineComponent({
       return this.logs.filter(artifact => regex.test(artifact.name)).sort((a,b) => {
         if (a.name < b.name) return -1
         if (a.name > b.name) return 1
-        return 0 
+        return 0
       })
     },
     loadLogsList () {
@@ -126,14 +126,14 @@ export default defineComponent({
         })
     },
     onDownload (artifact) {
-      let artifactUrl = `${window.origin}/pulp/content/build_logs/${this.task.platform.name}-${this.task.arch}-${this.buildId}-artifacts-${this.taskId}/${artifact.name}`
+      let artifactUrl = `${window.origin}/pulp/content/build_logs/build-${this.buildId}-build_log/${artifact.name}`
       axios.get(artifactUrl)
         .then(response => {
           exportFile(artifact.name, response.data)
         })
     },
     onView (artifact) {
-      let artifactUrl = `${window.origin}/pulp/content/build_logs/${this.task.platform.name}-${this.task.arch}-${this.buildId}-artifacts-${this.taskId}/${artifact.name}`
+      let artifactUrl = `${window.origin}/pulp/content/build_logs/build-${this.buildId}-build_log/${artifact.name}`
       this.selectedLog = artifact.name
       if (artifact.text) {
         this.logText = artifact.text
