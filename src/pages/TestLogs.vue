@@ -237,7 +237,7 @@
                 test.alts_response.result.logs.forEach(log => {
                   test_logs[this.shortTestName(log.name)] = log
                 })
-                this.test_options.forEach(opt => {
+                this.test_options.filter(opt => test.alts_response.result[opt]).forEach(opt => {
                   let res = {}
                   if (opt === 'tests') {
                     for (const item in test.alts_response.result[opt]) {
