@@ -182,7 +182,15 @@
           {label: 'Fail', value: false}],
         statusFilter: {label: 'All', value: 'all'},
         search: '',
-        test_options: ['initialize_terraform', 'initial_provision', 'start_environment', 'install_package', 'tests', 'stop_environment']
+        test_options: [
+          'initialize_terraform',
+          'initial_provision',
+          'start_environment',
+          'install_package',
+          'tests',
+          'stop_environment',
+          'uninstall_package'
+        ]
       }
     },
     props: {
