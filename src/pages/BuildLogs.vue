@@ -82,16 +82,16 @@ export default defineComponent({
   },
   computed: {
     buildSystemLogs () {
-      return this.filterLogs(/albs[.\w|\d]*?\.log$/)
+      return this.filterLogs(/albs[.\w|\d]*?(\.log|\.gz\.log)$/)
     },
     pbuilderLogs () {
       return this.filterLogs(/(apt|build)-[\w.]+\.(cfg|conf|log)$/)
     },
     mockBinaryLogs () {
-      return this.filterLogs(/mock((-*\w)*?(?!srpm)\.\d+\.log|\.\d+\.cfg)$/)
+      return this.filterLogs(/mock((-*\w)*?(?!srpm)\.\d+(\.log|\.gz\.log)|\.\d+\.cfg)$/)
     },
     mockSrpmLogs () {
-      return this.filterLogs(/mock(_\w+\.srpm\..*?\.log|\.srpm\.\d+\.cfg)$/)
+      return this.filterLogs(/mock(_\w+\.srpm\..*?(\.log|\.gz\.log)|\.srpm\.\d+\.cfg)$/)
     },
     buildArtifacts () {
       return this.filterLogs(/modules/)
