@@ -18,8 +18,8 @@
       <build-logs :buildId="buildId" :taskId="taskId"/>
     </q-tab-panel>
 
-            <test-logs :taskId="taskId">
     <q-tab-panel name="test-tab">
+      <test-logs :buildId="buildId" :taskId="taskId"/>
     </q-tab-panel>
   </q-tab-panels>
 </template>

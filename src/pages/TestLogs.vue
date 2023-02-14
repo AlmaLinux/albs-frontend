@@ -288,7 +288,7 @@
           return log.tap[log.tapFilter]
         }
       },
-      onView (log, revision) {
+      onView (log) {
         let logUrl = `${window.origin}/pulp/content/test_logs/build-${this.buildId}-test_log/${log.name}`
         this.selectedLog = log.name
         axios.get(logUrl)
