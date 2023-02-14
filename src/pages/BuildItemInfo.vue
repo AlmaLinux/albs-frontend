@@ -15,11 +15,11 @@
     transition-next="slide-left"
   >
     <q-tab-panel name="build-tab">
-      <build-logs :buildId="buildId" :taskId="taskId"/>
+      <build-logs :buildId="buildId" :taskId="taskId" />
     </q-tab-panel>
 
     <q-tab-panel name="test-tab">
-      <test-logs :buildId="buildId" :taskId="taskId"/>
+      <test-logs :buildId="buildId" :taskId="taskId" />
     </q-tab-panel>
   </q-tab-panels>
 </template>
