@@ -1132,32 +1132,34 @@
           })
       },
       loadTestsInfo (task) {
-        let count_failed = 0
-        let tests_failed = false
-        let test_started = false
-        task.test_tasks.forEach(test => {
-          switch (test.status) {
-            case TestStatus.STARTED:
-              test_started = true
-              break;
-            case TestStatus.FAILED:
-              count_failed += 1
-              tests_failed = true
-              break;
-            case TestStatus.COMPLETED:
-              task.status = BuildStatus.TEST_COMPLETED
-              break;
+          let count_failed = 0
+          let tests_failed = false
+          let test_started = false
+          let latest_revision = Math.max(...task.test_tasks.map(t => t.revision))
+          let latest_test_tasks = task.test_tasks.filter(t => t.revision === latest_revision)
+          latest_test_tasks.forEach(test => {
+            switch (test.status) {
+              case TestStatus.STARTED:
+                test_started = true
+                break;
+              case TestStatus.FAILED:
+                count_failed += 1
+                tests_failed = true
+                break;
+              case TestStatus.COMPLETED:
+                task.status = BuildStatus.TEST_COMPLETED
+                break;
+            }
+          })
+          if (tests_failed) {
+             if (count_failed === latest_test_tasks.length) {
+              task.status = BuildStatus.ALL_TESTS_FAILED
+             } else {
+              task.status = BuildStatus.TEST_FAILED
+             }
           }
-        })
-        if (tests_failed) {
-           if (count_failed === task.test_tasks.length) {
-            task.status = BuildStatus.ALL_TESTS_FAILED
-           } else {
-            task.status = BuildStatus.TEST_FAILED
-           }
-        }
-        if (test_started) task.status = BuildStatus.TEST_STARTED
-      },
+          if (test_started) task.status = BuildStatus.TEST_STARTED
+        },
       loadSignInfo (buildId) {
         this.$api.get(`sign-tasks/?build_id=${buildId}`)
           .then(response => {
