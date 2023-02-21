@@ -212,7 +212,6 @@
         statusFilter: {label: 'All', value: 'all'},
         search: '',
         test_options: [
-          'alts',
           'initialize_terraform',
           'start_environment',
           'initial_provision',
@@ -264,7 +263,17 @@
                     this.tests.push(parsed_test)
                     return
                   }
-                  this.test_options.forEach(opt => {
+
+                  let alts_log = test.alts_response.result.logs.filter(l => {
+                    return l.name.includes('alts')
+                  })[0]
+                  if (alts_log) {
+                    this.altsLog = {
+                      short_name: 'alts_logs',
+                      name: alts_log.name
+                    }
+                  }
+                  this.test_options.filter(opt => test.alts_response.result[opt]).forEach(opt => {
                     let res = {}
                     if (opt === 'tests') {
                       for (const item in test.alts_response.result[opt]) {
@@ -282,17 +291,6 @@
                           res.name = log.name
                         }
                         parsed_test.result.push(res)
-                      }
-                    } else if (opt === 'alts') {
-                      let alts_log = test.alts_response.result.logs.filter(l => {
-                        return l.name.includes(opt)
-                      })[0]
-                      if (alts_log) {
-                        res = {
-                          short_name: 'alts_logs',
-                          name: alts_log.name
-                        }
-                        this.altsLog = res
                       }
                     } else {
                       if (test.alts_response.result[opt]){
