@@ -110,11 +110,7 @@
                   </q-tooltip>
                 </q-btn>
               </td>
-              <td
-                class="text-center"
-                width="15%"
-                @click="onView(log, test.revision)"
-              >
+              <td class="text-center" width="15%" @click="onView(log)">
                 <q-chip
                   :color="log.success ? 'green' : 'negative'"
                   text-color="white"
@@ -184,17 +180,18 @@
         search: '',
         test_options: [
           'initialize_terraform',
-          'initial_provision',
           'start_environment',
+          'initial_provision',
           'install_package',
           'tests',
-          'stop_environment',
-          'uninstall_package'
+          'uninstall_package',
+          'stop_environment'
         ]
       }
     },
     props: {
-      taskId: String
+      taskId: String,
+      buildId: String
     },
     created () {
       this.loadLogsList()
@@ -291,8 +288,8 @@
           return log.tap[log.tapFilter]
         }
       },
-      onView (log, revision) {
-        let logUrl = `${window.origin}/pulp/content/test_logs/test_logs-btid-${this.taskId}-tr-${revision}/${log.name}`
+      onView (log) {
+        let logUrl = `${window.origin}/pulp/content/test_logs/build-${this.buildId}-test_log/${log.name}`
         this.selectedLog = log.name
         axios.get(logUrl)
           .then(response => {
