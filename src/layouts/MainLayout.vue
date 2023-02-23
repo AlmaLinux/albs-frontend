@@ -11,11 +11,13 @@
           v-for="link in essentialLinks"
           :key="link.title"
           v-bind="link"
+          :id="link.id"
         />
         <q-item
           v-if="$store.getters.isAuthenticated"
           clickable
           @click="onLogout"
+          id="mla-li-logout"
         >
           <q-item-section avatar>
             <q-icon name="logout" />
@@ -24,7 +26,12 @@
             <q-item-label>Logout</q-item-label>
           </q-item-section>
         </q-item>
-        <q-item v-else clickable @click="onLogin">
+        <q-item
+          v-else
+          clickable
+          @click="onLogin"
+          id="mla-li-login"
+        >
           <q-item-section avatar>
             <q-icon name="login" />
           </q-item-section>
@@ -52,10 +59,17 @@
           class="shadow-4"
           icon="menu"
           @click="toggleLeftDrawer"
+          id="mla-qb-menu"
         />
       </q-page-sticky>
       <q-page-sticky v-if="onBuildFeed" position="top-right" :offset="[5, 10]">
-        <q-btn round color="primary" icon="search" @click="toggleRightDrawer" />
+        <q-btn
+          round
+          color="primary"
+          icon="search"
+          @click="toggleRightDrawer"
+          id="mla-qb-search"
+        />
       </q-page-sticky>
     </q-page-container>
   </q-layout>
@@ -69,6 +83,7 @@
   const linksList = [
     {
       title: 'Administration',
+      id: 'mla-li-admin',
       icon: 'settings',
       expand: true,
       // is_superuser workaround
@@ -77,6 +92,7 @@
       children: [
         {
           title: 'Users',
+          id: 'mla-li-admin-users',
           icon: 'manage_accounts',
           link: 'users',
         },
@@ -84,35 +100,41 @@
     },
     {
       title: 'Feed',
+      id: 'mla-li-feed',
       icon: 'view_list',
       link: '/',
       allow: true,
     },
     {
       title: 'New build',
+      id: 'mla-li-new-build',
       icon: 'create',
       link: 'build/create',
       allow: store.getters.isAuthenticated,
     },
     {
       title: 'Errata',
+      id: 'mla-li-errata',
       icon: 'bug_report',
       link: '/errata',
       allow: store.getters.isAuthenticated,
     },
     {
       title: 'Releases',
+      id: 'mla-li-releases',
       icon: 'cloud',
       expand: true,
       allow: store.getters.isAuthenticated,
       children: [
         {
           title: 'Release Feed',
+          id: 'mla-li-releases-feed',
           icon: 'cloud_circle',
           link: 'release-feed',
         },
         {
           title: 'New release',
+          id: 'mla-li-releases-new',
           icon: 'cloud_upload',
           link: 'release/create',
         },
@@ -120,17 +142,20 @@
     },
     {
       title: 'Products',
+      id: 'mla-li-products',
       icon: 'category',
       expand: true,
       allow: store.getters.isAuthenticated,
       children: [
         {
           title: 'Products Feed',
+          id: 'mla-li-products-feed',
           icon: 'list',
           link: 'product-feed',
         },
         {
           title: 'New product',
+          id: 'mla-li-products-new',
           icon: 'earbuds',
           link: 'product/new',
         },
@@ -138,6 +163,7 @@
     },
     {
       title: 'Teams',
+      id: 'mla-li-teams',
       icon: 'groups',
       link: 'team-feed',
       allow: store.getters.isAuthenticated,

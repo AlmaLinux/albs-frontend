@@ -2,8 +2,12 @@
   <q-dialog position="top" :content-css="{minWidth: '35vw'}" v-model="opened">
     <q-card style="width: 700px; height: 320px; max-width: 80vw">
       <q-card-section>
-        <div v-if="modularity" class="text-h6">Add a module to the build</div>
-        <div v-else class="text-h6">Add a project to the build</div>
+        <div v-if="modularity" class="text-h6" id="psw-dv-dialog-title">
+          Add a module to the build
+        </div>
+        <div v-else class="text-h6" id="psw-dv-dialog-title">
+          Add a project to the build
+        </div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
@@ -13,12 +17,14 @@
             :options="sourceTypes"
             type="radio"
             inline
+            id="psw-qo-repo-type"
           />
           <q-toggle
             v-if="!moduleRefs"
             class="text-grey-8 text-body1 q-pb-sm"
             v-model="modularity"
             :label="modularity ? 'Modules' : 'Projects'"
+            id="psw-qt-modularity"
           />
         </div>
 
@@ -31,6 +37,7 @@
             input-debounce="0"
             @update:model-value="onAlmalinuxRepoSelected"
             @filter="almaGitSelectFilter"
+            id="psw-qs-repo"
           />
           <q-select
             v-model="git.git_ref"
@@ -39,6 +46,7 @@
             use-input
             @filter="GitRefFilter"
             input-debounce="0"
+            id="psw-qs-repo-tag-branches"
           />
         </template>
 
@@ -50,6 +58,7 @@
             lazy-rules="ondemand"
             @keydown.enter.prevent="onSubmit"
             :rules="[(val) => validateSRPMUrl(val) || 'It is not src-rpm URL']"
+            id="psw-qi-repo"
           />
         </template>
 
@@ -59,12 +68,18 @@
             v-model="git.git_ref"
             type="url"
             label="Reference (branch/tag name)"
+            id="psw-qi-repo-tag-branches"
           />
         </template>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Cancel" color="primary" @click="close" />
+        <q-btn
+          flat label="Cancel"
+          color="primary"
+          @click="close"
+          id="psw-qb-cancel"
+        />
         <q-btn
           flat
           label="Submit"
@@ -72,6 +87,7 @@
           :disabled="!isProjectSelected"
           :loading="moduleRefsLoading"
           @click="onSubmit"
+          id="psw-qb-submit"
         >
           <template v-slot:loading>
             <q-spinner class="on-left" />

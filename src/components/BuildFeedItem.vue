@@ -6,8 +6,8 @@
         <span>
           <b>Built modules:&nbsp;</b>
         </span>
-        <span> 
-          <b class="text-body2"> {{ nsvca(rpm_module) }} </b> 
+        <span>
+          <b class="text-body2"> {{ nsvca(rpm_module) }} </b>
         </span>
       </div>
        <table class="text-left q-table horizontal-separator build-info-table">
@@ -21,6 +21,7 @@
                   icon="info"
                   :to="{path: `/build/${build.id}`}"
                   label="details"
+                  :id="`bfi-qb-details-${build.id}`"
               />
             </th>
             <template v-for="platform in buildPlatforms">
@@ -168,7 +169,7 @@ export default defineComponent({
           case BuildStatus.TEST_COMPLETED:
             css.push('text-green-7')
             break;
-        }        
+        }
         return css
     },
     getTaskTargets (task) {

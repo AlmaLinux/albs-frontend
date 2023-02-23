@@ -14,7 +14,7 @@
       </q-card-section>
 
       <q-card-section>
-        <q-tabs v-model="tab">
+        <q-tabs v-model="tab" id="bui-qt-tab-menu">
           <q-tab name="summary" label="Summary" />
           <q-tab
             v-for="target of Object.keys(buildTasks)"
@@ -134,7 +134,7 @@
                     v-for="task in buildTasks[target][tasks[0].index]"
                     :key="task.id"
                   >
-                    <td :class="getTaskCSS(task)" @click="openTaskLogs(task)">
+                    <td :class="getTaskCSS(task)" @click="openTaskLogs(task)" :id="`bui-tm-task-${task.id}-status`">
                       {{ getTextStatus(task) }}
                     </td>
                     <td>
@@ -214,6 +214,7 @@
                 label="Repositories"
                 expand-separator
                 icon="storage"
+                id="bui-qe-exp-repos"
               >
                 <q-card>
                   <q-card-section

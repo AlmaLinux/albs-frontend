@@ -10,7 +10,7 @@
       />
     </div>
     <div class="q-pa-lg flex flex-center">
-      <q-pagination input :max="totalPages" v-model="currentPage" :disable="loading"/>
+      <q-pagination input :max="totalPages" v-model="currentPage" :disable="loading" id="bfe-qp-pagination"/>
     </div>
   </q-page>
 </template>
