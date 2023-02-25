@@ -134,7 +134,11 @@
                     v-for="task in buildTasks[target][tasks[0].index]"
                     :key="task.id"
                   >
-                    <td :class="getTaskCSS(task)" @click="openTaskLogs(task)" :id="`bui-tm-task-${task.id}-status`">
+                    <td
+                      :class="getTaskCSS(task)"
+                      @click="openTaskLogs(task)"
+                      :id="`bui-tm-task-${task.id}-status`"
+                    >
                       {{ getTextStatus(task) }}
                     </td>
                     <td>
