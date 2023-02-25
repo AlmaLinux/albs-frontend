@@ -20,6 +20,7 @@
       </tr>
       <tbody v-for="test in tests" :key="test.id">
         <tr class="bg-grey-2">
+          <td width="1px"></td>
           <td colspan="3" class="text-blue-grey-7">
             <strong>
               <span>
@@ -39,11 +40,42 @@
           </tr>
         </template>
         <template v-else>
+          <tr v-if="altsLog">
+            <td width="1px">
+              <q-icon
+                class="cursor-pointer"
+                @click="onView(altsLog)"
+                color="grey"
+                name="article"
+                size="1.5rem"
+              >
+                <q-tooltip> Show log </q-tooltip>
+              </q-icon>
+            </td>
+            <td :colspan="!search ? 2 : 3">
+              <strong>
+                {{ altsLog.short_name }}
+              </strong>
+            </td>
+            <td></td>
+            <td class="text-center" width="15%"></td>
+          </tr>
           <template
             v-for="log in testsStatusFilter(testsFilter(test.result, search), statusFilter)"
             :key="log"
           >
             <tr>
+              <td width="1px">
+                <q-icon
+                  v-if="log.name"
+                  class="cursor-pointer"
+                  @click="onView(log)"
+                  color="grey"
+                  name="article"
+                >
+                  <q-tooltip> Show log </q-tooltip>
+                </q-icon>
+              </td>
               <td :colspan="log.tap && !search ? 2 : 3">
                 <strong>
                   {{ log.short_name }}
@@ -110,12 +142,12 @@
                   </q-tooltip>
                 </q-btn>
               </td>
-              <td class="text-center" width="15%" @click="onView(log)">
+              <td class="text-center" width="15%">
                 <q-chip
                   :color="log.success ? 'green' : 'negative'"
                   text-color="white"
                   dense
-                  class="text-weight-bolder text-capitalize cursor-pointer"
+                  class="text-weight-bolder text-capitalize"
                   square
                 >
                   {{ log.success ? 'done' : 'failed' }}
@@ -125,7 +157,7 @@
             <template v-if="log.tap">
               <tr v-for="tap in tapFilter(log, search)" :key="tap.test_name">
                 <td
-                  colspan="3"
+                  colspan="4"
                   style="padding-left: 3rem; word-break: break-all;"
                 >
                   {{ tap.test_name }}
@@ -170,6 +202,7 @@
         logText: '',
         selectedLog: null,
         tests: [],
+        altsLog: null,
         taps: null,
         testTapStatus: TestTapStatus,
         testsStatusFilterLabels: [
@@ -218,52 +251,68 @@
               .then(logs => {
                 Loading.hide()
                 this.taps = logs.data
-              response.data.forEach(test => {
-                let parsed_test = {
-                  full_package_name: `${test.package_name}-${test.package_version}-${test.package_release}`,
-                  status: test.status,
-                  revision: test.revision,
-                  result: []
-                }
-                let test_logs = {}
-                if (parsed_test.status < TestStatus.COMPLETED) {
-                  parsed_test.running = true
-                  this.tests.push(parsed_test)
-                  return
-                }
-                test.alts_response.result.logs.forEach(log => {
-                  test_logs[this.shortTestName(log.name)] = log
-                })
-                this.test_options.filter(opt => test.alts_response.result[opt]).forEach(opt => {
-                  let res = {}
-                  if (opt === 'tests') {
-                    for (const item in test.alts_response.result[opt]) {
-                      res.success = test.alts_response.result[opt][item].success
-                      res.short_name = item
-                      res.name = test_logs[item].name
-                      res.tapFilter = 'failed'
-                      res.tap = this.getTaps(test.id)
-                      parsed_test.result.push(res)
-                    }
-                  } else {
-                    res.success = test.alts_response.result[opt].success
-                    res.short_name = opt
-                    res.name = test_logs[opt].name
-                    parsed_test.result.push(res)
+                response.data.forEach(test => {
+                  let parsed_test = {
+                    full_package_name: `${test.package_name}-${test.package_version}-${test.package_release}`,
+                    status: test.status,
+                    revision: test.revision,
+                    result: []
                   }
-                })
+                  if (parsed_test.status < TestStatus.COMPLETED) {
+                    parsed_test.running = true
+                    this.tests.push(parsed_test)
+                    return
+                  }
+
+                  let alts_log = test.alts_response.result.logs.filter(l => {
+                    return l.name.includes('alts')
+                  })[0]
+                  if (alts_log) {
+                    this.altsLog = {
+                      short_name: 'alts_logs',
+                      name: alts_log.name
+                    }
+                  }
+                  this.test_options.filter(opt => test.alts_response.result[opt]).forEach(opt => {
+                    let res = {}
+                    if (opt === 'tests') {
+                      for (const item in test.alts_response.result[opt]) {
+                        res = {
+                          success: test.alts_response.result[opt][item].success,
+                          short_name: item,
+                          tapFilter: 'failed',
+                          tap: this.getTaps(test.id)
+                        }
+                        let log = test.alts_response.result.logs.filter(l => {
+                          return l.name.includes('package_integrity_tests')
+                        })[0]
+
+                        if (log) {
+                          res.name = log.name
+                        }
+                        parsed_test.result.push(res)
+                      }
+                    } else {
+                      if (test.alts_response.result[opt]){
+                        res = {
+                          success: test.alts_response.result[opt].success,
+                          short_name: opt
+                        }
+                        let log = test.alts_response.result.logs.filter(l => {
+                          return l.name.includes(opt)
+                        })[0]
+
+                        if (log) {
+                          res.name = log.name
+                        }
+                        parsed_test.result.push(res)
+                      }
+                    }
+                  })
                 this.tests.push(parsed_test)
               })
             })
           })
-      },
-      shortTestName (name) {
-        let n = name.split('_')
-        n.pop()
-        if (n[0] === 'tests'){
-          n.shift()
-        }
-        return n.join('_')
       },
       testsStatusFilter (tests, status) {
         if (status.value === 'all') return tests
