@@ -287,7 +287,7 @@
     data() {
       let platformArches = {}
       for (const platform of this.$store.state.platforms.platforms) {
-        platformArches[platform.name] = platform.arch_list
+        platformArches[platform.name] = []
       }
       return {
         buildPlan: {
