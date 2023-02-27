@@ -128,7 +128,14 @@
           id="bpl-qi-linked-builds"
         >
           <template v-slot:append v-if="linked_builds_input">
-            <q-btn round dense flat icon="add" @click="addLinkedBuilds" id="bpl-qb-add-linked-build" />
+            <q-btn
+              round
+              dense
+              flat
+              icon="add"
+              @click="addLinkedBuilds"
+              id="bpl-qb-add-linked-build"
+            />
           </template>
         </q-input>
 
@@ -280,7 +287,7 @@
     data() {
       let platformArches = {}
       for (const platform of this.$store.state.platforms.platforms) {
-        platformArches[platform.name] = platform.arch_list
+        platformArches[platform.name] = []
       }
       return {
         buildPlan: {
