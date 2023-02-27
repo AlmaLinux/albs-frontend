@@ -104,17 +104,20 @@ const ReleaseStatus = {
   IN_PROGRESS: 2,
   COMPLETED: 3,
   FAILED: 4,
+  REVERTED: 5,
   text: {
     1: 'release scheduled',
     2: 'release in progress',
     3: 'release completed',
-    4: 'release failed'
+    4: 'release failed',
+    5: 'release reverted',
   },
   color: {
-    1: 'faded',
-    2: 'faded',
-    3: 'primary',
-    4: 'negative'
+    1: 'grey',
+    2: 'primary',
+    3: 'green',
+    4: 'negative',
+    5: 'grey-7',
   }
 }
 

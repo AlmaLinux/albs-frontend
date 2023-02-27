@@ -19,7 +19,7 @@
                             Release {{ release.id }}
                         </div>
                         <q-chip align="top" dense
-                                    :color="statusColor(release)"
+                                    :color="releaseStatus.color[release.status]"
                                     class="text-weight-bolder text-white text-capitalize">
                             {{ statusText(releaseStatus.text[release.status]) }}
                         </q-chip>
@@ -41,10 +41,42 @@
                         </div>
                     </q-card-section>
                 </q-card-section>
-                
                 <q-card-section>
                     <release-view :release="release"/>
                 </q-card-section>
+                <div v-if="release.status === releaseStatus.COMPLETED">
+                  <q-separator/>
+                  <q-card-actions class="row justify-end q-gutter-sm q-pr-sm">
+                    <q-btn
+                      color="negative"
+                      round
+                      icon="replay"
+                      @click="confirm = true">
+                      <q-tooltip>
+                        Revert release
+                      </q-tooltip>
+                    </q-btn>
+                    <q-dialog v-model="confirm" persistent>
+                      <q-card>
+                        <q-card-section class="row items-center">
+                          <span class="text-h6">Warning</span>
+                        </q-card-section>
+                        <q-card-section>
+                          Are you sure you want to revert release {{ releaseId }}?
+                        </q-card-section>
+                        <q-card-actions align="right">
+                          <q-btn
+                            flat
+                            label="Confirm"
+                            color="primary"
+                            v-close-popup
+                            @click="revertRelease(releaseId)"/>
+                          <q-btn flat label="Cancel" color="negative" v-close-popup @click="confirm = false"/>
+                        </q-card-actions>
+                      </q-card>
+                    </q-dialog>
+                  </q-card-actions>
+                </div>
             </q-card>
         </div>
     </div>
@@ -64,6 +96,7 @@
         return {
             release: null,
             releaseStatus: ReleaseStatus,
+            confirm: false,
             loadingCommit: false
         }
     },
@@ -71,6 +104,26 @@
         this.loadRelease(this.releaseId)
     },
     methods: {
+        revertRelease(releaseId) {
+          this.$api.post(`/releases/${releaseId}/revert`).then(() => {
+            Notify.create({
+              message: `Release ${releaseId} has been queued for revert`,
+              type: 'positive',
+              actions: [
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          }).catch(error => {
+            Notify.create({
+              message: error.response.data.detail,
+              type: 'negative',
+              timeout: 30,
+              actions: [
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          })
+        },
         createdAt (date) {
             if (!date) return 'no date'
             
@@ -78,24 +131,6 @@
         },
         statusText(text) {
             return text.replace("release ","")
-        },
-        statusColor(release){
-            let col = ''
-            switch (release.status) {
-                case this.releaseStatus.SCHEDULED:
-                    col = 'grey'
-                    break;
-                case this.releaseStatus.IN_PROGRESS:
-                    col = 'primary'
-                    break;
-                case this.releaseStatus.COMPLETED:
-                    col = 'green'
-                    break;
-                case this.releaseStatus.FAILED:
-                    col = 'negative'
-                    break;
-            }
-            return col
         },
         loadRelease (releaseId) {
             Loading.show()
