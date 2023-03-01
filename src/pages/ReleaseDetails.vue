@@ -94,91 +94,91 @@
           releaseId: String
       },
       data() {
-          return {
-              release: null,
-              releaseStatus: ReleaseStatus,
-              confirm: false,
-              loadingCommit: false
-          }
+        return {
+            release: null,
+            releaseStatus: ReleaseStatus,
+            confirm: false,
+            loadingCommit: false
+        }
       },
       created () {
-          this.loadRelease(this.releaseId)
+        this.loadRelease(this.releaseId)
       },
       methods: {
-          revertRelease(releaseId) {
-            this.$api.post(`/releases/${releaseId}/revert`).then(() => {
-              Notify.create({
-                message: `Release ${releaseId} has been queued for revert`,
-                type: 'positive',
-                actions: [
-                  { label: 'Dismiss', color: 'white', handler: () => {} }
-                ]
-              })
-            }).catch(error => {
-              Notify.create({
-                message: error.response.data.detail,
-                type: 'negative',
-                timeout: 30,
-                actions: [
-                  { label: 'Dismiss', color: 'white', handler: () => {} }
-                ]
-              })
+        revertRelease(releaseId) {
+          this.$api.post(`/releases/${releaseId}/revert`).then(() => {
+            Notify.create({
+              message: `Release ${releaseId} has been queued for revert`,
+              type: 'positive',
+              actions: [
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
             })
-          },
-          createdAt (date) {
-              if (!date) return 'no date'
+          }).catch(error => {
+            Notify.create({
+              message: error.response.data.detail,
+              type: 'negative',
+              timeout: 30,
+              actions: [
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          })
+        },
+        createdAt (date) {
+            if (!date) return 'no date'
 
-              return new Date(date).toLocaleString()
-          },
-          statusText(text) {
-              return text.replace("release ","")
-          },
-          loadRelease (releaseId) {
-              Loading.show()
-              this.$api.get(`/releases/${releaseId}/`)
-                  .then(response => {
-                      Loading.hide()
-                      this.release = response.data
-                  })
-                  .catch(error => {
-                      Loading.hide()
-                      if (+String(error.response.status)[0] === 4 ){
-                          Notify.create({
-                              message: error.response.data.detail, type: 'negative',
-                              actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
-                          })
-                      } else {
-                          Notify.create({
-                              message: `${error.response.status}: ${error.response.statusText}`,
-                              type: 'negative',
-                              actions: [
-                                  { label: 'Dismiss', color: 'white', handler: () => {} }
-                              ]
-                          })
-                      }
-                  })
-          },
-          commitRelease () {
-              this.loadingCommit = true
-              this.$api.post(`/releases/${this.release.id}/commit/`)
-                  .then(response => {
-                      this.loadingCommit = false
-                      Notify.create({message: response.data.message, type: 'positive',
-                          actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
-                      this.$router.push(`/release-feed`)
-                  })
-                  .catch(error => {
-                      this.loadingCommit = false
-                      console.log(error)
-                      Notify.create({
-                          message: `${error.response.status}: ${error.response.statusText}`,
-                          type: 'negative',
-                          actions: [
-                              { label: 'Dismiss', color: 'white', handler: () => {} }
-                          ]
-                      })
-                  })
-          },
+            return new Date(date).toLocaleString()
+        },
+        statusText(text) {
+            return text.replace("release ","")
+        },
+        loadRelease (releaseId) {
+            Loading.show()
+            this.$api.get(`/releases/${releaseId}/`)
+                .then(response => {
+                    Loading.hide()
+                    this.release = response.data
+                })
+                .catch(error => {
+                    Loading.hide()
+                    if (+String(error.response.status)[0] === 4 ){
+                        Notify.create({
+                            message: error.response.data.detail, type: 'negative',
+                            actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]
+                        })
+                    } else {
+                        Notify.create({
+                            message: `${error.response.status}: ${error.response.statusText}`,
+                            type: 'negative',
+                            actions: [
+                                { label: 'Dismiss', color: 'white', handler: () => {} }
+                            ]
+                        })
+                    }
+                })
+        },
+        commitRelease () {
+            this.loadingCommit = true
+            this.$api.post(`/releases/${this.release.id}/commit/`)
+                .then(response => {
+                    this.loadingCommit = false
+                    Notify.create({message: response.data.message, type: 'positive',
+                        actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
+                    this.$router.push(`/release-feed`)
+                })
+                .catch(error => {
+                    this.loadingCommit = false
+                    console.log(error)
+                    Notify.create({
+                        message: `${error.response.status}: ${error.response.statusText}`,
+                        type: 'negative',
+                        actions: [
+                            { label: 'Dismiss', color: 'white', handler: () => {} }
+                        ]
+                    })
+                })
+        },
       },
       components: {
           ReleaseView
