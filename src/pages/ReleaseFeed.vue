@@ -105,7 +105,7 @@
             </q-td>
             <q-td key="status" :props="props">
               <q-chip
-                :color="statusColor(props.row)"
+                :color="releaseStatus.color[props.row.status]"
                 text-color="white"
                 dense
                 class="text-weight-bolder"
@@ -323,24 +323,6 @@
               actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
-      },
-      statusColor(release) {
-        let col = ''
-        switch (release.status) {
-          case this.releaseStatus.SCHEDULED:
-            col = 'grey'
-            break
-          case this.releaseStatus.IN_PROGRESS:
-            col = 'primary'
-            break
-          case this.releaseStatus.COMPLETED:
-            col = 'green'
-            break
-          case this.releaseStatus.FAILED:
-            col = 'negative'
-            break
-        }
-        return col
       },
       createdAt(date) {
         if (!date) return 'no date'

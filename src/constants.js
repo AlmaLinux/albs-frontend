@@ -19,7 +19,7 @@ const BuildStatus = {
     6: 'tests started',
     7: 'tests completed',
     8: 'some tests failed',
-    9: 'all tests failed'
+    9: 'all tests failed',
   },
   color: {
     0: 'faded',
@@ -31,8 +31,8 @@ const BuildStatus = {
     6: 'primary',
     7: 'positive',
     8: 'warning',
-    9: 'negative'
-  }
+    9: 'negative',
+  },
 }
 
 const BuildTaskRefType = {
@@ -44,8 +44,8 @@ const BuildTaskRefType = {
     1: 'git_branch',
     2: 'git_tag',
     3: 'srpm_url',
-    4: 'git_ref'
-  }
+    4: 'git_ref',
+  },
 }
 
 const TestStatus = {
@@ -57,14 +57,14 @@ const TestStatus = {
     1: 'tests created',
     2: 'tests started',
     3: 'tests completed',
-    4: 'tests failed'
+    4: 'tests failed',
   },
   color: {
     1: 'faded',
     2: 'faded',
     3: 'positive',
-    4: 'negative'
-  }
+    4: 'negative',
+  },
 }
 
 const TestTapStatus = {
@@ -76,14 +76,14 @@ const TestTapStatus = {
     1: 'failed',
     2: 'done',
     3: 'todo',
-    4: 'skipped'
+    4: 'skipped',
   },
   color: {
     1: 'negative',
     2: 'green',
     3: 'primary',
-    4: 'warning'
-  }
+    4: 'warning',
+  },
 }
 
 const SignStatus = {
@@ -95,8 +95,8 @@ const SignStatus = {
     1: 'queued for sign',
     2: 'being signed',
     3: 'signed',
-    4: 'failed to be signed'
-  }
+    4: 'failed to be signed',
+  },
 }
 
 const ReleaseStatus = {
@@ -104,18 +104,21 @@ const ReleaseStatus = {
   IN_PROGRESS: 2,
   COMPLETED: 3,
   FAILED: 4,
+  REVERTED: 5,
   text: {
     1: 'release scheduled',
     2: 'release in progress',
     3: 'release completed',
-    4: 'release failed'
+    4: 'release failed',
+    5: 'release reverted',
   },
   color: {
-    1: 'faded',
-    2: 'faded',
-    3: 'primary',
-    4: 'negative'
-  }
+    1: 'grey',
+    2: 'primary',
+    3: 'green',
+    4: 'negative',
+    5: 'grey-7',
+  },
 }
 
 const ErrataReleaseStatus = {
@@ -127,14 +130,14 @@ const ErrataReleaseStatus = {
     NOT_RELEASED: 'not released',
     IN_PROGRESS: 'in progress',
     RELEASED: 'released',
-    FAILED: 'failed'
+    FAILED: 'failed',
   },
   color: {
     NOT_RELEASED: 'faded',
     IN_PROGRESS: 'faded',
     RELEASED: 'primary',
-    FAILED: 'negative'
-  }
+    FAILED: 'negative',
+  },
 }
 
 export {
