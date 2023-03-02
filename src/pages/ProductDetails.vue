@@ -152,21 +152,23 @@
             </q-card>
           </q-expansion-item>
         </q-card-section>
-        <q-separator />
+        <div v-if="userAuthenticated()">
+          <q-separator />
 
-        <q-card-actions class="row justify-end q-gutter-sm q-pr-sm">
-          <q-skeleton type="circle" v-if="loadingPage" />
-          <q-btn
-            v-else
-            color="negative"
-            icon="delete"
-            round
-            @click="confirm = true"
-            :loading="loading"
-          >
-            <q-tooltip> Delete product </q-tooltip>
-          </q-btn>
-        </q-card-actions>
+          <q-card-actions class="row justify-end q-gutter-sm q-pr-sm">
+            <q-skeleton type="circle" v-if="loadingPage" />
+            <q-btn
+              v-else
+              color="negative"
+              icon="delete"
+              round
+              @click="confirm = true"
+              :loading="loading"
+            >
+              <q-tooltip> Delete product </q-tooltip>
+            </q-btn>
+          </q-card-actions>
+        </div>
       </q-card>
     </div>
   </div>
@@ -255,6 +257,9 @@
       },
       methods: {
         copyToClipboard: copyToClipboard,
+        userAuthenticated () {
+          return this.$store.getters.isAuthenticated
+        },
         installationString () {
             return `dnf copr --hub ${window.location.host} enable ${this.product.owner.username}/${this.product.name}`
         },

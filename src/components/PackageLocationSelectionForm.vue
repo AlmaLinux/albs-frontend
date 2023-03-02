@@ -37,7 +37,9 @@
             @click="tableFullScreen(props)"
             class="q-ml-md"
           />
-          <template v-if="releaseStatus === releaseStatuses.SCHEDULED">
+          <template
+            v-if="userAuthenticated() && releaseStatus === releaseStatuses.SCHEDULED"
+          >
             <q-btn
               v-if="viewOnly"
               @click.stop
@@ -424,6 +426,9 @@
     },
     methods: {
       nsvca: nsvca,
+      userAuthenticated () {
+        return this.$store.getters.isAuthenticated
+      },
       tableFullScreen(props){
         props.toggleFullscreen()
       },

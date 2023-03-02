@@ -123,7 +123,6 @@ const routes = [
       },
       {
         path: 'release-feed',
-        meta: {requiresAuth: true},
         component: () => import('pages/ReleaseFeed.vue'),
         beforeEnter(to, from, next) {
           store

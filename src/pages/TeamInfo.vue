@@ -65,12 +65,12 @@
                 :filter="filter"
                 hide-pagination
                 :rows-per-page-options="[0]"
-                selection="multiple"
+                :selection="userAuthenticated() ? 'multiple' : null"
                 v-model:selected="selectedMembers"
                 no-data-label="No members"
               >
                 <template v-slot:top-right>
-                  <div class="q-gutter-md">
+                  <div v-if="userAuthenticated()" class="q-gutter-md">
                     <q-btn
                       flat
                       round
@@ -109,7 +109,7 @@
                 </template>
                 <template v-slot:body="props">
                   <q-tr :props="props">
-                    <q-td auto-width>
+                    <q-td v-if="userAuthenticated()" auto-width>
                       <q-checkbox v-model="props.selected" />
                     </q-td>
                     <q-td key="id" :props="props">{{ props.row.id }}</q-td>
@@ -214,14 +214,15 @@
             </q-tab-panel>
           </q-tab-panels>
         </q-card-section>
+        <div v-if="userAuthenticated()">
+          <q-separator />
 
-        <q-separator />
-
-        <q-card-actions align="right">
-          <q-btn flat color="negative" @click="checkDeleting()"
-            >Delete Team</q-btn
-          >
-        </q-card-actions>
+          <q-card-actions align="right">
+            <q-btn flat color="negative" @click="checkDeleting()">
+              Delete Team
+            </q-btn>
+          </q-card-actions>
+        </div>
       </q-card>
     </div>
   </div>
@@ -315,7 +316,7 @@
     </q-card>
   </q-dialog>
 
-  <UserRolesEditor ref="userRolesEditor" />
+  <UserRolesEditor v-if="userAuthenticated()" ref="userRolesEditor" />
 </template>
 
 <script>
@@ -423,6 +424,9 @@
       }
     },
     methods: {
+      userAuthenticated () {
+        return this.$store.getters.isAuthenticated
+      },
       userFilter (val, update, abort) {
           update(() => {
               const needle = val.toLocaleLowerCase()
@@ -557,6 +561,9 @@
           return getFromApi(this.$api, `/users/${userId}/roles`)
       },
       async setCanEditRoles () {
+          if (!this.userAuthenticated()) {
+            return
+          }
           // We only allow managers, team owners and superusers
           // to edit the roles of the team members
           let canEdit = false

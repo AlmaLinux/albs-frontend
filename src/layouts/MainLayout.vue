@@ -136,6 +136,13 @@
       ],
     },
     {
+      title: 'Releases',
+      id: 'mla-li-releases-feed',
+      icon: 'cloud',
+      link: 'release-feed',
+      allow: !store.getters.isAuthenticated
+    },
+    {
       title: 'Products',
       id: 'mla-li-products',
       icon: 'category',
