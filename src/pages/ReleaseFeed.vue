@@ -108,7 +108,7 @@
                 :color="releaseStatus.color[props.row.status]"
                 text-color="white"
                 dense
-                class="text-weight-bolder"
+                class="text-weight-bolder text-capitalize"
                 square
                 >{{ releaseStatus.text[props.row.status] }}
               </q-chip>
