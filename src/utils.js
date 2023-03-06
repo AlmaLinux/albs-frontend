@@ -228,6 +228,5 @@ export function getTaskCSS(task) {
       css.push('text-green-7')
       break
   }
-  debugger
   return css
 }
