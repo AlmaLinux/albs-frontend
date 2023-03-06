@@ -1,4 +1,4 @@
-import {BuildTaskRefType} from './constants'
+import {BuildStatus, BuildTaskRefType} from './constants'
 import {Notify} from 'quasar'
 
 /**
@@ -192,4 +192,42 @@ export async function getFromApi(api, endpoint) {
         }
       })
   })
+}
+
+export function getTaskCSS(task) {
+  let css = []
+  switch (task.status) {
+    case BuildStatus.FAILED:
+      css.push('text-negative', 'bg-red-1')
+      break
+    case BuildStatus.IDLE:
+      css.push('text-grey-6')
+      break
+    case BuildStatus.STARTED:
+      css.push('text-black-6')
+      break
+    case BuildStatus.EXCLUDED:
+      css.push('text-black-6')
+      break
+    case BuildStatus.COMPLETED:
+      css.push('text-green-7')
+      break
+    case BuildStatus.CANCELLED:
+      css.push('text-black-6')
+      break
+    case BuildStatus.TEST_CREATED:
+      css.push('text-negative')
+      break
+    case BuildStatus.TEST_FAILED:
+      css.push('text-negative')
+      break
+    case BuildStatus.ALL_TESTS_FAILED:
+      css.push('text-negative')
+      break
+    case BuildStatus.TEST_COMPLETED:
+      css.push('text-green-7')
+      break
+  }
+  debugger
+  return css
 }

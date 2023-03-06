@@ -73,7 +73,7 @@
 import { defineComponent } from 'vue';
 import { BuildStatus } from '../constants.js'
 import BuildRef from 'components/BuildRef.vue';
-import { nsvca } from '../utils';
+import { getTaskCSS, nsvca } from '../utils';
 
 export default defineComponent({
   name: 'BuildFeedItem',
@@ -141,37 +141,8 @@ export default defineComponent({
     }
   },
   methods: {
+    getTaskCSS: getTaskCSS,
     nsvca: nsvca,
-    getTaskCSS (task) {
-        let css = []
-        switch (task.status) {
-          case BuildStatus.FAILED:
-            css.push('text-negative', 'bg-red-1')
-            break;
-          case BuildStatus.IDLE:
-            css.push('text-grey-6')
-            break;
-          case BuildStatus.STARTED:
-            css.push('text-black-6')
-            break;
-          case BuildStatus.EXCLUDED:
-            css.push('text-black-6')
-            break;
-          case BuildStatus.COMPLETED:
-            css.push('text-green-7')
-            break;
-          case BuildStatus.TEST_FAILED:
-            css.push('text-negative')
-            break;
-          case BuildStatus.ALL_TESTS_FAILED:
-            css.push('text-negative')
-            break;
-          case BuildStatus.TEST_COMPLETED:
-            css.push('text-green-7')
-            break;
-        }
-        return css
-    },
     getTaskTargets (task) {
       let targets = []
       for (const buildTask of this.sortedLines) {
