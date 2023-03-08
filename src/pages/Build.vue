@@ -464,6 +464,19 @@
             <q-item
               clickable
               v-close-popup
+              @click="stop_build = true"
+              v-if="!buildFinished"
+            >
+              <q-item-section avatar>
+                <q-avatar icon="stop" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Stop build</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-close-popup
               @click="delete_build = true"
               v-if="buildFinished"
             >
@@ -587,6 +600,27 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="stop_build">
+      <q-card style="width: 400px;">
+        <q-card-section>
+          <div class="text-h6">Warning</div>
+        </q-card-section>
+        <q-card-section>
+          You are going to stop build {{build.id}}, are you sure ?
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            text-color="primary"
+            label="Ok"
+            style="width: 150px"
+            :loading="loading"
+            @click="stopBuild"
+          />
+          <q-btn flat text-color="negative" label="Cancel" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
     <q-dialog v-model="sign_build">
       <q-card style="width: 400px;">
         <q-card-section>
@@ -667,7 +701,7 @@
   import ModuleYaml from 'components/ModuleYaml.vue'
   import MockOptionsShow from 'components/MockOptionsShow.vue'
   import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
-  import { nsvca, copyToClipboard, deepDiff, isEmptyObject } from '../utils';
+  import { getTaskCSS, nsvca, copyToClipboard, deepDiff, isEmptyObject } from '../utils';
   import axios from 'axios'
 
   export default defineComponent({
@@ -689,6 +723,7 @@
         add_to_product: false,
         remove_from_product: false,
         delete_build: false,
+        stop_build: false,
         loading: false,
         buildLoad: false,
         moduleYamlLoad: false,
@@ -840,6 +875,7 @@
     },
     methods: {
       copyToClipboard: copyToClipboard,
+      getTaskCSS: getTaskCSS,
       nsvca: nsvca,
       userAuthenticated () {
         return this.$store.getters.isAuthenticated
@@ -911,6 +947,31 @@
               ]
             })
             this.$router.push('/')
+          })
+          .catch(error => {
+            this.loading = false
+            Notify.create({
+              message: error.response.data.detail,
+              type: 'negative',
+              actions: [
+                  { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
+          })
+      },
+      stopBuild () {
+        this.loading = true
+        this.stop_build = false
+        this.$api.patch(`/builds/${this.buildId}/cancel`)
+          .then(() => {
+            this.loading = false
+            Notify.create({
+              message: `Build ${this.buildId} has been stopped`,
+              type: 'positive',
+              actions: [
+                { label: 'Dismiss', color: 'white', handler: () => {} }
+              ]
+            })
           })
           .catch(error => {
             this.loading = false
@@ -1185,33 +1246,6 @@
       },
       getTextStatus (task) {
         return BuildStatus.text[task.status]
-      },
-      getTaskCSS (task) {
-          let css = ['cursor-pointer']
-          switch (task.status) {
-            case BuildStatus.FAILED:
-              css.push('text-negative', 'bg-red-1')
-              break;
-            case BuildStatus.IDLE:
-              css.push('text-grey-6')
-              break;
-            case BuildStatus.STARTED:
-              css.push('text-black-6')
-              break;
-            case BuildStatus.COMPLETED:
-              css.push('text-green-7')
-              break;
-            case BuildStatus.TEST_FAILED:
-              css.push('text-negative')
-              break;
-            case BuildStatus.ALL_TESTS_FAILED:
-              css.push('text-negative')
-              break;
-            case BuildStatus.TEST_COMPLETED:
-              css.push('text-green-7')
-              break;
-          }
-          return css
       },
       buildRepos (platform) {
         let [platformName, arch] = platform.split('.')
