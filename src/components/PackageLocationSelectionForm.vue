@@ -174,12 +174,22 @@
               v-model="props.row.destination"
               dense
               :options="props.row.destinationOptions"
+              :display-value="
+                `${
+                  props.row.destination.value.length > 40
+                    ? props.row.destination.value.slice(0, 37) + '...'
+                    : props.row.destination.value
+                }`
+              "
               :readonly="viewOnly ? true : false"
               :rules="[val => !!val || 'Destination is required']"
               transition-show="scale"
               transition-hide="scale"
               :ref="'destination_' + props.rowIndex"
             >
+              <q-tooltip v-if="props.row.destination.value.length > 40">
+                {{ props.row.destination.value }}
+              </q-tooltip>
             </q-select>
           </q-td>
           <q-td
