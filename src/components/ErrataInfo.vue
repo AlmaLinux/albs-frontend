@@ -433,7 +433,7 @@
           >Save</q-btn
         >
         <q-btn
-          v-if="errataStatuses.RELEASED === advisory.release_status"
+          v-if="advisory.release_status === errataStatuses.RELEASED"
           no-caps
           color="primary"
           @click="getUpdateinfo(advisory.id)"
