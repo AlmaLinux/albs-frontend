@@ -320,6 +320,13 @@
             </q-card-section>
             <q-card-actions align="right">
                 <q-btn no-caps color="green" @click="updateAdvisory(advisory.id)" :loading="loading">Save</q-btn>
+                <q-btn
+                  v-if="errataStatuses.RELEASED === advisory.release_status"
+                  no-caps
+                  color="primary"
+                  @click="getUpdateinfo(advisory.id)"
+                >
+                  Show updateinfo </q-btn>
                 <q-btn no-caps color="primary" @click="toRelease()">Release packages</q-btn>
                 <q-btn no-caps color="primary" @click="releaseUpdateinfo()" :loading="loadingRelease">Release updateinfo</q-btn>
             </q-card-actions>
@@ -403,11 +410,14 @@
                     </q-card-actions>
             </q-card>
         </q-dialog>
+        <update-info ref="showUpdateinfo"/>
 </template>
 
 <script>
 import { defineComponent, ref } from 'vue'
 import { Notify } from 'quasar'
+import { ErrataReleaseStatus } from 'src/constants'
+import UpdateInfo from 'components/UpdateInfo.vue'
 
 export default defineComponent({
     name: 'errata-info',
@@ -423,6 +433,8 @@ export default defineComponent({
             loading: false,
             loadingRelease: false,
             description: '',
+            releaseStatus: '',
+            errataStatuses: ErrataReleaseStatus,
             showDescription: false,
             title: '',
             showTitle: false,
@@ -453,6 +465,7 @@ export default defineComponent({
             this.advisory = advisory
             this.description = this.advisory.description ? this.advisory.description : this.advisory.original_description
             this.title = this.advisory.title ? this.advisory.title : this.advisory.original_title
+            this.releaseStatus = this.advisory.release_status
             this.selectedAll = false
             this.matchingPackage(advisory)
         },
@@ -473,6 +486,25 @@ export default defineComponent({
             })
             .catch(error => {
                 this.loading = false
+                Notify.create({
+                    message: `${error.response.status}: ${error.response.statusText}`,
+                    type: 'negative',
+                    actions: [
+                        { label: 'Dismiss', color: 'white', handler: () => {} }
+                    ]
+                })
+            })
+        },
+        getUpdateinfo (id) {
+            this.$api.get(`/errata/${id}/updateinfo/`)
+            .then(response => {
+              this.loading = false
+              this.$refs.showUpdateinfo.open({
+                record_id: id,
+                content: response.data,
+              })
+            })
+            .catch(error => {
                 Notify.create({
                     message: `${error.response.status}: ${error.response.statusText}`,
                     type: 'negative',
@@ -786,7 +818,10 @@ export default defineComponent({
                 }
             })
         }
-    }
+    },
+    components: {
+      UpdateInfo,
+    },
 })
 </script>
 
