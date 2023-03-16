@@ -104,10 +104,10 @@
         return this.filterLogs(/(apt|build)-[\w.]+\.(cfg|conf|log)$/)
       },
       mockBinaryLogs () {
-        return this.filterLogs(/mock((-*\w)*?(?!srpm)\.\d+\.log|\.\d+\.cfg)$/)
+        return this.filterLogs(/mock(?:\w+)?(?:\.\d+)?\.\d+\.(?:cfg|log)$/)
       },
       mockSrpmLogs () {
-        return this.filterLogs(/mock(_\w+\.srpm\..*?\.log|\.srpm\.\d+\.cfg)$/)
+        return this.filterLogs(/mock(?:\w+)?\.srpm(?:\.\d+)?\.\d+\.(?:cfg|log)$/)
       },
       buildArtifacts () {
         return this.filterLogs(/modules/)
