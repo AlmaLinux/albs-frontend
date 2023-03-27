@@ -20,7 +20,9 @@
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps">
             <q-item-section>
-              <q-item-label class="text-center" v-html="scope.opt.label" />
+              <q-item-label class="text-center">
+                {{ scope.opt.label }}
+              </q-item-label>
               <q-item-label
                 v-if="scope.opt.description"
                 class="text-center"
@@ -49,7 +51,9 @@
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps">
             <q-item-section>
-              <q-item-label class="text-center" v-html="scope.opt.label" />
+              <q-item-label class="text-center">
+                {{ scope.opt.label }}
+              </q-item-label>
               <q-item-label
                 v-if="scope.opt.description"
                 class="text-center"
