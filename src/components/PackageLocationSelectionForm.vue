@@ -214,7 +214,7 @@
             />
           </q-td>
           <q-td v-if="!viewOnly" key="trustness" :props="props">
-            <q-badge :color="trustness(props.row) ? 'green': 'negative'" />
+            <q-badge :color="getTrustnessColor(props.row)" />
           </q-td>
           <q-td
             v-for="arch in archs"
@@ -309,7 +309,7 @@
             </q-checkbox>
           </q-td>
           <q-td v-if="!viewOnly" class="text-center">
-            <q-badge :color="trustness(build_module) ? 'green': 'negative'" />
+            <q-badge :color="getTrustnessColor(build_module)" />
           </q-td>
           <q-td
             v-for="arch in archs"
@@ -379,7 +379,7 @@
   import { defineComponent } from 'vue'
   import { Notify } from 'quasar'
   import { nsvca } from '../utils';
-  import { ReleaseStatus } from 'src/constants';
+  import { ReleasePackageTrustness, ReleaseStatus } from 'src/constants';
 
   export default defineComponent({
     props: {
@@ -428,7 +428,8 @@
         modules: [],
         confirm: false,
         releaseStatus: null,
-        releaseStatuses: ReleaseStatus
+        releaseStatuses: ReleaseStatus,
+        packageTrustness: ReleasePackageTrustness,
       }
     },
     created () {
@@ -473,8 +474,8 @@
           })
       },
       moduleFilter () {
-        return this.modules.filter(modul => {
-            return modul.nsvca.includes(this.filter)
+        return this.modules.filter(module => {
+            return module.nsvca.includes(this.filter)
         })
       },
       moduleLocation (modules) {
@@ -686,14 +687,13 @@
         }
         this.setForceAll()
       },
-      trustness (pack) {
-        let trustness = false
-        if (pack.trustRepos.length) {
-            pack.trustRepos.forEach ( repo => {
-                if (!repo | !pack.destination) return
-                if (repo.name === pack.destination.value) trustness = true
-            })
-        }
+      getTrustnessColor (pack) {
+        let trustness = this.packageTrustness.color[this.packageTrustness.UNKNOWN_TRUSTNESS]
+        if (!pack.trustRepos.length) return trustness
+        pack.trustRepos.forEach(repo => {
+          let trustColor = this.packageTrustness.color[repo.trustness]
+          if (trustColor) trustness = trustColor
+        })
         return trustness
       },
       deleteModule(item) {
