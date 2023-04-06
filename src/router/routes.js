@@ -35,10 +35,9 @@ const routes = [
         },
         children: [
           {
-            path: '/search/:query',
+            path: '/search',
             name: 'BuildFeedSearch',
             component: () => import('pages/BuildFeed.vue'),
-            props: true,
           },
         ],
       },
