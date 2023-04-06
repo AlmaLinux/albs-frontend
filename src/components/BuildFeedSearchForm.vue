@@ -20,13 +20,16 @@
           </q-item>
         </template>
       </q-select>
-      <q-input v-model="filter.projectName" label="Project name"/>
-      <q-input v-model="filter.buildRef" label="Git tag, branch, change or src-RPM"/>
-      <q-input v-model="filter.rpmName" label="RPM package name"/>
-      <q-input v-model="filter.rpmEpoch" label="RPM package epoch"/>
-      <q-input v-model="filter.rpmVersion" label="RPM package version"/>
-      <q-input v-model="filter.rpmRelease" label="RPM package release"/>
-      <q-input v-model="filter.rpmArch" label="RPM package architecture"/>
+      <q-input v-model="filter.projectName" label="Project name" />
+      <q-input
+        v-model="filter.buildRef"
+        label="Git tag, branch, change or src-RPM"
+      />
+      <q-input v-model="filter.rpmName" label="RPM package name" />
+      <q-input v-model="filter.rpmEpoch" label="RPM package epoch" />
+      <q-input v-model="filter.rpmVersion" label="RPM package version" />
+      <q-input v-model="filter.rpmRelease" label="RPM package release" />
+      <q-input v-model="filter.rpmArch" label="RPM package architecture" />
       <q-select
         v-model="selectedPlatform"
         label="Platform"
@@ -35,6 +38,7 @@
         :options="allPlatforms"
         @filter="platformSelectFilter"
         @update:model-value="onPlatformSelected"
+        clearable
       >
         <template v-slot:option="scope">
           <q-item v-bind="scope.itemProps">
@@ -45,19 +49,23 @@
           </q-item>
         </template>
       </q-select>
-      <q-input v-model="filter.buildTaskArch" label="Build task architecture"/>
-      <q-toggle v-model="filter.released" left-label label="Build is released"/>
-      <q-toggle v-model="filter.signed" left-label label="Build is signed"/>
+      <q-input v-model="filter.buildTaskArch" label="Build task architecture" />
+      <q-toggle
+        v-model="filter.released"
+        left-label
+        label="Build is released"
+      />
+      <q-toggle v-model="filter.signed" left-label label="Build is signed" />
     </q-list>
     <div class="row group justify-end">
       <q-btn @click="hideSearchPanel" flat>
-        <q-icon name="keyboard_tab"/>
+        <q-icon name="keyboard_tab" />
         <q-tooltip anchor="bottom left" self="top middle" class="text-body2">
           Hide filter pane
         </q-tooltip>
       </q-btn>
       <q-btn @click="resetFilter" flat>
-        <q-icon name="settings_backup_restore"/>
+        <q-icon name="settings_backup_restore" />
         <q-tooltip anchor="bottom left" self="top middle" class="text-body2">
           Reset filter options
         </q-tooltip>
@@ -124,14 +132,28 @@
       this.loadFilter()
     },
     watch: {
-      '$store.state.buildsFeed.filter': 'loadFilter'
+      '$store.state.buildsFeed.filter': 'loadFilter',
+      'allUsernames': 'setUserFromQuery',
+      'allPlatforms': 'setPlatformFromQuery'
     },
     methods: {
+      setUserFromQuery () {
+        const filter = this.$store.state.buildsFeed.filter
+        if (filter.authorId) {
+          this.selectedUser = this.allUsernames.filter(user => user.value == filter.authorId)[0]
+        }
+      },
+      setPlatformFromQuery () {
+        const filter = this.$store.state.buildsFeed.filter
+        if (filter.platformId) {
+          this.selectedPlatform = this.allPlatforms.filter(platform => platform.value == filter.platformId)[0]
+        }
+      },
       onPlatformSelected (value) {
-        this.filter.platformId = value.value
+        this.filter.platformId = value ? value.value : ''
       },
       onUserSelected (value) {
-        this.filter.authorId = value.value
+        this.filter.authorId = value ? value.value : ''
       },
       platformSelectFilter (value, update) {
         this.platformFilter = value
@@ -157,26 +179,14 @@
         const query = this.filterToQuery(filter)
         this.$store.dispatch('buildsFeed/updateFilter', (query) ? filter : undefined)
         if (query) {
-          this.$router.push(`/search/${query}`)
+          this.$router.push({path: `/search`, query: query})
           return
         }
         this.$router.push('/')
       },
       filterToQuery (filter) {
-        let query = ''
-        if (filter.authorId) {query += `created_by=${filter.authorId}&`}
-        if (filter.projectName) { query += `project=${filter.projectName}&` }
-        if (filter.buildRef) { query += `ref=${filter.buildRef}&` }
-        if (filter.rpmName) { query += `rpm_name=${filter.rpmName}&` }
-        if (filter.rpmEpoch) { query += `rpm_epoch=${filter.rpmEpoch}&` }
-        if (filter.rpmVersion) { query += `rpm_version=${filter.rpmVersion}&` }
-        if (filter.rpmRelease) { query += `rpm_release=${filter.rpmRelease}&` }
-        if (filter.rpmArch) { query += `rpm_arch=${filter.rpmArch}&` }
-        if (filter.released) { query += `released=${filter.released}&` }
-        if (filter.signed) { query += `signed=${filter.signed}&` }
-        if (filter.platformId) { query += `platform_id=${filter.platformId}&` }
-        if (filter.buildTaskArch) { query += `arch=${filter.buildTaskArch}&` }
-        return query.slice(0, query.length - 1)
+        let query = Object.fromEntries(Object.entries(filter).filter(([f]) => filter[f]))
+        return query
       },
       hideSearchPanel () {
         this.$emit('hideSearchPanel')

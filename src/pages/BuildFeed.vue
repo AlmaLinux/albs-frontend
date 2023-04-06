@@ -58,7 +58,7 @@
       buildFeedQuery () {
         this.loadFeedPage()
       },
-      'query': 'updateFilter'
+      '$route.query': 'updateFilter'
     },
     methods: {
       checkAuthorize () {
@@ -73,31 +73,26 @@
         }
       },
       updateFilter () {
-        this.$store.dispatch('buildsFeed/updateFilter', this.queryToFilter(this.query))
+        this.$store.dispatch('buildsFeed/updateFilter', this.queryToFilter(this.$route.query))
+      },
+      toBoolOrNull (value) {
+        let bool = null
+        if (value === 'true') bool = true
+        if (value === 'false') bool = false
+        return bool
       },
       queryToFilter (query) {
         if (!query) {
           return undefined
         }
-        var filter = {}
-        for (let item of query.split('&')) {
-          const name = item.split('=')[0]
-          const value = item.split('=')[1]
-          switch (name) {
-            case 'author':
-              filter.authorId = value
+        let filter = JSON.parse(JSON.stringify(query))
+        for (let item in filter) {
+          switch (item) {
+            case 'signed':
+              filter.signed = this.toBoolOrNull(filter.signed)
               break
-            case 'tag':
-              filter.buildTag = value
-              break
-            case 'project_name':
-              filter.projectName = value
-              break
-            case 'ref':
-              filter.buildRef = value
-              break
-            case 'package':
-              filter.package = value
+            case 'released':
+              filter.released = this.toBoolOrNull(filter.released)
               break
           }
         }
