@@ -102,6 +102,19 @@ const SignStatus = {
   },
 }
 
+const ReleasePackageTrustness = {
+  UNKNOWN_TRUSTNESS: 0,
+  MAXIMUM: 1,
+  MEDIUM: 2,
+  LOWEST: 10,
+  color: {
+    0: 'grey',
+    1: 'green',
+    2: 'yellow',
+    10: 'red',
+  },
+}
+
 const ReleaseStatus = {
   SCHEDULED: 1,
   IN_PROGRESS: 2,
@@ -150,5 +163,6 @@ export {
   TestTapStatus,
   SignStatus,
   ReleaseStatus,
+  ReleasePackageTrustness,
   ErrataReleaseStatus,
 }
