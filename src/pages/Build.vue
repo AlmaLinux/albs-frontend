@@ -1282,7 +1282,7 @@
             arch = 'src'
           }
           let debugSuffix = '-debug'
-          if (!item.name.match(/-debug(info|source)/)) {
+          if (!item.name.match(/-debug(info|source)-/)) {
             debugSuffix = ''
           }
           item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}${debugSuffix}-br/Packages/${item.name[0].toLowerCase()}/${item.name}`
