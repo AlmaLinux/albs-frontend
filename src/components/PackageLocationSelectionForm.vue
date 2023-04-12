@@ -174,20 +174,16 @@
               v-model="props.row.destination"
               dense
               :options="props.row.destinationOptions"
-              :display-value="
-                `${
-                  props.row.destination.value.length > 40
-                    ? props.row.destination.value.slice(0, 37) + '...'
-                    : props.row.destination.value
-                }`
-              "
+              :display-value="displayDestination(props.row)"
               :readonly="viewOnly ? true : false"
               :rules="[val => !!val || 'Destination is required']"
               transition-show="scale"
               transition-hide="scale"
               :ref="'destination_' + props.rowIndex"
             >
-              <q-tooltip v-if="props.row.destination.value.length > 40">
+              <q-tooltip
+                v-if="props.row.destination && props.row.destination.value.length > 40"
+              >
                 {{ props.row.destination.value }}
               </q-tooltip>
             </q-select>
@@ -851,6 +847,13 @@
                             actions: [{ label: 'Dismiss', color: 'white', handler: () => {} }]})
             })
 
+      },
+      displayDestination (row) {
+        if (!row.destination) return
+
+        return row.destination.value.length > 40
+          ? row.destination.value.slice(0, 37) + '...'
+          : row.destination.value
       }
     }
   })
