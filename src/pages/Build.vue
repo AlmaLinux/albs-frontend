@@ -873,7 +873,13 @@
         this.refreshTimer = null
       }
     },
+    watch: {
+      '$route.params': 'loadLinkedBuildInfo',
+    },
     methods: {
+      loadLinkedBuildInfo (params) {
+        this.loadBuildInfo(params.buildId)
+      },
       copyToClipboard: copyToClipboard,
       getTaskCSS: getTaskCSS,
       nsvca: nsvca,
