@@ -75,7 +75,8 @@
 
       <q-card-actions align="right">
         <q-btn
-          flat label="Cancel"
+          flat
+          label="Cancel"
           color="primary"
           @click="close"
           id="psw-qb-cancel"
@@ -133,6 +134,9 @@
           {label: 'Git reference', value: 'git_ref'},
         ],
       }
+    },
+    watch: {
+      'projectType': 'resetFields'
     },
     created() {
       this.loadAlmaGitRefs()
@@ -194,6 +198,24 @@
         this.almaGitFilter = ''
         this.git = {git_ref: null, url: null}
         this.almaGitRepo = null
+      },
+      resetFields() {
+        if (this.projectType === 'alma_git') {
+          this.srpmUrl = null
+          this.git = {git_ref: null, url: null}
+        }
+
+        if (this.projectType === 'srpm_url') {
+          this.almaGitFilter = ''
+          this.almaGitRepo = null
+          this.git = {git_ref: null, url: null}
+        }
+
+        if (this.projectType === 'git_ref') {
+          this.almaGitFilter = ''
+          this.almaGitRepo = null
+          this.srpmUrl = null
+        }
       },
       validateSRPMUrl(url) {
         const re = /^https?:\/\/.*\.src\.rpm$/
