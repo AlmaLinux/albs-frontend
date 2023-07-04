@@ -113,6 +113,12 @@ const ReleasePackageTrustness = {
     2: 'yellow',
     10: 'red',
   },
+  tooltip: {
+    0: 'Matches haven\'t been performed.',
+    1: 'This has been matched by the most reliable methods: exact or closest.',
+    2: 'This has been matched by flexible methods: name_version or name_only.',
+    10: 'This hasn\'t been matched.',
+  }
 }
 
 const ReleaseStatus = {

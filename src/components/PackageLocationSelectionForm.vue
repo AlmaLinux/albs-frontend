@@ -210,7 +210,11 @@
             />
           </q-td>
           <q-td v-if="!viewOnly" key="trustness" :props="props">
-            <q-badge :color="getTrustnessColor(props.row)" />
+            <q-badge :color="getTrustnessColor(props.row)">
+              <q-tooltip>
+                {{ getTrustnessTooltip(props.row) }}
+              </q-tooltip>
+            </q-badge>
           </q-td>
           <q-td
             v-for="arch in archs"
@@ -691,6 +695,15 @@
           if (trustColor) trustness = trustColor
         })
         return trustness
+      },
+      getTrustnessTooltip(pack) {
+        let trustnessTooltip = this.ReleasePackageTrustness.tooltip[this.ReleasePackageTrustness.UNKNOWN_TRUSTNESS]
+        if (!pack.trustRepos.length) return trustnessTooltip
+        pack.trustRepos.forEach(repo => {
+          let tooltip = this.ReleasePackageTrustness.tooltip[repo.trustness]
+          if (tooltip) trustnessTooltip = tooltip
+        })
+        return trustnessTooltip
       },
       deleteModule(item) {
         let index = this.modules.indexOf(item)
