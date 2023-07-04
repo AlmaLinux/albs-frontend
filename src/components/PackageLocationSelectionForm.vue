@@ -697,10 +697,10 @@
         return trustness
       },
       getTrustnessTooltip(pack) {
-        let trustnessTooltip = this.ReleasePackageTrustness.tooltip[this.ReleasePackageTrustness.UNKNOWN_TRUSTNESS]
+        let trustnessTooltip = this.packageTrustness.tooltip[this.packageTrustness.UNKNOWN_TRUSTNESS]
         if (!pack.trustRepos.length) return trustnessTooltip
         pack.trustRepos.forEach(repo => {
-          let tooltip = this.ReleasePackageTrustness.tooltip[repo.trustness]
+          let tooltip = this.packageTrustness.tooltip[repo.trustness]
           if (tooltip) trustnessTooltip = tooltip
         })
         return trustnessTooltip
