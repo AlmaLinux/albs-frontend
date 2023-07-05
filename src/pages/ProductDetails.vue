@@ -292,7 +292,7 @@
               this.loading = false
               console.log(error)
               Notify.create({
-                  message: 'Failed to remove the product',
+                  message: `${error.response.data.detail}`,
                   type: 'negative',
                   actions: [
                       { label: 'Dismiss', color: 'white', handler: () => {} }
