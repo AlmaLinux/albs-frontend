@@ -528,7 +528,7 @@
             this.buildPlan.tasks = cacheTasks
             if (+String(error.response.status)[0] === 4) {
               Notify.create({
-                message: error.response.data.detail[0].msg,
+                message: error.response.data.detail,
                 type: 'negative',
                 actions: [
                   {label: 'Dismiss', color: 'white', handler: () => {}},
