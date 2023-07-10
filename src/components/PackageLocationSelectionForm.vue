@@ -379,7 +379,7 @@
   import { defineComponent } from 'vue'
   import { Notify } from 'quasar'
   import { nsvca } from '../utils';
-  import { ReleasePackageTrustness, ReleaseStatus } from 'src/constants';
+  import { ReleasePackageTrustness, ReleasePackageMatched, ReleaseStatus } from 'src/constants';
 
   export default defineComponent({
     props: {
@@ -430,6 +430,7 @@
         releaseStatus: null,
         releaseStatuses: ReleaseStatus,
         packageTrustness: ReleasePackageTrustness,
+        packageMatched: ReleasePackageMatched,
       }
     },
     created () {
@@ -440,10 +441,10 @@
       userAuthenticated () {
         return this.$store.getters.isAuthenticated
       },
-      tableFullScreen(props){
+      tableFullScreen(props) {
         props.toggleFullscreen()
       },
-      goToBuild (build_id){
+      goToBuild (build_id) {
         window.open(`/build/${build_id}`, '_blank')
       },
       nevra (pack) {
@@ -494,7 +495,7 @@
             }
         }
       },
-      createTable(data){
+      createTable(data) {
         if (!this.viewOnly)
             this.columns.push({
               name: 'trustness',
@@ -557,11 +558,11 @@
         }
         this.loadingTable = false
       },
-      beholderRepo (data, type){
+      beholderRepo (data, type) {
         if (data.repositories.length) {
             if (!data.repositories[0]) return
 
-            for (const index in data[type].destinationOptions){
+            for (const index in data[type].destinationOptions) {
                 if (data[type].destinationOptions[index].label == data.repositories[0].name) {
                     data[type].destination = data[type].destinationOptions[index]
                 }
@@ -697,13 +698,13 @@
         return trustness
       },
       getTrustnessTooltip(pack) {
-        let trustnessTooltip = this.packageTrustness.tooltip[this.packageTrustness.UNKNOWN_TRUSTNESS]
-        if (!pack.trustRepos.length) return trustnessTooltip
+        let trustnessTooltip = 'Not found';
+        if (!pack.trustRepos.length) return trustnessTooltip;
         pack.trustRepos.forEach(repo => {
-          let tooltip = this.packageTrustness.tooltip[repo.trustness]
-          if (tooltip) trustnessTooltip = tooltip
-        })
-        return trustnessTooltip
+          let tooltip = ReleasePackageMatched[repo.matched];
+          if (tooltip) trustnessTooltip = `Matched: ${tooltip}`;
+        });
+        return trustnessTooltip;
       },
       deleteModule(item) {
         let index = this.modules.indexOf(item)
