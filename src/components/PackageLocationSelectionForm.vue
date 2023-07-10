@@ -210,9 +210,9 @@
             />
           </q-td>
           <q-td v-if="!viewOnly" key="trustness" :props="props">
-            <q-badge :color="getTrustnessColor(props.row)">
+            <q-badge :color="getTrustness(props.row).trustnessColor">
               <q-tooltip>
-                {{ getTrustnessTooltip(props.row) }}
+                {{ getTrustness(props.row).trustnessTooltip }}
               </q-tooltip>
             </q-badge>
           </q-td>
@@ -309,7 +309,11 @@
             </q-checkbox>
           </q-td>
           <q-td v-if="!viewOnly" class="text-center">
-            <q-badge :color="getTrustnessColor(build_module)" />
+            <q-badge :color="getTrustness(build_module).trustnessColor">
+              <q-tooltip>
+                {{ getTrustness(build_module).trustnessTooltip }}
+              </q-tooltip>
+            </q-badge>
           </q-td>
           <q-td
             v-for="arch in archs"
@@ -688,23 +692,18 @@
         }
         this.setForceAll()
       },
-      getTrustnessColor (pack) {
-        let trustness = this.packageTrustness.color[this.packageTrustness.UNKNOWN_TRUSTNESS]
-        if (!pack.trustRepos.length) return trustness
-        pack.trustRepos.forEach(repo => {
-          let trustColor = this.packageTrustness.color[repo.trustness]
-          if (trustColor) trustness = trustColor
-        })
-        return trustness
-      },
-      getTrustnessTooltip(pack) {
+      getTrustness(pack) {
         let trustnessTooltip = 'Not found';
-        if (!pack.trustRepos.length) return trustnessTooltip;
+        let trustnessColor = 'gray';
+        if (!pack.trustRepos.length) return {trustnessTooltip, trustnessColor};
         pack.trustRepos.forEach(repo => {
-          let tooltip = ReleasePackageMatched[repo.matched];
-          if (tooltip) trustnessTooltip = tooltip;
+          let matchedRepo = ReleasePackageMatched[repo.matched];
+          if (matchedRepo) {
+            trustnessTooltip = matchedRepo.description;
+            trustnessColor = matchedRepo.color;
+          }
         });
-        return trustnessTooltip;
+        return {trustnessTooltip, trustnessColor};
       },
       deleteModule(item) {
         let index = this.modules.indexOf(item)

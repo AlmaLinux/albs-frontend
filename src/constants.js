@@ -103,10 +103,22 @@ const SignStatus = {
 }
 
 const ReleasePackageMatched = {
-  exact: 'Matched exactly',
-  closest: 'Closest match',
-  name_version: 'Matched by name and version',
-  name_only: 'Matched by name only',
+  exact: {
+    description: 'Matched exactly',
+    color: 'green'
+  },
+  closest: {
+    description: 'Closest match',
+    color: 'green'
+  },
+  name_version: {
+    description: 'Matched by name and version',
+    color: 'yellow'
+  },
+  name_only: {
+    description: 'Matched by name only',
+    color: 'yellow'
+  }
 }
 
 const ReleasePackageTrustness = {
