@@ -694,7 +694,7 @@
       },
       getTrustness(pack) {
         let trustnessTooltip = 'Not found';
-        let trustnessColor = 'gray-6';
+        let trustnessColor = 'grey';
         if (!pack.trustRepos.length) return {trustnessTooltip, trustnessColor};
         pack.trustRepos.forEach(repo => {
           let matchedRepo = ReleasePackageMatched[repo.matched];
