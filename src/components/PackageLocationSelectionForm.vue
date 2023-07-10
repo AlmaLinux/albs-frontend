@@ -702,7 +702,7 @@
         if (!pack.trustRepos.length) return trustnessTooltip;
         pack.trustRepos.forEach(repo => {
           let tooltip = ReleasePackageMatched[repo.matched];
-          if (tooltip) trustnessTooltip = `Matched: ${tooltip}`;
+          if (tooltip) trustnessTooltip = tooltip;
         });
         return trustnessTooltip;
       },
