@@ -171,5 +171,6 @@ export {
   SignStatus,
   ReleaseStatus,
   ReleasePackageTrustness,
+  ReleasePackageMatched,
   ErrataReleaseStatus,
 }
