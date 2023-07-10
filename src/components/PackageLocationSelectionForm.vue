@@ -210,11 +210,13 @@
             />
           </q-td>
           <q-td v-if="!viewOnly" key="trustness" :props="props">
-            <q-badge :color="getTrustness(props.row).trustnessColor">
-              <q-tooltip>
-                {{ getTrustness(props.row).trustnessTooltip }}
-              </q-tooltip>
-            </q-badge>
+            <template v-slot="{ trustness = getTrustness(props.row) }">
+              <q-badge :color="trustness.trustnessColor">
+                <q-tooltip>
+                  {{ trustness.trustnessTooltip }}
+                </q-tooltip>
+              </q-badge>
+            </template>
           </q-td>
           <q-td
             v-for="arch in archs"
@@ -309,11 +311,13 @@
             </q-checkbox>
           </q-td>
           <q-td v-if="!viewOnly" class="text-center">
-            <q-badge :color="getTrustness(build_module).trustnessColor">
-              <q-tooltip>
-                {{ getTrustness(build_module).trustnessTooltip }}
-              </q-tooltip>
-            </q-badge>
+            <template v-slot="{ trustness = getTrustness(build_module) }">
+              <q-badge :color="trustness.trustnessColor">
+                <q-tooltip>
+                  {{ trustness.trustnessTooltip }}
+                </q-tooltip>
+              </q-badge>
+            </template>
           </q-td>
           <q-td
             v-for="arch in archs"
