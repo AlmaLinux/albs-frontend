@@ -102,6 +102,25 @@ const SignStatus = {
   },
 }
 
+const ReleasePackageMatched = {
+  exact: {
+    description: 'Matched exactly',
+    color: 'green',
+  },
+  closest: {
+    description: 'Closest match',
+    color: 'green',
+  },
+  name_version: {
+    description: 'Matched by name and version',
+    color: 'yellow',
+  },
+  name_only: {
+    description: 'Matched by name only',
+    color: 'yellow',
+  },
+}
+
 const ReleasePackageTrustness = {
   UNKNOWN_TRUSTNESS: 0,
   MAXIMUM: 1,
@@ -164,5 +183,6 @@ export {
   SignStatus,
   ReleaseStatus,
   ReleasePackageTrustness,
+  ReleasePackageMatched,
   ErrataReleaseStatus,
 }
