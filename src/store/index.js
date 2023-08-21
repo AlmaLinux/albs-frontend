@@ -6,6 +6,7 @@ import { BuildsFeedModule } from './modules/builds'
 import { ReleaseFeedModule } from './modules/release'
 import { ErrataFeedModule } from './modules/errata'
 import { TeamsModule } from './modules/teams'
+import { TestRepositoriesModule } from './modules/test_repositories'
 import { KeysModule } from './modules/keys'
 import { PlatformFlavorsModule } from './modules/platform_flavors'
 import { ProductsModule } from './modules/products'
@@ -30,6 +31,7 @@ export default store(createStore({
       releaseFeed: ReleaseFeedModule,
       errataFeed: ErrataFeedModule,
       teams: TeamsModule,
+      testRepositories: TestRepositoriesModule,
       keys: KeysModule,
       platform_flavors: PlatformFlavorsModule,
       products: ProductsModule
