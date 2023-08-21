@@ -1,4 +1,4 @@
-import {api} from "boot/api"
+import {api} from 'boot/api'
 
 export const TestRepositoriesModule = {
   state: () => ({
@@ -24,9 +24,9 @@ export const TestRepositoriesModule = {
   actions: {
     loadTestRepositoriesList({commit, state}) {
       return api
-        .get("/testRepositories/")
+        .get('/testRepositories/')
         .then((response) => {
-          commit("updateTestRepositoriesList", response.data)
+          commit('updateTestRepositoriesList', response.data)
         })
         .catch((error) => {})
     },

@@ -1,5 +1,5 @@
-import {BuildStatus, BuildTaskRefType} from "./constants"
-import {Notify} from "quasar"
+import {BuildStatus, BuildTaskRefType} from './constants'
+import {Notify} from 'quasar'
 
 /**
  * Extracts an RPM name, version, release and architecture from the specified URL.
@@ -32,9 +32,9 @@ export function buildRefText(buildRef) {
   switch (buildRef.ref_type) {
     case BuildTaskRefType.SRPM_URL:
       const pkgInfo = splitRpmFileName(refUrl)
-      return pkgInfo ? `${pkgInfo.version}-${pkgInfo.release}` : "unknown"
+      return pkgInfo ? `${pkgInfo.version}-${pkgInfo.release}` : 'unknown'
     default:
-      if (refUrl.includes(".src.rpm")) {
+      if (refUrl.includes('.src.rpm')) {
         return refUrl
       }
       return buildRef.git_ref
@@ -64,8 +64,8 @@ export function copyToClipboard(value) {
   navigator.clipboard.writeText(value).then((res) =>
     Notify.create({
       message: `${value} copied to clipboard`,
-      type: "positive",
-      actions: [{label: "Dismiss", color: "white", handler: () => {}}],
+      type: 'positive',
+      actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
     })
   )
 }
@@ -77,15 +77,15 @@ export function copyToClipboard(value) {
  * @returns {Object}
  */
 export function parseJwt(jwt_token) {
-  let base64Url = jwt_token.split(".")[1]
-  let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+  let base64Url = jwt_token.split('.')[1]
+  let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
   let jsonPayload = decodeURIComponent(
     atob(base64)
-      .split("")
+      .split('')
       .map((c) => {
-        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
       })
-      .join("")
+      .join('')
   )
   return JSON.parse(jsonPayload)
 }
@@ -107,7 +107,7 @@ export function diff(obj1, obj2) {
   if (Object.is(obj1, obj2)) {
     return undefined
   }
-  if (!obj2 || typeof obj2 !== "object") {
+  if (!obj2 || typeof obj2 !== 'object') {
     return obj2
   }
   Object.keys(obj1 || {})
@@ -116,7 +116,7 @@ export function diff(obj1, obj2) {
       if (obj2[key] !== obj1[key] && !Object.is(obj1[key], obj2[key])) {
         result[key] = obj2[key]
       }
-      if (typeof obj2[key] === "object" && typeof obj1[key] === "object") {
+      if (typeof obj2[key] === 'object' && typeof obj1[key] === 'object') {
         const value = diff(obj1[key], obj2[key])
         if (value !== undefined) {
           result[key] = value
@@ -153,13 +153,13 @@ export function deepDiff(obj1, obj2) {
   var result = {}
   var change
   for (var key in obj1) {
-    if (typeof obj2[key] == "object" && typeof obj1[key] == "object") {
+    if (typeof obj2[key] == 'object' && typeof obj1[key] == 'object') {
       change = deepDiff(obj1[key], obj2[key])
       if (isEmptyObject(change) === false) {
         result[key] = change
         // Workaround to be able to show notifications
         // when the list of products change
-      } else if (key == "products") {
+      } else if (key == 'products') {
         result[key] = change
       }
     } else if (obj2[key] != obj1[key]) {
@@ -180,14 +180,14 @@ export async function getFromApi(api, endpoint) {
         if (+String(error.response.status)[0] === 4) {
           Notify.create({
             message: error.response.data.detail,
-            type: "negative",
-            actions: [{label: "Dismiss", color: "white", handler: () => {}}],
+            type: 'negative',
+            actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
           })
         } else {
           Notify.create({
             message: `${error.response.status}: ${error.response.statusText}`,
-            type: "negative",
-            actions: [{label: "Dismiss", color: "white", handler: () => {}}],
+            type: 'negative',
+            actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
           })
         }
       })
@@ -198,40 +198,40 @@ export function getTaskCSS(task) {
   let css = []
   switch (task.status) {
     case BuildStatus.FAILED:
-      css.push("text-negative", "bg-red-1")
+      css.push('text-negative', 'bg-red-1')
       break
     case BuildStatus.IDLE:
-      css.push("text-grey-6")
+      css.push('text-grey-6')
       break
     case BuildStatus.STARTED:
-      css.push("text-black-6")
+      css.push('text-black-6')
       break
     case BuildStatus.EXCLUDED:
-      css.push("text-black-6")
+      css.push('text-black-6')
       break
     case BuildStatus.COMPLETED:
-      css.push("text-green-7")
+      css.push('text-green-7')
       break
     case BuildStatus.CANCELLED:
-      css.push("text-black-6")
+      css.push('text-black-6')
       break
     case BuildStatus.TEST_CREATED:
-      css.push("text-negative")
+      css.push('text-negative')
       break
     case BuildStatus.TEST_FAILED:
-      css.push("text-negative")
+      css.push('text-negative')
       break
     case BuildStatus.ALL_TESTS_FAILED:
-      css.push("text-negative")
+      css.push('text-negative')
       break
     case BuildStatus.TEST_COMPLETED:
-      css.push("text-green-7")
+      css.push('text-green-7')
       break
   }
   return css
 }
 
 export function pathJoin(parts) {
-  let replace = new RegExp("/" + "{1,}", "g")
-  return parts.join("/").replace(replace, "/")
+  let replace = new RegExp('/' + '{1,}', 'g')
+  return parts.join('/').replace(replace, '/')
 }
