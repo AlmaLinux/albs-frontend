@@ -446,7 +446,7 @@
         <q-btn
           no-caps
           color="primary"
-          @click="releaseUpdateinfo()"
+          @click="hasSkippedPackages ? confirm = true : releaseUpdateinfo()"
           :loading="loadingRelease"
           >Release updateinfo</q-btn
         >
@@ -535,6 +535,26 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+  <q-dialog v-model="confirm" persistent>
+    <q-card style="width: 50%">
+      <q-card-section>
+        <div class="text-h6">Warning</div>
+      </q-card-section>
+      <q-card-section>
+        Are you sure you want to release the record with skipped packages?
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn
+          flat
+          label="Ok"
+          color="primary"
+          @click="releaseUpdateinfo(true)"
+          :loading="loadingRelease"
+        />
+        <q-btn flat text-color="negative" label="Cancel" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
   <update-info ref="showUpdateinfo" />
 </template>
 
@@ -553,6 +573,8 @@
       data () {
           return {
               advisory: null,
+              confirm: false,
+              hasSkippedPackages: false,
               projects: null,
               tab: ref('patchInfo'),
               loading: false,
@@ -590,6 +612,7 @@
               this.description = this.advisory.description ? this.advisory.description : this.advisory.original_description
               this.title = this.advisory.title ? this.advisory.title : this.advisory.original_title
               this.selectedAll = false
+              this.hasSkippedPackages = false
               this.matchingPackage(advisory)
           },
           updateAdvisory (id) {
@@ -668,6 +691,7 @@
                   }
                   let approved = false
                   packages[src].forEach(pack => {
+                      if (pack.albs_packages.length === 0) this.hasSkippedPackages = true
                       pack.albs_packages.forEach(albs => {
                           if (albs.status === 'released'){
                               build_options[albs.status] = {
@@ -916,9 +940,9 @@
                   })
               }
           },
-          releaseUpdateinfo () {
+          releaseUpdateinfo (force = false) {
               this.loadingRelease = true
-              this.$api.post(`/errata/release_record/${this.advisory.id}/`)
+              this.$api.post(`/errata/release_record/${this.advisory.id}/?force=${force}`)
               .then(response => {
                   this.loadingRelease = false
                   Notify.create({
@@ -943,6 +967,7 @@
                       })
                   }
               })
+              this.confirm = false
           }
       },
       components: {
