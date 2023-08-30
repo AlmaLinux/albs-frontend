@@ -194,6 +194,19 @@ const routes = [
         },
       },
       {
+        path: 'test-repositories-feed',
+        name: 'TestRepositoriesFeed',
+        meta: {requiresAuth: true},
+        component: () => import('pages/TestRepositoryFeed'),
+      },
+      {
+        path: 'test-repositories/:testRepoId',
+        name: 'TestRepository',
+        meta: {requiresAuth: true},
+        props: true,
+        component: () => import('pages/TestRepositoryConfigurator'),
+      },
+      {
         path: '/documentation/:chapter/:article/',
         component: () => import('pages/DocumentationViewer.vue'),
         props: true,

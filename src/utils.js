@@ -230,3 +230,8 @@ export function getTaskCSS(task) {
   }
   return css
 }
+
+export function pathJoin(parts) {
+  let replace = new RegExp('/' + '{1,}', 'g')
+  return parts.join('/').replace(replace, '/')
+}

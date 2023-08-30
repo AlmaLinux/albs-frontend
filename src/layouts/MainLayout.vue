@@ -170,6 +170,13 @@
       link: 'team-feed',
       allow: store.getters.isAuthenticated,
     },
+    {
+      title: 'Test repositories',
+      id: 'mla-li-test-repositories',
+      icon: 'rule',
+      link: 'test-repositories-feed',
+      allow: store.getters.isAuthenticated,
+    },
   ]
 
   import {defineComponent, ref} from 'vue'
