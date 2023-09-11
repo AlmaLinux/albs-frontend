@@ -11,7 +11,7 @@
         title="Build environment"
         style="height: auto"
         :done="currentStep != 'buildEnvironment'"
-        :error="checkError()"
+        :error="checkError() && currentStep === 'buildEnvironment'"
         error-color="negative"
       >
         <q-checkbox
@@ -234,9 +234,10 @@
 
       <q-step
         name="selectProjects"
-        :disable="checkError()"
+        :disable="checkError() && currentStep === 'buildEnvironment'"
         title="Select projects"
-        :error="buildPlan.tasks.length < 1 && currentStep != 'buildEnvironment'"
+        :done="this.buildPlan.tasks.length > 0"
+        :error="checkError() && currentStep === 'selectProjects'"
         error-color="negative"
         icon="format_list_numbered"
       >
@@ -252,6 +253,17 @@
             }
           "
         />
+      </q-step>
+
+      <q-step
+        name="configureTests"
+        :disable="checkError() && currentStep === 'selectProjects'"
+        title="Configure tests"
+        :error="checkError() && currentStep === 'configureTests'"
+        error-color="negative"
+        icon="rule"
+      >
+        <test-configurator :buildItems="buildPlan.tasks" />
       </q-step>
 
       <template v-slot:navigation>
@@ -281,10 +293,11 @@
 </template>
 
 <script>
-  import {defineComponent, ref} from 'vue'
+  import {ReactiveFlags, defineComponent, ref} from 'vue'
   import {Loading, Notify} from 'quasar'
   import ProjectSelector from 'components/ProjectSelector.vue'
   import MockOptionsSelection from 'components/MockOptionsSelection.vue'
+  import TestConfigurator from 'components/TestConfigurator.vue'
 
   export default defineComponent({
     name: 'BuildPlanner',
@@ -301,6 +314,7 @@
           is_secure_boot: false,
           mock_options: {},
           platform_flavors: [],
+          test_configuration: {},
         },
         product: null,
         parallelMode: true,
@@ -317,8 +331,8 @@
       nextLabel() {
         const labelMap = {
           buildEnvironment: 'Select projects',
-          selectProjects: 'Create build',
-          selectModules: 'Create build',
+          selectProjects: 'Configure tests',
+          configureTests: 'Create build',
         }
         if (this.modularity) labelMap.buildEnvironment = 'Select modules'
         return labelMap[this.currentStep]
@@ -369,13 +383,23 @@
         return val ? val.length !== 0 : false
       },
       checkError() {
-        if (this.buildPlan.platforms.length < 1 || !this.product) return true
+        switch (this.currentStep) {
+          case 'buildEnvironment':
+            if (this.buildPlan.platforms.length < 1 || !this.product)
+              return true
 
-        let err = false
-        this.buildPlan.platforms.forEach((platform) => {
-          err = !this.checkArchError(this.platformArches[platform.label])
-        })
-        return err
+            let err = false
+            this.buildPlan.platforms.forEach((platform) => {
+              err = !this.checkArchError(this.platformArches[platform.label])
+            })
+            return err
+          case 'selectProjects':
+            return this.buildPlan.tasks.length < 1
+          case 'configureTests':
+            return !!this.buildPlan.test_configuration
+          default:
+            return false
+        }
       },
       onAddMockOptions() {
         this.$refs.addMockOptions.open(this.buildPlan.mock_options)
@@ -430,22 +454,25 @@
           this.createBuild()
           return
         }
+        if (this.currentStep === 'buildEnvironment') {
+          if (this.checkError()) {
+            this.$refs.selectProduct.validate()
+            this.$refs.selectPlatforms.validate()
+            if (this.$refs.selectArches && this.$refs.selectArches.length) {
+              this.$refs.selectArches.forEach((arches) => {
+                arches.validate()
+              })
+            }
 
-        if (this.checkError()) {
-          this.$refs.selectProduct.validate()
-          this.$refs.selectPlatforms.validate()
-          if (this.$refs.selectArches && this.$refs.selectArches.length) {
-            this.$refs.selectArches.forEach((arches) => {
-              arches.validate()
+            Notify.create({
+              message: 'Please fill out all required fields',
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
+            return
           }
-
-          Notify.create({
-            message: 'Please fill out all required fields',
-            type: 'negative',
-            actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
-          })
         }
+
         this.$refs.buildWizzard.next()
       },
       onPreviousStep() {
@@ -497,6 +524,12 @@
                   : module_mock_options.push(`${m.name}:${m.stream}`)
               }
             })
+            task.refs.forEach((ref) => {
+              ref.test_configuration = {}
+              if (ref.test_env) ref.test_configuration.test_env = ref.test_env
+              if (ref.tests && ref.tests.length !== 0)
+                ref.test_configuration.tests = ref.tests
+            })
             if (module_mock_options.length !== 0) {
               task.refs.forEach((ref) => {
                 if (!ref.mock_options) {
@@ -508,6 +541,11 @@
                 }
               })
             }
+          } else {
+            task.test_configuration = {}
+            if (task.test_env) task.test_configuration.test_env = task.test_env
+            if (task.tests && task.tests.length !== 0)
+              task.test_configuration.tests = task.tests
           }
         })
 
@@ -551,6 +589,7 @@
     components: {
       ProjectSelector,
       MockOptionsSelection,
+      TestConfigurator,
     },
   })
 </script>
