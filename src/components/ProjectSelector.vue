@@ -2,9 +2,21 @@
   <div class="justify-center">
     <q-scroll-area style="height: 36vw" class="row">
       <div class="row justify-center">
-        <table class="q-table">
+        <table class="q-table" style="border-collapse: collapse">
+          <thead>
+            <tr style="height: auto">
+              <th />
+              <th />
+              <th class="no-padding" />
+              <th class="no-padding" />
+            </tr>
+          </thead>
           <tbody>
-            <tr v-for="(buildItem, index) in buildItems" :key="buildItem.uid">
+            <tr
+              v-for="(buildItem, index) in buildItems"
+              :key="buildItem.uid"
+              style="border-top: 1pt solid rgba(0, 0, 0, 0.12)"
+            >
               <td class="no-padding">
                 <q-btn
                   @click="onMoveBuildItemUp(buildItem)"
@@ -81,7 +93,7 @@
               <td v-else>
                 <build-ref :buildRef="buildItem" />
               </td>
-              <td class="text-tertiary">
+              <td class="text-tertiary text-center">
                 <q-icon
                   v-if="buildItem.modules_yaml && depsWithoutStream(buildItem)"
                   name="warning"
@@ -138,7 +150,12 @@
     </q-scroll-area>
 
     <div class="group row justify-end">
-      <q-btn @click="onAddProject" icon="add" color="secondary" id="pse-qb-add-project">
+      <q-btn
+        @click="onAddProject"
+        icon="add"
+        color="secondary"
+        id="pse-qb-add-project"
+      >
         Add project
       </q-btn>
     </div>

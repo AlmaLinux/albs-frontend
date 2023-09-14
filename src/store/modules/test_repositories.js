@@ -24,7 +24,7 @@ export const TestRepositoriesModule = {
   actions: {
     loadTestRepositoriesList({commit, state}) {
       return api
-        .get('/testRepositories/')
+        .get('/test_repositories/')
         .then((response) => {
           commit('updateTestRepositoriesList', response.data)
         })

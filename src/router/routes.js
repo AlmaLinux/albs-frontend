@@ -88,6 +88,10 @@ const routes = [
             .then(next())
             .catch(next())
           store.dispatch('products/loadProductList').then(next()).catch(next())
+          store
+            .dispatch('testRepositories/loadTestRepositoriesList')
+            .then(next())
+            .catch(next())
         },
       },
       {
