@@ -234,7 +234,15 @@
         return this.logs.filter(artifact => regex.test(artifact.name))
       },
       getTaps (id) {
-        let tap_results = this.taps.filter(tap => tap.id === id)[0].tap_results
+        let tap_results = this.taps.filter(tap => tap.id === id)[0]
+        if (!tap_results) return {
+          total: [],
+          failed: [],
+          done: [],
+          todo: [],
+          skipped: [],
+        }
+        tap_results = tap_results.tap_results
         return {
           total: tap_results,
           failed: tap_results.filter(res => res.status === TestTapStatus.FAILED),
