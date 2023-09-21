@@ -24,7 +24,7 @@
           <td colspan="3" class="text-blue-grey-7">
             <strong>
               <span>
-                {{test.full_package_name}}
+                {{ test.full_package_name }}
               </span>
             </strong>
           </td>
@@ -61,7 +61,10 @@
             <td class="text-center" width="15%"></td>
           </tr>
           <template
-            v-for="log in testsStatusFilter(testsFilter(test.result, search), statusFilter)"
+            v-for="log in testsStatusFilter(
+              testsFilter(test.result, search),
+              statusFilter
+            )"
             :key="log"
           >
             <tr>
@@ -84,7 +87,7 @@
               <td
                 v-if="log.tap && !search"
                 class="text-right q-gutter-xs"
-                style="padding: 0.3rem 0.7rem;"
+                style="padding: 0.3rem 0.7rem"
               >
                 <q-btn
                   color="grey"
@@ -158,7 +161,7 @@
               <tr v-for="tap in tapFilter(log, search)" :key="tap.test_name">
                 <td
                   colspan="4"
-                  style="padding-left: 3rem; word-break: break-all;"
+                  style="padding-left: 3rem; word-break: break-all"
                 >
                   {{ tap.test_name }}
                 </td>
@@ -191,13 +194,13 @@
 
 <script>
   import axios from 'axios'
-  import { defineComponent } from 'vue'
-  import { TestStatus, TestTapStatus } from '../constants.js'
+  import {defineComponent} from 'vue'
+  import {TestStatus, TestTapStatus} from '../constants.js'
   import logView from 'components/LogView.vue'
-  import { Loading } from 'quasar'
+  import {Loading} from 'quasar'
 
   export default defineComponent({
-    data () {
+    data() {
       return {
         logText: '',
         selectedLog: null,
@@ -208,7 +211,8 @@
         testsStatusFilterLabels: [
           {label: 'All', value: 'all'},
           {label: 'Done', value: true},
-          {label: 'Fail', value: false}],
+          {label: 'Fail', value: false},
+        ],
         statusFilter: {label: 'All', value: 'all'},
         search: '',
         test_options: [
@@ -218,137 +222,149 @@
           'install_package',
           'tests',
           'uninstall_package',
-          'stop_environment'
-        ]
+          'stop_environment',
+        ],
       }
     },
     props: {
       taskId: String,
-      buildId: String
+      buildId: String,
     },
-    created () {
+    created() {
       this.loadLogsList()
     },
     methods: {
-      filterLogs (regex) {
-        return this.logs.filter(artifact => regex.test(artifact.name))
+      filterLogs(regex) {
+        return this.logs.filter((artifact) => regex.test(artifact.name))
       },
-      getTaps (id) {
-        let tap_results = this.taps.filter(tap => tap.id === id)[0].tap_results
+      getTaps(id) {
+        let tap_results = this.taps.filter((tap) => tap.id === id)[0]
+        if (!tap_results)
+          return {
+            total: [],
+            failed: [],
+            done: [],
+            todo: [],
+            skipped: [],
+          }
+        tap_results = tap_results.tap_results
         return {
           total: tap_results,
-          failed: tap_results.filter(res => res.status === TestTapStatus.FAILED),
-          done: tap_results.filter(res => res.status === TestTapStatus.DONE),
-          todo: tap_results.filter(res => res.status === TestTapStatus.TODO),
-          skipped: tap_results.filter(res => res.status === TestTapStatus.SKIPPED)
+          failed: tap_results.filter(
+            (res) => res.status === TestTapStatus.FAILED
+          ),
+          done: tap_results.filter((res) => res.status === TestTapStatus.DONE),
+          todo: tap_results.filter((res) => res.status === TestTapStatus.TODO),
+          skipped: tap_results.filter(
+            (res) => res.status === TestTapStatus.SKIPPED
+          ),
         }
       },
-      loadLogsList () {
+      loadLogsList() {
         Loading.show()
-        this.$api.get(`/tests/${this.taskId}/latest`)
-          .then(response => {
-            this.$api.get(`/tests/${this.taskId}/logs`)
-              .then(logs => {
-                Loading.hide()
-                this.taps = logs.data
-                response.data.forEach(test => {
-                  let parsed_test = {
-                    full_package_name: `${test.package_name}-${test.package_version}-${test.package_release}`,
-                    status: test.status,
-                    revision: test.revision,
-                    result: []
-                  }
-                  if (parsed_test.status < TestStatus.COMPLETED) {
-                    parsed_test.running = true
-                    this.tests.push(parsed_test)
-                    return
-                  }
-
-                  let alts_log = test.alts_response.result.logs.filter(l => {
-                    return l.name.includes('alts')
-                  })[0]
-                  if (alts_log) {
-                    this.altsLog = {
-                      short_name: 'alts_logs',
-                      name: alts_log.name
-                    }
-                  }
-                  this.test_options.filter(opt => test.alts_response.result[opt]).forEach(opt => {
-                    let res = {}
-                    if (opt === 'tests') {
-                      for (const item in test.alts_response.result[opt]) {
-                        res = {
-                          success: test.alts_response.result[opt][item].success,
-                          short_name: item,
-                          tapFilter: 'failed',
-                          tap: this.getTaps(test.id)
-                        }
-                        let log = test.alts_response.result.logs.filter(l => {
-                          return l.name.includes('package_integrity_tests')
-                        })[0]
-
-                        if (log) {
-                          res.name = log.name
-                        }
-                        parsed_test.result.push(res)
-                      }
-                    } else {
-                      if (test.alts_response.result[opt]){
-                        res = {
-                          success: test.alts_response.result[opt].success,
-                          short_name: opt
-                        }
-                        let log = test.alts_response.result.logs.filter(l => {
-                          return l.name.includes(opt)
-                        })[0]
-
-                        if (log) {
-                          res.name = log.name
-                        }
-                        parsed_test.result.push(res)
-                      }
-                    }
-                  })
+        this.$api.get(`/tests/${this.taskId}/latest`).then((response) => {
+          this.$api.get(`/tests/${this.taskId}/logs`).then((logs) => {
+            Loading.hide()
+            this.taps = logs.data
+            response.data.forEach((test) => {
+              let parsed_test = {
+                full_package_name: `${test.package_name}-${test.package_version}-${test.package_release}`,
+                status: test.status,
+                revision: test.revision,
+                result: [],
+              }
+              if (parsed_test.status < TestStatus.COMPLETED) {
+                parsed_test.running = true
                 this.tests.push(parsed_test)
-              })
+                return
+              }
+
+              let alts_log = test.alts_response.result.logs.filter((l) => {
+                return l.name.includes('alts')
+              })[0]
+              if (alts_log) {
+                this.altsLog = {
+                  short_name: 'alts_logs',
+                  name: alts_log.name,
+                }
+              }
+              this.test_options
+                .filter((opt) => test.alts_response.result[opt])
+                .forEach((opt) => {
+                  let res = {}
+                  if (opt === 'tests') {
+                    for (const item in test.alts_response.result[opt]) {
+                      res = {
+                        success: test.alts_response.result[opt][item].success,
+                        short_name: item,
+                        tapFilter: 'failed',
+                        tap: this.getTaps(test.id),
+                      }
+                      let log = test.alts_response.result.logs.filter((l) => {
+                        return l.name.includes('package_integrity_tests')
+                      })[0]
+
+                      if (log) {
+                        res.name = log.name
+                      }
+                      parsed_test.result.push(res)
+                    }
+                  } else {
+                    if (test.alts_response.result[opt]) {
+                      res = {
+                        success: test.alts_response.result[opt].success,
+                        short_name: opt,
+                      }
+                      let log = test.alts_response.result.logs.filter((l) => {
+                        return l.name.includes(opt)
+                      })[0]
+
+                      if (log) {
+                        res.name = log.name
+                      }
+                      parsed_test.result.push(res)
+                    }
+                  }
+                })
+              this.tests.push(parsed_test)
             })
           })
+        })
       },
-      testsStatusFilter (tests, status) {
+      testsStatusFilter(tests, status) {
         if (status.value === 'all') return tests
 
-        return tests.filter(test => test.success === status.value)
+        return tests.filter((test) => test.success === status.value)
       },
-      testsFilter (tests, searchQuery) {
+      testsFilter(tests, searchQuery) {
         let re = new RegExp(searchQuery, 'i')
-        return tests.filter(test => {
+        return tests.filter((test) => {
           if (test.tap) {
-            let tap = test.tap.total.filter(tap => tap.test_name.match(re))
+            let tap = test.tap.total.filter((tap) => tap.test_name.match(re))
             if (tap.length) return tap
           }
           return test.short_name.match(re)
         })
       },
-      tapFilter (log, searchQuery){
+      tapFilter(log, searchQuery) {
         let re = new RegExp(searchQuery, 'i')
-        if (searchQuery){
-          return log.tap.total.filter(tap => tap.test_name.match(re))
+        if (searchQuery) {
+          return log.tap.total.filter((tap) => tap.test_name.match(re))
         } else {
           return log.tap[log.tapFilter]
         }
       },
-      onView (log) {
+      onView(log) {
         let logUrl = `${window.origin}/pulp/content/test_logs/build-${this.buildId}-test_log/${log.name}`
         this.selectedLog = log.name
-        axios.get(logUrl)
-          .then(response => {
-            this.logText = response.data
-            this.$refs.openLogView.open()
-          })
-      }
+        axios.get(logUrl).then((response) => {
+          this.logText = response.data
+          this.$refs.openLogView.open()
+        })
+      },
     },
     components: {
-      logView
-    }
+      logView,
+    },
   })
 </script>
