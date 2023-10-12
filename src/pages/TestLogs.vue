@@ -40,11 +40,11 @@
           </tr>
         </template>
         <template v-else>
-          <tr v-if="altsLog">
+          <tr v-if="test.alts_log">
             <td width="1px">
               <q-icon
                 class="cursor-pointer"
-                @click="onView(altsLog)"
+                @click="onView(test.alts_log)"
                 color="grey"
                 name="article"
                 size="1.5rem"
@@ -54,7 +54,7 @@
             </td>
             <td :colspan="!search ? 2 : 3">
               <strong>
-                {{ altsLog.short_name }}
+                {{ test.alts_log.short_name }}
               </strong>
             </td>
             <td></td>
@@ -206,7 +206,6 @@
         logText: '',
         selectedLog: null,
         tests: [],
-        altsLog: null,
         taps: null,
         testTapStatus: TestTapStatus,
         testsStatusFilterLabels: [
@@ -287,7 +286,7 @@
                 return l.name.includes('alts')
               })[0]
               if (alts_log) {
-                this.altsLog = {
+                parsed_test.alts_log = {
                   short_name: 'alts_logs',
                   name: alts_log.name,
                 }
