@@ -75,6 +75,7 @@
                   @click="onView(log)"
                   color="grey"
                   name="article"
+                  size="1.5rem"
                 >
                   <q-tooltip> Show log </q-tooltip>
                 </q-icon>
@@ -221,6 +222,7 @@
           'initial_provision',
           'install_package',
           'tests',
+          'third_party',
           'uninstall_package',
           'stop_environment',
         ],
@@ -237,8 +239,10 @@
       filterLogs(regex) {
         return this.logs.filter((artifact) => regex.test(artifact.name))
       },
-      getTaps(id) {
-        let tap_results = this.taps.filter((tap) => tap.id === id)[0]
+      getTaps(id, tap_name) {
+        let tap_results = this.taps.filter(
+          (tap) => tap.id === id && tap.log_name.includes(tap_name)
+        )[0]
         if (!tap_results)
           return {
             total: [],
@@ -292,18 +296,19 @@
                 .filter((opt) => test.alts_response.result[opt])
                 .forEach((opt) => {
                   let res = {}
-                  if (opt === 'tests') {
+                  if (['tests', 'third_party'].includes(opt)) {
                     for (const item in test.alts_response.result[opt]) {
                       res = {
                         success: test.alts_response.result[opt][item].success,
                         short_name: item,
-                        tapFilter: 'failed',
-                        tap: this.getTaps(test.id),
+                      }
+                      if (opt === 'tests') {
+                        res.tapFilter = 'failed'
+                        res.tap = this.getTaps(test.id, item)
                       }
                       let log = test.alts_response.result.logs.filter((l) => {
-                        return l.name.includes('package_integrity_tests')
+                        return l.name.includes(item)
                       })[0]
-
                       if (log) {
                         res.name = log.name
                       }
