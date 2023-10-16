@@ -60,10 +60,9 @@
                   />
                   <q-input
                     dense
-                    disable
+                    v-model="package_name"
                     class="col"
                     label="Package"
-                    hint="Search by Packages will be available in the future"
                   />
                 </div>
 
@@ -184,6 +183,7 @@
         product: null,
         productsOptions: ref([]),
         status: null,
+        package_name: '',
         loading: false,
         show: false,
         columns: [
@@ -306,6 +306,7 @@
           status: this.status ? +this.status.value : null,
           product_id: this.product ? +this.product.value : null,
           platform_id: this.platform ? +this.platform.value : null,
+          package_name: this.package_name ? this.package_name : null,
         }
         this.$api
           .get(`/releases/`, {params: query})
