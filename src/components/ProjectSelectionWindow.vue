@@ -136,7 +136,7 @@
       }
     },
     watch: {
-      'projectType': 'resetFields'
+      projectType: 'resetFields',
     },
     created() {
       this.loadAlmaGitRefs()
@@ -258,6 +258,7 @@
           Notify.create({message: errorMsg, icon: 'warning', type: 'warning'})
           return
         }
+        if (this.moduleRefs) ref.enabled = true
         if (this.modularity) {
           this.onSubmitModule(ref)
         } else {
