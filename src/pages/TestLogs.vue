@@ -219,6 +219,7 @@
           'initialize_terraform',
           'start_environment',
           'initial_provision',
+          'system_info',
           'install_package',
           'tests',
           'third_party',
