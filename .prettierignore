@@ -15,3 +15,5 @@ babel.config.js
 jsconfig.json
 quasar.conf.js
 README.md
+**/*.png
+**/*.svg
