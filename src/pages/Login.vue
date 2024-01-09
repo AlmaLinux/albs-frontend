@@ -8,67 +8,65 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-md-6" style="display: grid;">
+      <div class="col-md-6" style="display: grid">
         <q-btn
           flat
           text="Login with AlmaLinux Accounts"
           @click="almalinuxLogin"
         >
           <q-icon class="text-dark" size="250px">
-            <img src="~assets/almalinux-logo.png" alt="Login using your AlmaLinux account"/>
+            <img
+              src="~assets/almalinux-logo.png"
+              alt="Login using your AlmaLinux account"
+            />
           </q-icon>
         </q-btn>
       </div>
 
-      <div class="col-md-6" style="display: grid;">
-        <q-btn
-          flat
-          text="Login with your Github profile"
-          @click="githubLogin"
-        >
+      <div class="col-md-6" style="display: grid">
+        <q-btn flat text="Login with your Github profile" @click="githubLogin">
           <q-icon class="text-dark" size="250px">
-            <img src="~assets/github-mark.svg" alt="Login using your Github profile"/>
+            <img
+              src="~assets/github-mark.svg"
+              alt="Login using your Github profile"
+            />
           </q-icon>
         </q-btn>
       </div>
-
-
     </div>
   </div>
 </template>
 
 <script>
-import { defineComponent } from 'vue';
-import { fabGithub } from '@quasar/extras/fontawesome-v5';
+  import {defineComponent} from 'vue'
+  import {fabGithub} from '@quasar/extras/fontawesome-v5'
 
-export default defineComponent({
-  name: 'LoginPage',
+  export default defineComponent({
+    name: 'LoginPage',
 
-  setup (props) {
-    return {
-      fabGithub
-    }
-  },
-
-  methods: {
-    githubLogin () {
-      this.$api.get('/auth/github/authorize')
-        .then((response) => {
-          window.location.href = response.data.authorization_url
-        })
+    setup(props) {
+      return {
+        fabGithub,
+      }
     },
-    almalinuxLogin () {
-      this.$api.get('/auth/almalinux/authorize')
-        .then((response) => {
+
+    methods: {
+      githubLogin() {
+        this.$api.get('/auth/github/authorize').then((response) => {
           window.location.href = response.data.authorization_url
         })
-    }
-  }
-})
+      },
+      almalinuxLogin() {
+        this.$api.get('/auth/almalinux/authorize').then((response) => {
+          window.location.href = response.data.authorization_url
+        })
+      },
+    },
+  })
 </script>
 
 <style>
-  .login-button{
+  .login-button {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -76,7 +74,7 @@ export default defineComponent({
     margin-left: -50px;
   }
 
-  .login-box{
+  .login-box {
     position: absolute;
     top: 50%;
     left: 50%;
