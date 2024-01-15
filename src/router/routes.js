@@ -97,7 +97,6 @@ const routes = [
       {
         path: 'errata',
         component: () => import('pages/ErrataFeed.vue'),
-        meta: {requiresAuth: true},
         beforeEnter(to, from, next) {
           store
             .dispatch('platforms/loadPlatformList')
@@ -109,12 +108,12 @@ const routes = [
         path: 'errata/:id',
         component: () => import('pages/ErrataFeed.vue'),
         props: true,
-        meta: {requiresAuth: true},
         beforeEnter(to, from, next) {
           store
             .dispatch('platforms/loadPlatformList')
             .then(next())
             .catch(next())
+          store.dispatch('users/loadUsersList').then(next()).catch(next())
         },
       },
       {
@@ -165,7 +164,6 @@ const routes = [
       },
       {
         path: 'product-feed',
-        meta: {requiresAuth: true},
         component: () => import('pages/ProductFeed'),
       },
       {

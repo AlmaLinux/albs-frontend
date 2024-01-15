@@ -32,7 +32,11 @@
         </q-field>
       </q-card-section>
       <q-card-section class="q-gutter-md" style="max-width: 100%">
-        <q-input v-model="title" label="Bulletin title">
+        <q-input
+          v-model="title"
+          label="Bulletin title"
+          :readonly="!userAuthenticated()"
+        >
           <template v-slot:append>
             <q-btn
               v-if="titleWarn(advisory.title)"
@@ -55,6 +59,7 @@
           input-style="height: 250px"
           v-model="description"
           label="Description"
+          :readonly="!userAuthenticated()"
         >
           <template v-slot:append>
             <q-btn
@@ -191,52 +196,11 @@
                 </q-card-section>
               </q-card>
             </q-expansion-item>
-            <q-expansion-item
-              label="Bugzilla info"
-              expand-separator
-              icon="info"
-              align="left"
-              v-if="bugzillaRows(advisory.references).length"
-            >
-              <q-card>
-                <q-card-section>
-                  <q-item dense>
-                    <q-table
-                      :rows="bugzillaRows(advisory.references)"
-                      :columns="bugzillaCol"
-                      color="primary"
-                      wrap-cells
-                      flat
-                      style="width: 100%"
-                      hide-pagination
-                      :rows-per-page-options="[0]"
-                    >
-                      <template v-slot:body="props">
-                        <q-tr :props="props">
-                          <q-td key="id" :props="props">{{
-                            props.row.ref_id
-                          }}</q-td>
-                          <q-td key="url" :props="props">
-                            <a :href="props.row.href" target="_blank">{{
-                              props.row.href
-                            }}</a>
-                          </q-td>
-                          <q-td key="title" :props="props">{{
-                            props.row.title
-                          }}</q-td>
-                        </q-tr>
-                      </template>
-                    </q-table>
-                  </q-item>
-                </q-card-section>
-              </q-card>
-            </q-expansion-item>
           </q-tab-panel>
 
           <q-tab-panel name="packages">
             <q-table
               flat
-              bordered
               dense
               :rows="projects"
               :columns="patchInfoCol"
@@ -254,49 +218,51 @@
                     "
                     @click="props.toggleFullscreen"
                   />
-                  <template
-                    v-if="advisory.release_status != errataStatuses.RELEASED"
-                  >
-                    <q-btn
-                      size="80%"
-                      no-caps
-                      icon="restart_alt"
-                      color="grey-8"
-                      @click="resetMatchedPackages()"
-                      :loading="loadingReset"
+                  <template v-if="userAuthenticated()">
+                    <template
+                      v-if="advisory.release_status != errataStatuses.RELEASED"
                     >
-                      Reset
-                      <q-tooltip>Reset matched packages</q-tooltip>
-                    </q-btn>
-                  </template>
-                  <template v-if="notReleasedRPMs().length !== 0">
-                    <q-btn
-                      size="80%"
-                      no-caps
-                      icon="redo"
-                      color="red-8"
-                      @click="changeStatus('skipped')"
-                    >
-                      Skip
-                    </q-btn>
-                    <q-btn
-                      size="80%"
-                      no-caps
-                      icon="lightbulb_outline"
-                      color="orange-14"
-                      @click="changeStatus('proposal')"
-                    >
-                      Propose
-                    </q-btn>
-                    <q-btn
-                      size="80%"
-                      no-caps
-                      icon="done"
-                      color="primary"
-                      @click="changeStatus('approved')"
-                    >
-                      Approve
-                    </q-btn>
+                      <q-btn
+                        size="80%"
+                        no-caps
+                        icon="restart_alt"
+                        color="grey-8"
+                        @click="resetMatchedPackages()"
+                        :loading="loadingReset"
+                      >
+                        Reset
+                        <q-tooltip>Reset matched packages</q-tooltip>
+                      </q-btn>
+                    </template>
+                    <template v-if="notReleasedRPMs().length !== 0">
+                      <q-btn
+                        size="80%"
+                        no-caps
+                        icon="redo"
+                        color="red-8"
+                        @click="changeStatus('skipped')"
+                      >
+                        Skip
+                      </q-btn>
+                      <q-btn
+                        size="80%"
+                        no-caps
+                        icon="lightbulb_outline"
+                        color="orange-14"
+                        @click="changeStatus('proposal')"
+                      >
+                        Propose
+                      </q-btn>
+                      <q-btn
+                        size="80%"
+                        no-caps
+                        icon="done"
+                        color="primary"
+                        @click="changeStatus('approved')"
+                      >
+                        Approve
+                      </q-btn>
+                    </template>
                   </template>
                 </div>
               </template>
@@ -308,7 +274,7 @@
                     :props="props"
                   >
                     <q-checkbox
-                      v-if="col.name === 'nevra'"
+                      v-if="col.name === 'nevra' && userAuthenticated()"
                       v-model="selectedAll"
                       @click="selectAllRPMs"
                       :disable="notReleasedRPMs().length === 0"
@@ -324,7 +290,7 @@
                 >
                   <q-td key="nevra" :props="props" style="border-bottom: 0">
                     <q-checkbox
-                      v-if="props.row.source_srpm"
+                      v-if="props.row.source_srpm && userAuthenticated()"
                       v-model="props.row.selected"
                       @click="selectRPM(props.row)"
                       :disable="props.row.released"
@@ -335,7 +301,7 @@
                     <q-select
                       v-model="props.row.selected_build"
                       :options="props.row.albs_builds"
-                      :disable="props.row.released"
+                      :disable="props.row.released && !userAuthenticated()"
                     >
                       <template
                         v-if="
@@ -384,7 +350,8 @@
                       dense
                       class="text-weight-bolder"
                       square
-                      >{{ statusBuild(props.row.selected_build) }}
+                    >
+                      {{ statusBuild(props.row.selected_build) }}
                     </q-chip>
                   </q-td>
                 </q-tr>
@@ -404,8 +371,9 @@
                             v-if="srcWarning(props.row)"
                             color="orange"
                             class="q-ml-sm"
-                            >Warning</q-badge
                           >
+                            Warning
+                          </q-badge>
                         </div>
                       </template>
                       <template v-slot:header-generic="prop">
@@ -436,14 +404,15 @@
           </q-tab-panel>
         </q-tab-panels>
       </q-card-section>
-      <q-card-actions align="right">
+      <q-card-actions align="right" v-if="userAuthenticated()">
         <q-btn
           no-caps
           color="green"
           @click="updateAdvisory(advisory.id)"
           :loading="loading"
-          >Save</q-btn
         >
+          Save
+        </q-btn>
         <q-btn
           v-if="advisory.release_status === errataStatuses.RELEASED"
           no-caps
@@ -452,15 +421,16 @@
         >
           Show updateinfo
         </q-btn>
-        <q-btn no-caps color="primary" @click="toRelease()"
-          >Release packages</q-btn
-        >
+        <q-btn no-caps color="primary" @click="toRelease()">
+          Release packages
+        </q-btn>
         <q-btn
           no-caps
           color="primary"
           @click="hasSkippedPackages ? (confirm = true) : releaseUpdateinfo()"
           :loading="loadingRelease"
-          >Release updateinfo</q-btn
+        >
+          Release updateinfo</q-btn
         >
       </q-card-actions>
     </q-card>
@@ -653,30 +623,6 @@
             style: 'width: 230px; word-break: break-word;',
           },
         ],
-        bugzillaCol: [
-          {
-            name: 'id',
-            required: true,
-            align: 'left',
-            label: 'Bugzilla ID',
-            field: 'id',
-          },
-          {
-            name: 'url',
-            required: true,
-            align: 'left',
-            label: 'Ticket URL',
-            field: 'url',
-            style: 'word-break: break-word;',
-          },
-          {
-            name: 'title',
-            required: true,
-            align: 'left',
-            label: 'Title',
-            field: 'title',
-          },
-        ],
         patchInfoCol: [
           {
             name: 'nevra',
@@ -716,6 +662,9 @@
         this.selectedAll = false
         this.hasSkippedPackages = false
         this.matchingPackage(advisory)
+      },
+      userAuthenticated() {
+        return this.$store.getters.isAuthenticated
       },
       updateAdvisory(id) {
         this.loading = true
