@@ -28,7 +28,7 @@
     "@quasar/app": "^3.3.3",
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^8.9.0",
-    "eslint-plugin-vue": "^9.16.1",
+    "eslint-plugin-vue": "^9.20.1",
     "eslint-webpack-plugin": "^4.0.1",
     "prettier": "^3.0.0"
   },
