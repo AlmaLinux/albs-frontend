@@ -218,9 +218,9 @@ const routes = [
   // TODO: make this children
   {path: '/auth/login', component: () => import('pages/Login.vue')},
   {
-    path: '/auth/login/github',
+    path: '/auth/login/finished',
     props: (route) => ({code: route.query.code}),
-    component: () => import('pages/Github.vue'),
+    component: () => import('pages/LoginFinished.vue'),
   },
 
   // Always leave this as last one,
