@@ -127,6 +127,9 @@
             case TestStatus.COMPLETED:
               task.status = BuildStatus.TEST_COMPLETED
               break;
+            case TestStatus.CANCELLED:
+              task.status = BuildStatus.TEST_CANCELLED
+              break;
           }
         })
         if (tests_failed) {
