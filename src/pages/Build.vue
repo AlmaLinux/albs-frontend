@@ -1247,6 +1247,7 @@
         let count_failed = 0
         let tests_failed = false
         let test_started = false
+        let test_cancelled = false
         let latest_revision = Math.max(
           ...task.test_tasks.map((t) => t.revision)
         )
@@ -1266,7 +1267,7 @@
               task.status = BuildStatus.TEST_COMPLETED
               break
             case TestStatus.CANCELLED:
-              task.status = BuildStatus.TEST_CANCELLED
+              test_cancelled = true
               break
           }
         })
@@ -1278,6 +1279,8 @@
           }
         }
         if (test_started) task.status = BuildStatus.TEST_STARTED
+        if (test_cancelled && !test_started)
+          task.status = BuildStatus.TEST_CANCELLED
       },
       loadSignInfo(buildId) {
         this.$api
