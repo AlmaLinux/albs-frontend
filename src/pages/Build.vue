@@ -73,7 +73,7 @@
                       :key="task.id"
                     >
                       <q-skeleton
-                        style="margin-left: auto; margin-right: auto;"
+                        style="margin-left: auto; margin-right: auto"
                         size="23px"
                         type="circle"
                         v-if="buildLoad"
@@ -204,7 +204,9 @@
                           icon="restart_alt"
                           size="sm"
                           title="Restart build task tests"
-                          v-if="testTaskFailed(task.status) && userAuthenticated()"
+                          v-if="
+                            testTaskFailed(task.status) && userAuthenticated()
+                          "
                           @click="restartTestTask(task.id)"
                         />
                       </div>
@@ -302,7 +304,9 @@
                       </q-tooltip>
                     </q-btn>
                     <q-btn
-                      v-if="sign.status === signStatus.FAILED && userAuthenticated()"
+                      v-if="
+                        sign.status === signStatus.FAILED && userAuthenticated()
+                      "
                       icon="cached"
                       color="faded"
                       round
@@ -378,7 +382,7 @@
           label="Other Actions"
           color="primary"
           dropdown-icon="change_history"
-          style="width: 200px; height: 40px;"
+          style="width: 200px; height: 40px"
         >
           <q-list>
             <q-item
@@ -500,6 +504,7 @@
         </q-card-section>
         <mock-options-show :mock_options="selectedTask.mock_options" />
         <q-card-actions align="right">
+          <!-- prettier-ignore -->
           <q-btn
             flat
             text-color="negative"
@@ -511,7 +516,7 @@
     </q-dialog>
 
     <q-dialog v-model="add_to_product">
-      <q-card style="width: 400px;">
+      <q-card style="width: 400px">
         <q-card-section>
           <div class="text-h6">Add to a product</div>
         </q-card-section>
@@ -520,7 +525,7 @@
             <q-select
               v-model="current_product"
               label="Choose product to add to"
-              :rules="[val => !!val || 'Product name is required']"
+              :rules="[(val) => !!val || 'Product name is required']"
               :options="addableProducts"
             />
           </q-card-section>
@@ -546,7 +551,7 @@
       </q-card>
     </q-dialog>
     <q-dialog v-model="remove_from_product">
-      <q-card style="width: 400px;">
+      <q-card style="width: 400px">
         <q-card-section>
           <div class="text-h6">Remove from a product</div>
         </q-card-section>
@@ -555,7 +560,7 @@
             <q-select
               v-model="current_product"
               label="Choose product to remove from"
-              :rules="[val => !!val || 'Product name is required']"
+              :rules="[(val) => !!val || 'Product name is required']"
               :options="removableProducts"
             />
           </q-card-section>
@@ -580,12 +585,12 @@
       </q-card>
     </q-dialog>
     <q-dialog v-model="delete_build">
-      <q-card style="width: 400px;">
+      <q-card style="width: 400px">
         <q-card-section>
           <div class="text-h6">Warning</div>
         </q-card-section>
         <q-card-section>
-          You are going to delete build {{build.id}}, are you sure ?
+          You are going to delete build {{ build.id }}, are you sure ?
         </q-card-section>
         <q-card-actions align="right">
           <q-btn
@@ -601,12 +606,12 @@
       </q-card>
     </q-dialog>
     <q-dialog v-model="stop_build">
-      <q-card style="width: 400px;">
+      <q-card style="width: 400px">
         <q-card-section>
           <div class="text-h6">Warning</div>
         </q-card-section>
         <q-card-section>
-          You are going to stop build {{build.id}}, are you sure ?
+          You are going to stop build {{ build.id }}, are you sure ?
         </q-card-section>
         <q-card-actions align="right">
           <q-btn
@@ -622,7 +627,7 @@
       </q-card>
     </q-dialog>
     <q-dialog v-model="sign_build">
-      <q-card style="width: 400px;">
+      <q-card style="width: 400px">
         <q-card-section>
           <div class="text-h6">Sign build</div>
         </q-card-section>
@@ -631,7 +636,7 @@
             <q-select
               v-model="current_sign"
               label="Choose PGP key"
-              :rules="[val => !!val || 'PGP key is required']"
+              :rules="[(val) => !!val || 'PGP key is required']"
               :options="existingKeys"
             />
             <span v-if="!testingCompleted" class="text-negative">
@@ -693,23 +698,28 @@
 </template>
 
 <script>
-
-  import { defineComponent } from 'vue'
+  import {defineComponent} from 'vue'
   import {exportFile, Loading, Notify} from 'quasar'
   import BuildRef from 'components/BuildRef.vue'
   import BuildStatusCircle from 'components/BuildStatusCircle.vue'
   import ModuleYaml from 'components/ModuleYaml.vue'
   import MockOptionsShow from 'components/MockOptionsShow.vue'
-  import { BuildStatus, TestStatus, SignStatus } from '../constants.js'
-  import { getTaskCSS, nsvca, copyToClipboard, deepDiff, isEmptyObject } from '../utils';
+  import {BuildStatus, TestStatus, SignStatus} from '../constants.js'
+  import {
+    getTaskCSS,
+    nsvca,
+    copyToClipboard,
+    deepDiff,
+    isEmptyObject,
+  } from '../utils'
   import axios from 'axios'
 
   export default defineComponent({
     name: 'build-page',
     props: {
-      buildId: String
+      buildId: String,
     },
-    data () {
+    data() {
       return {
         tab: 'summary',
         build: null,
@@ -735,43 +745,43 @@
         signLogText: '',
         signStatus: SignStatus,
         previousBuildInfo: null,
-        previousProducts: null
+        previousProducts: null,
       }
     },
     computed: {
       innerHeight: function () {
         return window.innerHeight
       },
-      allowProductModify () {
+      allowProductModify() {
         let allow_modify = true
-        for (let i=0; i < this.build.tasks.length; i++) {
+        for (let i = 0; i < this.build.tasks.length; i++) {
           if (this.build.tasks[i].status < 2) {
             allow_modify = false
           }
         }
         return allow_modify
       },
-      existingProducts () {
-        return this.$store.state.products.products.map(product => {
+      existingProducts() {
+        return this.$store.state.products.products.map((product) => {
           return {label: product.name, value: product.name}
         })
       },
-      addableProducts () {
-        return this.existingProducts.filter(product => {
-          return !this.build.products.find(p => p.name === product.label)
+      addableProducts() {
+        return this.existingProducts.filter((product) => {
+          return !this.build.products.find((p) => p.name === product.label)
         })
       },
-      removableProducts () {
-        return this.existingProducts.filter(product => {
-          return this.build.products.find(p => p.name === product.label)
+      removableProducts() {
+        return this.existingProducts.filter((product) => {
+          return this.build.products.find((p) => p.name === product.label)
         })
       },
-      existingKeys () {
-        return this.$store.state.keys.keys.map(key => {
+      existingKeys() {
+        return this.$store.state.keys.keys.map((key) => {
           return {label: key.name, value: key.id}
         })
       },
-      failedItems () {
+      failedItems() {
         let rebuilt = false
         for (let task of this.build.tasks) {
           if (task.status === BuildStatus.FAILED) {
@@ -780,17 +790,21 @@
         }
         return rebuilt
       },
-      testingCompleted () {
+      testingCompleted() {
         let testing_completed = true
         for (let task of this.build.tasks) {
-          if (task.status <= BuildStatus.COMPLETED || task.status == BuildStatus.TEST_CREATED || task.status == BuildStatus.TEST_STARTED) {
+          if (
+            task.status <= BuildStatus.COMPLETED ||
+            task.status == BuildStatus.TEST_CREATED ||
+            task.status == BuildStatus.TEST_STARTED
+          ) {
             testing_completed = false
             break
           }
         }
         return testing_completed
       },
-      buildFinished () {
+      buildFinished() {
         let build_finished = true
         for (let task of this.build.tasks) {
           if (task.status < BuildStatus.COMPLETED) {
@@ -799,7 +813,7 @@
         }
         return build_finished
       },
-      buildTargets () {
+      buildTargets() {
         let targetsSet = new Set()
         let targets = []
         for (const task of this.build.tasks) {
@@ -811,12 +825,12 @@
           targets.push({
             name: task.platform.name,
             arch: task.arch,
-            key: targetKey
+            key: targetKey,
           })
         }
         return targets
       },
-      buildTasks () {
+      buildTasks() {
         let response = {}
         for (let task of this.build.tasks) {
           const x = `${task.platform.name}.${task.arch}`
@@ -831,28 +845,27 @@
         }
         for (let sortX in response) {
           for (let sortY in response[sortX]) {
-            response[sortX][sortY].sort((a, b) => (a.id > b.id) ? 1: -1)
+            response[sortX][sortY].sort((a, b) => (a.id > b.id ? 1 : -1))
           }
         }
         // TODO: sort here should use platform arch build order, instead
         //       of alphabetical.
-        const ordered = Object.keys(response).sort().reduce(
-          (obj, key) => {
-            obj[key] = response[key];
-            return obj;
-          },
-          {}
-        )
+        const ordered = Object.keys(response)
+          .sort()
+          .reduce((obj, key) => {
+            obj[key] = response[key]
+            return obj
+          }, {})
         return ordered
       },
-      buildTasksByIndex () {
+      buildTasksByIndex() {
         return this.buildTasks[Object.keys(this.buildTasks)[0]]
       },
-      buildCreatedTime () {
+      buildCreatedTime() {
         return new Date(this.build.created_at).toLocaleString()
-      }
+      },
     },
-    created () {
+    created() {
       this.loadBuildInfo(this.buildId)
       // update the build state every minute
       this.refreshTimer = setInterval(() => {
@@ -863,7 +876,7 @@
       }, 60000)
       // don't forget clear the timer while leaving the page
     },
-    beforeUnmount () {
+    beforeUnmount() {
       if (this.refreshTimer) {
         clearInterval(this.refreshTimer)
         this.refreshTimer = null
@@ -873,255 +886,231 @@
       '$route.params': 'loadLinkedBuildInfo',
     },
     methods: {
-      loadLinkedBuildInfo (params) {
+      loadLinkedBuildInfo(params) {
         this.loadBuildInfo(params.buildId)
       },
       copyToClipboard: copyToClipboard,
       getTaskCSS: getTaskCSS,
       nsvca: nsvca,
-      userAuthenticated () {
+      userAuthenticated() {
         return this.$store.getters.isAuthenticated
       },
-      changeStatus (task, status) {
+      changeStatus(task, status) {
         if (task.status < status) task.status = status
       },
-      addToProduct () {
+      addToProduct() {
         this.loading = true
-        this.$api.post(`/products/add/${this.buildId}/${this.current_product.label}/`)
-          .then(res => {
+        this.$api
+          .post(`/products/add/${this.buildId}/${this.current_product.label}/`)
+          .then((res) => {
             this.loading = false
             this.add_to_product = false
             Notify.create({
               message: res.data.message,
               type: 'positive',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
             this.current_product = null
           })
-          .catch(error => {
+          .catch((error) => {
             this.loading = false
             Notify.create({
               message: error.response.data.detail,
               type: 'negative',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
       },
-      removeFromProduct () {
+      removeFromProduct() {
         this.loading = true
-        this.$api.post(`/products/remove/${this.buildId}/${this.current_product.label}/`)
-          .then(res => {
+        this.$api
+          .post(
+            `/products/remove/${this.buildId}/${this.current_product.label}/`
+          )
+          .then((res) => {
             this.loading = false
             this.remove_from_product = false
             Notify.create({
               message: res.data.message,
               type: 'positive',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
             this.current_product = null
           })
-          .catch(error => {
+          .catch((error) => {
             this.loading = false
             Notify.create({
-              message: error.response.data.detail, type: 'negative',
-              actions: [
-                  { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              message: error.response.data.detail,
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
       },
-      deleteBuild () {
+      deleteBuild() {
         this.loading = true
-        this.$api.delete(`/builds/${this.buildId}/remove`)
+        this.$api
+          .delete(`/builds/${this.buildId}/remove`)
           .then(() => {
             this.loading = false
             Notify.create({
               message: `Build ${this.buildId} has been deleted`,
               type: 'positive',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
             this.$router.push('/')
           })
-          .catch(error => {
+          .catch((error) => {
             this.loading = false
             Notify.create({
               message: error.response.data.detail,
               type: 'negative',
-              actions: [
-                  { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
       },
-      stopBuild () {
+      stopBuild() {
         this.loading = true
         this.stop_build = false
-        this.$api.patch(`/builds/${this.buildId}/cancel`)
+        this.$api
+          .patch(`/builds/${this.buildId}/cancel`)
           .then(() => {
             this.loading = false
             Notify.create({
               message: `Build ${this.buildId} has been stopped`,
               type: 'positive',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
-          .catch(error => {
+          .catch((error) => {
             this.loading = false
             Notify.create({
               message: error.response.data.detail,
               type: 'negative',
-              actions: [
-                  { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
       },
-      onRebuildFailedItems (parallelMode) {
+      onRebuildFailedItems(parallelMode) {
         Loading.show()
-        let endpoint = parallelMode ?
-          `/builds/${this.buildId}/parallel-restart-failed` :
-          `/builds/${this.buildId}/restart-failed`
-        this.$api.patch(endpoint, {})
+        let endpoint = parallelMode
+          ? `/builds/${this.buildId}/parallel-restart-failed`
+          : `/builds/${this.buildId}/restart-failed`
+        this.$api
+          .patch(endpoint, {})
           .then(() => {
             Loading.hide()
             Notify.create({
               message: `Failed build items scheduled for rebuilding`,
               type: 'positive',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
             this.loadBuildInfo(this.buildId)
           })
-          .catch(error => {
+          .catch((error) => {
             Loading.hide()
             Notify.create({
               message: error.response.data.detail,
               type: 'negative',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
             this.reload = true
           })
       },
-      restartBuildTests () {
-        this.$api.put(`/tests/build/${this.buildId}/restart`)
-          .then(() =>{
-            Notify.create({
-              message: `Build tests for build ${this.buildId} has been restarted`,
-              type: 'positive',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
-            })
+      restartBuildTests() {
+        this.$api.put(`/tests/build/${this.buildId}/restart`).then(() => {
+          Notify.create({
+            message: `Build tests for build ${this.buildId} has been restarted`,
+            type: 'positive',
+            actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
           })
+        })
       },
-      testTaskFailed(taskStatus){
+      testTaskFailed(taskStatus) {
         return taskStatus >= BuildStatus.TEST_FAILED
       },
-      restartTestTask (taskId) {
-        this.$api.put(`/tests/build_task/${taskId}/restart`)
-          .then(() =>{
-            Notify.create({
-              message: `Build tests for build task ${taskId} has been restarted`,
-              type: 'positive',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
-            })
+      restartTestTask(taskId) {
+        this.$api.put(`/tests/build_task/${taskId}/restart`).then(() => {
+          Notify.create({
+            message: `Build tests for build task ${taskId} has been restarted`,
+            type: 'positive',
+            actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
           })
+        })
       },
-      signBuild () {
+      signBuild() {
         this.loading = true
         let request_body = {
           build_id: this.buildId,
-          sign_key_id: this.current_sign.value
+          sign_key_id: this.current_sign.value,
         }
-        this.$api.post('/sign-tasks/', request_body)
-          .then(response => {
+        this.$api
+          .post('/sign-tasks/', request_body)
+          .then((response) => {
             this.loading = false
             this.signs = [response.data]
             this.sign_build = false
             Notify.create({
               message: `Build ${this.buildId} is queued for signing`,
               type: 'positive',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
-          .catch(error => {
+          .catch((error) => {
             this.loading = false
             Notify.create({
               message: error.response.data.detail,
               type: 'negative',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
       },
-      showSignLog (sign){
+      showSignLog(sign) {
         this.sign_log = true
         if (sign.log_href) {
-          axios.get(sign.log_href)
-            .then(response => {
-              this.signLogText = response.data
-            })
+          axios.get(sign.log_href).then((response) => {
+            this.signLogText = response.data
+          })
         } else {
           this.signLogText = sign.error_message
         }
       },
-      repeatSign (sign){
+      repeatSign(sign) {
         this.loading = true
         let request_body = {
           build_id: this.buildId,
-          sign_key_id: sign.sign_key.id
+          sign_key_id: sign.sign_key.id,
         }
-        this.$api.post('/sign-tasks/', request_body)
-          .then(response => {
+        this.$api
+          .post('/sign-tasks/', request_body)
+          .then((response) => {
             this.loading = false
             this.signs.push(response.data)
             Notify.create({
               message: `Build ${this.buildId} is queued for signing`,
               type: 'positive',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
-          .catch(error => {
+          .catch((error) => {
             this.loading = false
             Notify.create({
               message: error.response.data.detail,
               type: 'negative',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
       },
-      renderBuildInfo () {
+      renderBuildInfo() {
         this.reload = false
         this.linked_builds = null
         this.mock_options = null
         this.buildLoad = true
         Loading.show()
 
-        this.build.tasks.forEach(task => {
+        this.build.tasks.forEach((task) => {
           if (task.rpm_module) {
-            this.rpm_module[`${task.platform.name}.${task.arch}`] = task.rpm_module
+            this.rpm_module[`${task.platform.name}.${task.arch}`] =
+              task.rpm_module
           }
           if (task.status === BuildStatus.COMPLETED) {
             this.loadTestsInfo(task)
@@ -1139,40 +1128,43 @@
         this.reload = true
         if (this.previousProducts) {
           if (this.previousProducts.length != this.build.products.length) {
-            let previousProducts = this.previousProducts.map(p => p.name)
-            let currentProducts = this.build.products.map(p => p.name)
-            let addedProducts = currentProducts
-              .filter(p => !previousProducts.includes(p))
-            let removedProducts = previousProducts
-              .filter(p => !currentProducts.includes(p))
+            let previousProducts = this.previousProducts.map((p) => p.name)
+            let currentProducts = this.build.products.map((p) => p.name)
+            let addedProducts = currentProducts.filter(
+              (p) => !previousProducts.includes(p)
+            )
+            let removedProducts = previousProducts.filter(
+              (p) => !currentProducts.includes(p)
+            )
             if (addedProducts.length) {
-              let msg = `Build successfully added to ${addedProducts.join(", ")} product(s)`
+              let msg = `Build successfully added to ${addedProducts.join(', ')} product(s)`
               Notify.create({
                 message: msg,
                 type: 'positive',
                 actions: [
-                  { label: 'Dismiss', color: 'white', handler: () => {} }
-                ]
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
               })
             }
             if (removedProducts.length) {
-              let msg = `Build successfully removed from ${removedProducts.join(", ")} product(s)`
+              let msg = `Build successfully removed from ${removedProducts.join(', ')} product(s)`
               Notify.create({
                 message: msg,
                 type: 'positive',
                 actions: [
-                  { label: 'Dismiss', color: 'white', handler: () => {} }
-                ]
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
               })
             }
           }
         }
       },
-      loadBuildInfo (buildId) {
+      loadBuildInfo(buildId) {
         this.reload = false
         if (!this.build) Loading.show()
-        this.$api.get(`/builds/${buildId}/`)
-          .then(response => {
+        this.$api
+          .get(`/builds/${buildId}/`)
+          .then((response) => {
             this.reload = true
             let buildInfo = response.data
             if (!this.previousBuildInfo) {
@@ -1195,174 +1187,188 @@
               }
             }
           })
-          .catch(error => {
+          .catch((error) => {
             Loading.hide()
             this.buildLoad = false
             this.reload = true
           })
       },
-      loadTestsInfo (task) {
-          let count_failed = 0
-          let tests_failed = false
-          let test_started = false
-          let latest_revision = Math.max(...task.test_tasks.map(t => t.revision))
-          let latest_test_tasks = task.test_tasks.filter(t => t.revision === latest_revision)
-          latest_test_tasks.forEach(test => {
-            switch (test.status) {
-              case TestStatus.STARTED:
-                test_started = true
-                break;
-              case TestStatus.FAILED:
-                count_failed += 1
-                tests_failed = true
-                break;
-              case TestStatus.COMPLETED:
-                task.status = BuildStatus.TEST_COMPLETED
-                break;
-            }
-          })
-          if (tests_failed) {
-             if (count_failed === latest_test_tasks.length) {
-              task.status = BuildStatus.ALL_TESTS_FAILED
-             } else {
-              task.status = BuildStatus.TEST_FAILED
-             }
+      loadTestsInfo(task) {
+        let count_failed = 0
+        let tests_failed = false
+        let test_started = false
+        let latest_revision = Math.max(
+          ...task.test_tasks.map((t) => t.revision)
+        )
+        let latest_test_tasks = task.test_tasks.filter(
+          (t) => t.revision === latest_revision
+        )
+        latest_test_tasks.forEach((test) => {
+          switch (test.status) {
+            case TestStatus.STARTED:
+              test_started = true
+              break
+            case TestStatus.FAILED:
+              count_failed += 1
+              tests_failed = true
+              break
+            case TestStatus.COMPLETED:
+              task.status = BuildStatus.TEST_COMPLETED
+              break
           }
-          if (test_started) task.status = BuildStatus.TEST_STARTED
-        },
-      loadSignInfo (buildId) {
-        this.$api.get(`sign-tasks/?build_id=${buildId}`)
-          .then(response => {
+        })
+        if (tests_failed) {
+          if (count_failed === latest_test_tasks.length) {
+            task.status = BuildStatus.ALL_TESTS_FAILED
+          } else {
+            task.status = BuildStatus.TEST_FAILED
+          }
+        }
+        if (test_started) task.status = BuildStatus.TEST_STARTED
+      },
+      loadSignInfo(buildId) {
+        this.$api
+          .get(`sign-tasks/?build_id=${buildId}`)
+          .then((response) => {
             if (response.data.length) this.signs = response.data
           })
-          .catch(error => {
+          .catch((error) => {
             Notify.create({
               message: `Failed to load sign info`,
               type: 'negative',
-              actions: [
-                { label: 'Dismiss', color: 'white', handler: () => {} }
-              ]
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
       },
-      signatureText (sign) {
+      signatureText(sign) {
         let status = SignStatus.text[sign.status]
         return `The build is ${status} with ${sign.sign_key.keyid} PGP key (${sign.sign_key.name})`
       },
-      getTextStatus (task) {
+      getTextStatus(task) {
         return BuildStatus.text[task.status]
       },
-      buildRepos (platform) {
+      buildRepos(platform) {
         let [platformName, arch] = platform.split('.')
         let repos = [
           `${window.origin}/pulp/content/builds/${platformName}-src-${this.buildId}-br/`,
           `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-br/`,
-          `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-debug-br/`
+          `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-debug-br/`,
         ]
         return repos
       },
-      downloadArtifact (artifact) {
-        this.$api.get(`/artifacts/${artifact.id}/`)
-          .then((response) => {
-            exportFile(artifact.name, response.data.content)
-          })
-      },
-      getProjectName(task){
-        return task.ref.url.split('/').pop().split('.').shift()
-      },
-      openTaskLogs (task) {
-        this.$router.push({ path:`/build/${this.buildId}/logs/${task.id}`,
-                            query: {
-                                    project_name: this.getProjectName(task),
-                                    arch: task.arch
-                                    }})
-      },
-      openTestTaskLogs (buildId, taskId, revision) {
-        this.$router.push(`/build/${buildId}/test_logs/${taskId}/${revision}`)
-      },
-      getTaskPackages (task) {
-        return task.artifacts.filter(item => item.type === 'rpm').map(item => {
-          let arch = task.arch
-          if (item.name.includes('.src.')) {
-            arch = 'src'
-          }
-          let debugSuffix = '-debug'
-          if (!item.name.match(/-debug(info|source)-/)) {
-            debugSuffix = ''
-          }
-          item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}${debugSuffix}-br/Packages/${item.name[0].toLowerCase()}/${item.name}`
-          return item
+      downloadArtifact(artifact) {
+        this.$api.get(`/artifacts/${artifact.id}/`).then((response) => {
+          exportFile(artifact.name, response.data.content)
         })
       },
-      sortTaskPackage (tasks) {
-        tasks.sort((x,y) => {
-          return x.name.indexOf('src.rpm') !== -1 ? -1 : y.name.indexOf('src.rpm') !== -1 ? 1 : 0;
+      getProjectName(task) {
+        return task.ref.url.split('/').pop().split('.').shift()
+      },
+      openTaskLogs(task) {
+        this.$router.push({
+          path: `/build/${this.buildId}/logs/${task.id}`,
+          query: {
+            project_name: this.getProjectName(task),
+            arch: task.arch,
+          },
+        })
+      },
+      openTestTaskLogs(buildId, taskId, revision) {
+        this.$router.push(`/build/${buildId}/test_logs/${taskId}/${revision}`)
+      },
+      getTaskPackages(task) {
+        return task.artifacts
+          .filter((item) => item.type === 'rpm')
+          .map((item) => {
+            let arch = task.arch
+            if (item.name.includes('.src.')) {
+              arch = 'src'
+            }
+            let debugSuffix = '-debug'
+            if (!item.name.match(/-debug(info|source)-/)) {
+              debugSuffix = ''
+            }
+            item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}${debugSuffix}-br/Packages/${item.name[0].toLowerCase()}/${item.name}`
+            return item
+          })
+      },
+      sortTaskPackage(tasks) {
+        tasks.sort((x, y) => {
+          return x.name.indexOf('src.rpm') !== -1
+            ? -1
+            : y.name.indexOf('src.rpm') !== -1
+              ? 1
+              : 0
         })
         return tasks
       },
       pkgNameSrc(name) {
-        if (name.indexOf('src.rpm') === -1){
+        if (name.indexOf('src.rpm') === -1) {
           return false
         }
         return true
       },
-      onModuleYaml (target) {
+      onModuleYaml(target) {
         this.moduleYamlLoad = true
         let platform = target.split('.')[0]
         let modules_url = `${window.origin}/pulp/content/builds/${platform}-${this.rpm_module[target].arch}-${this.buildId}-br/repodata/${this.rpm_module[target].sha256}-modules.yaml`
-        axios.get(modules_url)
-          .then(response => {
+        axios
+          .get(modules_url)
+          .then((response) => {
             this.moduleYamlLoad = false
             this.$refs.showModuleYaml.open({
               modules_yaml: response.data,
               module_name: this.rpm_module[target].name,
-              module_stream: this.rpm_module[target].stream
+              module_stream: this.rpm_module[target].stream,
             })
           })
-          .catch(error => {
+          .catch((error) => {
             this.moduleYamlLoad = false
             if (error.response.status === 404) {
               Notify.create({
-                  message: `Failed to find modules.yaml`,
-                  type: 'negative',
-                  actions: [
-                      { label: 'Dismiss', color: 'white', handler: () => {} }
-                  ]
+                message: `Failed to find modules.yaml`,
+                type: 'negative',
+                actions: [
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
               })
             }
           })
       },
-      goToRelease () {
-        if (this.build.release_id){
+      goToRelease() {
+        if (this.build.release_id) {
           this.$router.push(`/release/${this.build.release_id}`)
         }
       },
-      checkMockOptions (task) {
-        if (!task.mock_options || Object.keys(task.mock_options).length === 0) return false
+      checkMockOptions(task) {
+        if (!task.mock_options || Object.keys(task.mock_options).length === 0)
+          return false
 
-        if (Object.keys(task.mock_options).length === 1
-              && task.mock_options.definitions
-              && Object.keys(task.mock_options.definitions).length === 0)
+        if (
+          Object.keys(task.mock_options).length === 1 &&
+          task.mock_options.definitions &&
+          Object.keys(task.mock_options.definitions).length === 0
+        )
           return false
 
         return true
       },
-      showMock (task) {
-        if (task.mock_options && Object.keys(task.mock_options).length !== 0){
+      showMock(task) {
+        if (task.mock_options && Object.keys(task.mock_options).length !== 0) {
           this.selectedTask = task
           this.taskMock = true
         }
       },
-      showMockStyle () {
+      showMockStyle() {
         return `max-height: ${innerHeight - 250}px; width: 600px`
-      }
+      },
     },
     components: {
       BuildRef,
       BuildStatusCircle,
       ModuleYaml,
-      MockOptionsShow
-    }
+      MockOptionsShow,
+    },
   })
 </script>
 
@@ -1401,7 +1407,12 @@
     white-space: pre-line;
     word-break: break-all;
     color: #0c5176 !important;
-    font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+    font-family:
+      Consolas,
+      Monaco,
+      Andale Mono,
+      Ubuntu Mono,
+      monospace;
     text-align: left;
   }
 </style>
