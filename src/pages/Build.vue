@@ -786,6 +786,7 @@
         for (let task of this.build.tasks) {
           if (task.status === BuildStatus.FAILED) {
             rebuilt = true
+            break
           }
         }
         return rebuilt
