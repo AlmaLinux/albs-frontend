@@ -1,7 +1,7 @@
 <template>
   <q-card square class="shadow-1">
     <q-card-section class="no-padding row">
-      <div style="overflow: auto;" class="col-10">
+      <div style="overflow: auto" class="col-10">
         <div
           class="q-pt-sm q-pl-md"
           v-if="rpm_module && Object.keys(rpm_module).length !== 0"
@@ -79,19 +79,19 @@
 </template>
 
 <script>
-  import { defineComponent } from 'vue';
-  import { BuildStatus } from '../constants.js'
-  import BuildRef from 'components/BuildRef.vue';
-  import { getTaskCSS, nsvca } from '../utils';
+  import {defineComponent} from 'vue'
+  import {BuildStatus} from '../constants.js'
+  import BuildRef from 'components/BuildRef.vue'
+  import {getTaskCSS, nsvca} from '../utils'
 
   export default defineComponent({
     name: 'BuildFeedItem',
     props: {
       build: Object,
-      loading: Boolean
+      loading: Boolean,
     },
     computed: {
-      buildPlatforms () {
+      buildPlatforms() {
         let platformsNames = new Set()
         let platforms = []
         for (const task of this.build.tasks) {
@@ -102,7 +102,7 @@
         }
         return platforms
       },
-      platformArches () {
+      platformArches() {
         let platforms = {}
         for (const task of this.build.tasks) {
           if (!platforms[task.platform.name]) {
@@ -117,13 +117,19 @@
         }
         return platforms
       },
-      sortedTasks () {
-        return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) => (a.id > b.id) ? 1 : -1)
+      sortedTasks() {
+        return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) =>
+          a.id > b.id ? 1 : -1
+        )
       },
-      sortedLines () {
-        return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) => (`${a.platform.name} ${a.arch}` > `${b.platform.name} ${b.arch}`) ? 1 : -1)
+      sortedLines() {
+        return JSON.parse(JSON.stringify(this.build.tasks)).sort((a, b) =>
+          `${a.platform.name} ${a.arch}` > `${b.platform.name} ${b.arch}`
+            ? 1
+            : -1
+        )
       },
-      buildTasks () {
+      buildTasks() {
         let taskSet = new Set()
         let tasks = []
         for (const task of this.sortedTasks) {
@@ -135,36 +141,40 @@
         }
         return tasks
       },
-      buildCreatedTime () {
+      buildCreatedTime() {
         return new Date(this.build.created_at).toLocaleString()
       },
-      rpm_module () {
+      rpm_module() {
         let rpm_module = []
-        this.build.tasks.forEach(task => {
+        this.build.tasks.forEach((task) => {
           if (task.rpm_modules) {
             rpm_module = task.rpm_modules[0]
             return
           }
         })
         return rpm_module
-      }
+      },
     },
     methods: {
       getTaskCSS: getTaskCSS,
       nsvca: nsvca,
-      getTaskTargets (task) {
+      getTaskTargets(task) {
         let targets = []
         for (const buildTask of this.sortedLines) {
           if (task.index === buildTask.index) {
-              targets.push(Object.assign({}, buildTask, {textStatus: BuildStatus.text[buildTask.status]}))
+            targets.push(
+              Object.assign({}, buildTask, {
+                textStatus: BuildStatus.text[buildTask.status],
+              })
+            )
           }
         }
         return targets
-      }
+      },
     },
     components: {
-      BuildRef
-    }
+      BuildRef,
+    },
   })
 </script>
 
