@@ -139,10 +139,10 @@
         return new Date(this.build.created_at).toLocaleString()
       },
       rpm_module () {
-        let rpm_module = {}
+        let rpm_module = []
         this.build.tasks.forEach(task => {
-          if (task.rpm_module) {
-            rpm_module = task.rpm_module
+          if (task.rpm_modules) {
+            rpm_module = task.rpm_modules[0]
             return
           }
         })
