@@ -204,7 +204,9 @@
                           icon="restart_alt"
                           size="sm"
                           title="Restart build task tests"
-                          v-if="buildFinished && userAuthenticated()"
+                          v-if="
+                            testTaskFailed(task.status) && userAuthenticated()
+                          "
                           @click="restartTestTask(task.id)"
                         />
                       </div>
@@ -818,11 +820,9 @@
       failedItems() {
         let rebuilt = false
         for (let task of this.build.tasks) {
-          if (task.status < BuildStatus.COMPLETED) {
-            rebuilt = false
-            break
-          } else if (task.status === BuildStatus.FAILED) {
+          if (task.status === BuildStatus.FAILED) {
             rebuilt = true
+            break
           }
         }
         return rebuilt
@@ -830,7 +830,11 @@
       testingCompleted() {
         let testing_completed = true
         for (let task of this.build.tasks) {
-          if (task.status < BuildStatus.TEST_COMPLETED) {
+          if (
+            task.status <= BuildStatus.COMPLETED ||
+            task.status == BuildStatus.TEST_CREATED ||
+            task.status == BuildStatus.TEST_STARTED
+          ) {
             testing_completed = false
             break
           }
@@ -927,6 +931,9 @@
       nsvca: nsvca,
       userAuthenticated() {
         return this.$store.getters.isAuthenticated
+      },
+      changeStatus(task, status) {
+        if (task.status < status) task.status = status
       },
       addToProduct() {
         this.loading = true
@@ -1077,6 +1084,9 @@
             actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
           })
         })
+      },
+      testTaskFailed(taskStatus) {
+        return taskStatus >= BuildStatus.TEST_FAILED
       },
       restartTestTask(taskId) {
         this.$api.put(`/tests/build_task/${taskId}/restart`).then(() => {
