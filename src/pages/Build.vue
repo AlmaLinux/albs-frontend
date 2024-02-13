@@ -481,6 +481,19 @@
             <q-item
               clickable
               v-close-popup
+              @click="cancel_testing = true"
+              v-if="!testingCompleted && !build.cancel_testing"
+            >
+              <q-item-section avatar>
+                <q-avatar icon="cancel" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Cancel testing</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-close-popup
               @click="delete_build = true"
               v-if="buildFinished"
             >
@@ -626,6 +639,28 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="cancel_testing">
+      <q-card style="width: 400px">
+        <q-card-section>
+          <div class="text-h6">Warning</div>
+        </q-card-section>
+        <q-card-section>
+          You are about to cancel the testing of build {{ build.id }}. All tests
+          will be cancelled, including currently running ones, are you sure?
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn
+            flat
+            text-color="primary"
+            label="Ok"
+            style="width: 150px"
+            :loading="loading"
+            @click="cancelTesting"
+          />
+          <q-btn flat text-color="negative" label="Cancel" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
     <q-dialog v-model="sign_build">
       <q-card style="width: 400px">
         <q-card-section>
@@ -734,6 +769,7 @@
         remove_from_product: false,
         delete_build: false,
         stop_build: false,
+        cancel_testing: false,
         loading: false,
         buildLoad: false,
         moduleYamlLoad: false,
@@ -991,6 +1027,29 @@
             })
           })
       },
+      cancelTesting() {
+        this.loading = true
+        this.cancel_testing = false
+        this.$api
+          .put(`/tests/build/${this.buildId}/cancel`)
+          .then(() => {
+            this.loading = false
+            Notify.create({
+              message: `Test tasks for build ${this.buildId} have been cancelled`,
+              type: 'positive',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+            this.build.cancel_testing = true
+          })
+          .catch((error) => {
+            this.loading = false
+            Notify.create({
+              message: error.response.data.detail,
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+          })
+      },
       onRebuildFailedItems(parallelMode) {
         Loading.show()
         let endpoint = parallelMode
@@ -1198,6 +1257,7 @@
         let count_failed = 0
         let tests_failed = false
         let test_started = false
+        let test_cancelled = false
         let latest_revision = Math.max(
           ...task.test_tasks.map((t) => t.revision)
         )
@@ -1216,6 +1276,9 @@
             case TestStatus.COMPLETED:
               task.status = BuildStatus.TEST_COMPLETED
               break
+            case TestStatus.CANCELLED:
+              test_cancelled = true
+              break
           }
         })
         if (tests_failed) {
@@ -1226,6 +1289,8 @@
           }
         }
         if (test_started) task.status = BuildStatus.TEST_STARTED
+        if (test_cancelled && !test_started)
+          task.status = BuildStatus.TEST_CANCELLED
       },
       loadSignInfo(buildId) {
         this.$api
