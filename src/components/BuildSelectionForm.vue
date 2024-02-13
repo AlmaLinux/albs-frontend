@@ -4,7 +4,7 @@
       <q-select
         v-model="product"
         dense
-        :options="existingProducts"
+        :options="productsOptions"
         label="Select Product"
         :readonly="releaseId ? true : false"
         clearable
