@@ -32,7 +32,11 @@
         </q-field>
       </q-card-section>
       <q-card-section class="q-gutter-md" style="max-width: 100%">
-        <q-input v-model="title" label="Bulletin title">
+        <q-input
+          v-model="title"
+          label="Bulletin title"
+          :readonly="!userAuthenticated()"
+        >
           <template v-slot:append>
             <q-btn
               v-if="titleWarn(advisory.title)"
@@ -55,6 +59,7 @@
           input-style="height: 250px"
           v-model="description"
           label="Description"
+          :readonly="!userAuthenticated()"
         >
           <template v-slot:append>
             <q-btn
@@ -117,28 +122,20 @@
                     >
                       <template v-slot:body="props">
                         <q-tr :props="props">
-                          <q-td
-                            key="cvePublic"
-                            :props="props"
-                            >{{ formatDate(props.row.cve.public) }}</q-td
-                          >
-                          <q-td
-                            key="severity"
-                            :props="props"
-                            >{{ toCapitalize(props.row.cve.impact) }}</q-td
-                          >
+                          <q-td key="cvePublic" :props="props">{{
+                            formatDate(props.row.cve.public)
+                          }}</q-td>
+                          <q-td key="severity" :props="props">{{
+                            toCapitalize(props.row.cve.impact)
+                          }}</q-td>
                           <q-td key="url" :props="props">
-                            <a
-                              :href="props.row.href"
-                              target="_blank"
-                              >{{ props.row.href }}</a
-                            >
+                            <a :href="props.row.href" target="_blank">{{
+                              props.row.href
+                            }}</a>
                           </q-td>
-                          <q-td
-                            key="refcvss"
-                            :props="props"
-                            >{{ props.row.cve.cvss3}}</q-td
-                          >
+                          <q-td key="refcvss" :props="props">{{
+                            props.row.cve.cvss3
+                          }}</q-td>
                         </q-tr>
                       </template>
                     </q-table>
@@ -170,72 +167,28 @@
                         <q-tr :props="props">
                           <q-td key="source" :props="props">
                             <span
-                              v-if="props.row.ref_type.split('.')[1] === 'bugzilla'"
+                              v-if="
+                                props.row.ref_type.split('.')[1] === 'bugzilla'
+                              "
                             >
-                              {{ toCapitalize(props.row.ref_type.split('.')[1]) }}
+                              {{
+                                toCapitalize(props.row.ref_type.split('.')[1])
+                              }}
                             </span>
                             <span v-else>
-                              {{ props.row.ref_type.split('.')[1].toUpperCase() }}
+                              {{
+                                props.row.ref_type.split('.')[1].toUpperCase()
+                              }}
                             </span>
                           </q-td>
                           <q-td key="url" :props="props">
-                            <a
-                              :href="props.row.href"
-                              target="_blank"
-                              >{{ props.row.href }}</a
-                            >
+                            <a :href="props.row.href" target="_blank">{{
+                              props.row.href
+                            }}</a>
                           </q-td>
-                          <q-td
-                            key="id"
-                            :props="props"
-                            >{{ props.row.ref_id }}</q-td
-                          >
-                        </q-tr>
-                      </template>
-                    </q-table>
-                  </q-item>
-                </q-card-section>
-              </q-card>
-            </q-expansion-item>
-            <q-expansion-item
-              label="Bugzilla info"
-              expand-separator
-              icon="info"
-              align="left"
-              v-if="bugzillaRows(advisory.references).length"
-            >
-              <q-card>
-                <q-card-section>
-                  <q-item dense>
-                    <q-table
-                      :rows="bugzillaRows(advisory.references)"
-                      :columns="bugzillaCol"
-                      color="primary"
-                      wrap-cells
-                      flat
-                      style="width: 100%"
-                      hide-pagination
-                      :rows-per-page-options="[0]"
-                    >
-                      <template v-slot:body="props">
-                        <q-tr :props="props">
-                          <q-td
-                            key="id"
-                            :props="props"
-                            >{{ props.row.ref_id }}</q-td
-                          >
-                          <q-td key="url" :props="props">
-                            <a
-                              :href="props.row.href"
-                              target="_blank"
-                              >{{ props.row.href }}</a
-                            >
-                          </q-td>
-                          <q-td
-                            key="title"
-                            :props="props"
-                            >{{ props.row.title}}</q-td
-                          >
+                          <q-td key="id" :props="props">{{
+                            props.row.ref_id
+                          }}</q-td>
                         </q-tr>
                       </template>
                     </q-table>
@@ -248,7 +201,6 @@
           <q-tab-panel name="packages">
             <q-table
               flat
-              bordered
               dense
               :rows="projects"
               :columns="patchInfoCol"
@@ -261,37 +213,56 @@
                     flat
                     round
                     dense
-                    :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
+                    :icon="
+                      props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'
+                    "
                     @click="props.toggleFullscreen"
                   />
-                  <template v-if="notReleasedRPMs().length !== 0">
-                    <q-btn
-                      size="80%"
-                      no-caps
-                      icon="redo"
-                      color="red-8"
-                      @click="changeStatus('skipped')"
+                  <template v-if="userAuthenticated()">
+                    <template
+                      v-if="advisory.release_status != errataStatuses.RELEASED"
                     >
-                      Skip
-                    </q-btn>
-                    <q-btn
-                      size="80%"
-                      no-caps
-                      icon="lightbulb_outline"
-                      color="orange-14"
-                      @click="changeStatus('proposal')"
-                    >
-                      Propose
-                    </q-btn>
-                    <q-btn
-                      size="80%"
-                      no-caps
-                      icon="done"
-                      color="primary"
-                      @click="changeStatus('approved')"
-                    >
-                      Approve
-                    </q-btn>
+                      <q-btn
+                        size="80%"
+                        no-caps
+                        icon="restart_alt"
+                        color="grey-8"
+                        @click="resetMatchedPackages()"
+                        :loading="loadingReset"
+                      >
+                        Reset
+                        <q-tooltip>Reset matched packages</q-tooltip>
+                      </q-btn>
+                    </template>
+                    <template v-if="notReleasedRPMs().length !== 0">
+                      <q-btn
+                        size="80%"
+                        no-caps
+                        icon="redo"
+                        color="red-8"
+                        @click="changeStatus('skipped')"
+                      >
+                        Skip
+                      </q-btn>
+                      <q-btn
+                        size="80%"
+                        no-caps
+                        icon="lightbulb_outline"
+                        color="orange-14"
+                        @click="changeStatus('proposal')"
+                      >
+                        Propose
+                      </q-btn>
+                      <q-btn
+                        size="80%"
+                        no-caps
+                        icon="done"
+                        color="primary"
+                        @click="changeStatus('approved')"
+                      >
+                        Approve
+                      </q-btn>
+                    </template>
                   </template>
                 </div>
               </template>
@@ -303,7 +274,7 @@
                     :props="props"
                   >
                     <q-checkbox
-                      v-if="col.name === 'nevra'"
+                      v-if="col.name === 'nevra' && userAuthenticated()"
                       v-model="selectedAll"
                       @click="selectAllRPMs"
                       :disable="notReleasedRPMs().length === 0"
@@ -317,23 +288,26 @@
                   :props="props"
                   :class="props.row.source_srpm ? '' : 'bg-grey-3'"
                 >
-                  <q-td key="nevra" :props="props" style="border-bottom: 0;">
+                  <q-td key="nevra" :props="props" style="border-bottom: 0">
                     <q-checkbox
-                      v-if="props.row.source_srpm"
+                      v-if="props.row.source_srpm && userAuthenticated()"
                       v-model="props.row.selected"
                       @click="selectRPM(props.row)"
                       :disable="props.row.released"
                     />
                     {{ props.row.nevra }}
                   </q-td>
-                  <q-td key="build" :props="props" style="border-bottom: 0;">
+                  <q-td key="build" :props="props" style="border-bottom: 0">
                     <q-select
                       v-model="props.row.selected_build"
                       :options="props.row.albs_builds"
-                      :disable="props.row.released"
+                      :disable="props.row.released && !userAuthenticated()"
                     >
                       <template
-                        v-if="props.row.selected_build && props.row.selected_build.build_id"
+                        v-if="
+                          props.row.selected_build &&
+                          props.row.selected_build.build_id
+                        "
                         v-slot:before
                       >
                         <q-btn
@@ -342,7 +316,9 @@
                           flat
                           icon="link"
                           @click.stop
-                          :to="{path: `/build/${props.row.selected_build.build_id}`}"
+                          :to="{
+                            path: `/build/${props.row.selected_build.build_id}`,
+                          }"
                           target="_blank"
                         >
                           <q-tooltip>
@@ -363,16 +339,19 @@
                   <q-td
                     key="status"
                     :props="props"
-                    style="border-bottom: 0;"
+                    style="border-bottom: 0"
                     class="text-center"
                   >
                     <q-chip
-                      :color="statusColor(statusBuild(props.row.selected_build))"
+                      :color="
+                        statusColor(statusBuild(props.row.selected_build))
+                      "
                       text-color="white"
                       dense
                       class="text-weight-bolder"
                       square
-                      >{{ statusBuild(props.row.selected_build) }}
+                    >
+                      {{ statusBuild(props.row.selected_build) }}
                     </q-chip>
                   </q-td>
                 </q-tr>
@@ -392,8 +371,9 @@
                             v-if="srcWarning(props.row)"
                             color="orange"
                             class="q-ml-sm"
-                            >Warning</q-badge
                           >
+                            Warning
+                          </q-badge>
                         </div>
                       </template>
                       <template v-slot:header-generic="prop">
@@ -424,14 +404,15 @@
           </q-tab-panel>
         </q-tab-panels>
       </q-card-section>
-      <q-card-actions align="right">
+      <q-card-actions align="right" v-if="userAuthenticated()">
         <q-btn
           no-caps
           color="green"
           @click="updateAdvisory(advisory.id)"
           :loading="loading"
-          >Save</q-btn
         >
+          Save
+        </q-btn>
         <q-btn
           v-if="advisory.release_status === errataStatuses.RELEASED"
           no-caps
@@ -440,21 +421,22 @@
         >
           Show updateinfo
         </q-btn>
-        <q-btn no-caps color="primary" @click="toRelease()"
-          >Release packages</q-btn
-        >
+        <q-btn no-caps color="primary" @click="toRelease()">
+          Release packages
+        </q-btn>
         <q-btn
           no-caps
           color="primary"
-          @click="hasSkippedPackages ? confirm = true : releaseUpdateinfo()"
+          @click="hasSkippedPackages ? (confirm = true) : releaseUpdateinfo()"
           :loading="loadingRelease"
-          >Release updateinfo</q-btn
+        >
+          Release updateinfo</q-btn
         >
       </q-card-actions>
     </q-card>
   </div>
   <q-dialog v-model="showTitle">
-    <q-card style="width: 550px;">
+    <q-card style="width: 550px">
       <q-card-section>
         <div class="text-h6">Original Title</div>
       </q-card-section>
@@ -559,420 +541,525 @@
 </template>
 
 <script>
-  import { defineComponent, ref } from 'vue'
-  import { Notify } from 'quasar'
-  import { ErrataReleaseStatus } from 'src/constants'
+  import {defineComponent, ref} from 'vue'
+  import {Notify} from 'quasar'
+  import {ErrataReleaseStatus} from 'src/constants'
   import UpdateInfo from 'components/UpdateInfo.vue'
 
   export default defineComponent({
-      name: 'errata-info',
-      props: {
-          platforms: Array
+    name: 'errata-info',
+    props: {
+      platforms: Array,
+    },
+    emits: ['updateFeed', 'updatePackages'],
+    data() {
+      return {
+        advisory: null,
+        confirm: false,
+        hasSkippedPackages: false,
+        projects: null,
+        tab: ref('patchInfo'),
+        loading: false,
+        loadingRelease: false,
+        loadingReset: false,
+        description: '',
+        errataStatuses: ErrataReleaseStatus,
+        showDescription: false,
+        title: '',
+        showTitle: false,
+        refCol: [
+          {
+            name: 'source',
+            required: true,
+            align: 'left',
+            label: 'Reference source',
+            field: 'source',
+          },
+          {
+            name: 'url',
+            required: true,
+            align: 'left',
+            label: 'Reference URL',
+            field: 'url',
+            style: 'word-break: break-word;',
+          },
+          {
+            name: 'id',
+            required: true,
+            align: 'left',
+            label: 'Reference Id',
+            field: 'id',
+          },
+        ],
+        cveCol: [
+          {
+            name: 'cvePublic',
+            required: true,
+            align: 'left',
+            label: 'CVE public',
+            field: 'cvePublic',
+          },
+          {
+            name: 'severity',
+            required: true,
+            align: 'left',
+            label: 'Severity',
+            field: 'severity',
+          },
+          {
+            name: 'url',
+            required: true,
+            align: 'left',
+            label: 'URL',
+            field: 'url',
+            style: 'word-break: break-word;',
+          },
+          {
+            name: 'refcvss',
+            required: true,
+            align: 'left',
+            label: 'Ref CVSS3',
+            field: 'refcvss',
+            style: 'width: 230px; word-break: break-word;',
+          },
+        ],
+        patchInfoCol: [
+          {
+            name: 'nevra',
+            required: true,
+            align: 'left',
+            label: 'RHEL',
+            field: 'nevra',
+          },
+          {
+            name: 'build',
+            required: true,
+            align: 'centar',
+            label: 'Alma',
+            field: 'build',
+          },
+          {
+            name: 'status',
+            required: true,
+            align: 'centar',
+            label: 'Status',
+            field: 'status',
+          },
+        ],
+        selected: [],
+        selectedAll: false,
+      }
+    },
+    methods: {
+      open(advisory) {
+        this.advisory = advisory
+        this.description = this.advisory.description
+          ? this.advisory.description
+          : this.advisory.original_description
+        this.title = this.advisory.title
+          ? this.advisory.title
+          : this.advisory.original_title
+        this.selectedAll = false
+        this.hasSkippedPackages = false
+        this.matchingPackage(advisory)
       },
-      emits: ["updateFeed", "updatePackages"],
-      data () {
-          return {
-              advisory: null,
-              confirm: false,
-              hasSkippedPackages: false,
-              projects: null,
-              tab: ref('patchInfo'),
-              loading: false,
-              loadingRelease: false,
-              description: '',
-              errataStatuses: ErrataReleaseStatus,
-              showDescription: false,
-              title: '',
-              showTitle: false,
-              refCol: [
-                  { name: 'source', required: true, align: 'left', label: 'Reference source', field: 'source'},
-                  { name: 'url', required: true, align: 'left', label: 'Reference URL', field: 'url', style: 'word-break: break-word;' },
-                  { name: 'id', required: true, align: 'left', label: 'Reference Id', field: 'id'}],
-              cveCol: [
-                  { name: 'cvePublic', required: true, align: 'left', label: 'CVE public', field: 'cvePublic'},
-                  { name: 'severity', required: true, align: 'left', label: 'Severity', field: 'severity' },
-                  { name: 'url', required: true, align: 'left', label: 'URL', field: 'url', style: 'word-break: break-word;',},
-                  { name: 'refcvss', required: true, align: 'left', label: 'Ref CVSS3', field: 'refcvss', style: 'width: 230px; word-break: break-word;', }],
-              bugzillaCol: [
-                  { name: 'id', required: true, align: 'left', label: 'Bugzilla ID', field: 'id'},
-                  { name: 'url', required: true, align: 'left', label: 'Ticket URL', field: 'url', style: 'word-break: break-word;' },
-                  { name: 'title', required: true, align: 'left', label: 'Title', field: 'title'}],
-              patchInfoCol: [
-                  { name: 'nevra', required: true, align: 'left', label: 'RHEL', field: 'nevra'},
-                  { name: 'build', required: true, align: 'centar', label: 'Alma', field: 'build' },
-                  { name: 'status', required: true, align: 'centar', label: 'Status', field: 'status'}
-              ],
-              selected: [],
-              selectedAll: false
+      userAuthenticated() {
+        return this.$store.getters.isAuthenticated
+      },
+      updateAdvisory(id) {
+        this.loading = true
+        let data = {
+          errata_record_id: id,
+          title: this.title,
+          description: this.description,
+        }
+        this.$api
+          .post('/errata/update/', data)
+          .then((response) => {
+            this.loading = false
+            this.advisory = response.data
+            this.description = this.advisory.description
+              ? this.advisory.description
+              : this.advisory.original_description
+            this.title = this.advisory.title
+              ? this.advisory.title
+              : this.advisory.original_title
+            this.$emit('updateFeed')
+          })
+          .catch((error) => {
+            this.loading = false
+            Notify.create({
+              message: `${error.response.status}: ${error.response.statusText}`,
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+          })
+      },
+      getLatestLog(advisory) {
+        return advisory.last_release_log
+          ? `${advisory.last_release_log}`
+          : "This record doesn't have any logs"
+      },
+      getUpdateinfo(id) {
+        this.$api
+          .get(`/errata/${id}/updateinfo/`)
+          .then((response) => {
+            this.loading = false
+            this.$refs.showUpdateinfo.open({
+              record_id: id,
+              content: response.data,
+            })
+          })
+          .catch((error) => {
+            Notify.create({
+              message: `${error.response.status}: ${error.response.statusText}`,
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+          })
+      },
+      matchingPackage(advisory) {
+        let packages = {}
+        let arch_list = this.platforms.find(
+          (platform) => platform.value == advisory.platform_id
+        ).arch_list
+        advisory.packages.forEach((pack) => {
+          if (arch_list.includes(pack.arch)) {
+            packages[pack.source_srpm]
+              ? packages[pack.source_srpm].push(pack)
+              : (packages[pack.source_srpm] = [pack])
           }
-      },
-      methods: {
-          open (advisory) {
-              this.advisory = advisory
-              this.description = this.advisory.description ? this.advisory.description : this.advisory.original_description
-              this.title = this.advisory.title ? this.advisory.title : this.advisory.original_title
-              this.selectedAll = false
-              this.hasSkippedPackages = false
-              this.matchingPackage(advisory)
-          },
-          updateAdvisory (id) {
-              this.loading = true
-              let data = {
-                  errata_record_id: id,
-                  title: this.title,
-                  description: this.description
+        })
+        let projects = []
+        let notFoundProjects = {}
+        Object.keys(packages).forEach((src) => {
+          let build_options = {}
+          let project = {
+            source_srpm: packages[src][0].source_srpm,
+            nevra: this.nevr(packages[src][0]),
+            warning: false,
+            released: false,
+            packages: [
+              {
+                label: packages[src][0].source_srpm,
+                icon: 'source',
+                header: 'root',
+                children: [],
+              },
+            ],
+          }
+          let approved = false
+          packages[src].forEach((pack) => {
+            if (pack.albs_packages.length === 0) this.hasSkippedPackages = true
+            pack.albs_packages.forEach((albs) => {
+              if (albs.status === 'released') {
+                build_options[albs.status] = {
+                  status: albs.status,
+                  label: src,
+                  value: src,
+                }
+                project.released = true
+              } else {
+                build_options[albs.build_id] = {
+                  status: albs.status,
+                  build_id: albs.build_id,
+                  label: `Build ${albs.build_id}: ${src}`,
+                  value: albs.build_id,
+                }
+                if (build_options[albs.build_id].build_tasks) {
+                  build_options[albs.build_id].build_tasks.push(albs.task_id)
+                } else {
+                  build_options[albs.build_id].build_tasks = [albs.task_id]
+                }
               }
-              this.$api.post('/errata/update/', data)
-              .then(response => {
-                  this.loading = false
-                  this.advisory = response.data
-                  this.description = this.advisory.description ? this.advisory.description : this.advisory.original_description
-                  this.title = this.advisory.title ? this.advisory.title : this.advisory.original_title
-                  this.$emit('updateFeed')
-              })
-              .catch(error => {
-                  this.loading = false
-                  Notify.create({
-                      message: `${error.response.status}: ${error.response.statusText}`,
-                      type: 'negative',
-                      actions: [
-                          { label: 'Dismiss', color: 'white', handler: () => {} }
-                      ]
-                  })
-              })
-          },
-          getLatestLog (advisory) {
-            return advisory.last_release_log ? `${advisory.last_release_log}`: "This record doesn't have any logs"
-          },
-          getUpdateinfo (id) {
-              this.$api.get(`/errata/${id}/updateinfo/`)
-              .then(response => {
-                this.loading = false
-                this.$refs.showUpdateinfo.open({
-                  record_id: id,
-                  content: response.data,
+              if (albs.status === 'approved') approved = true
+            })
+            pack.label = this.nevra(pack)
+            pack.header = 'generic'
+            project.packages[0].children.push(pack)
+          })
+          project.albs_builds = Object.values(build_options)
+          if (project.released) {
+            project.selected_build = project.albs_builds.find(
+              (build) => build.status === 'released'
+            )
+          } else if (approved) {
+            project.selected_build = project.albs_builds.find(
+              (build) => build.status === 'approved'
+            )
+          } else {
+            project.selected_build = project.albs_builds[0]
+          }
+          project.selected = false
+          if (src === 'null') {
+            notFoundProjects = project
+          } else {
+            projects.push(project)
+          }
+        })
+        if (notFoundProjects && Object.keys(notFoundProjects).length !== 0)
+          projects.push(notFoundProjects)
+        this.projects = projects
+      },
+      titleWarn(title) {
+        return title && title !== this.advisory.original_title
+      },
+      descriptionWarn(description) {
+        return description && description !== this.advisory.original_description
+      },
+      platformName(id) {
+        return this.platforms.find((platform) => platform.value == id).label
+      },
+      cveRows(refs) {
+        return refs.filter((ref) => ref.cve)
+      },
+      bugzillaRows(refs) {
+        return refs.filter((ref) => ref.ref_type.split('.')[1] === 'bugzilla')
+      },
+      formatDate(date) {
+        const longEnUSFormatter = new Intl.DateTimeFormat('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
+        return longEnUSFormatter.format(new Date(date))
+      },
+      toCapitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1)
+      },
+      nevr(pack) {
+        if (pack.source_srpm) {
+          return `${pack.epoch}:${pack.source_srpm}-${pack.version}-${pack.release}`
+        } else {
+          return 'Not found'
+        }
+      },
+      nevra(pack) {
+        return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
+      },
+      statusPackage(pack) {
+        return pack ? this.toCapitalize(pack.status) : 'Skipped'
+      },
+      statusBuild(build) {
+        return build ? this.toCapitalize(build.status) : 'Skipped'
+      },
+      statusColor(status) {
+        let col = ''
+        switch (status) {
+          case 'Proposal':
+            col = 'orange'
+            break
+          case 'Skipped':
+            col = 'red'
+            break
+          case 'Released':
+            col = 'green'
+            break
+          case 'Approved':
+            col = 'primary'
+            break
+          default:
+            break
+        }
+        return col
+      },
+      notReleasedRPMs() {
+        let notReleasedRPMs = []
+        this.projects.forEach((src) => {
+          if (src.source_srpm && !src.released) notReleasedRPMs.push(src)
+        })
+        return notReleasedRPMs
+      },
+      selectRPM(src) {
+        if (this.notReleasedRPMs().length === 0) return
+
+        if (src.selected) {
+          this.selected.push(src)
+        } else {
+          let index = this.selected.indexOf(src)
+          this.selected = [
+            ...this.selected.slice(0, index),
+            ...this.selected.slice(index + 1),
+          ]
+        }
+        switch (this.selected.length) {
+          case this.notReleasedRPMs().length:
+            this.selectedAll = true
+            break
+          case 0:
+            this.selectedAll = false
+            break
+          default:
+            this.selectedAll = null
+            break
+        }
+      },
+      selectAllRPMs() {
+        this.selected = this.selectedAll ? this.notReleasedRPMs() : []
+        this.notReleasedRPMs().forEach((rpm) => {
+          rpm.selected = this.selectedAll
+        })
+      },
+      srcWarning(src) {
+        let warning = false
+        if (src.selected_build && src.selected_build.build_id) {
+          let build_id = src.selected_build.build_id
+          src.packages[0].children.forEach((pack) => {
+            if (
+              !pack.albs_packages.find((albs) => albs.build_id === build_id)
+            ) {
+              pack.warn = true
+              warning = true
+            } else {
+              pack.warn = false
+            }
+          })
+        } else if (src.released) {
+          src.packages[0].children.forEach((pack) => {
+            pack.warn = false
+          })
+        }
+        return warning
+      },
+      resetMatchedPackages() {
+        this.loadingReset = true
+        this.$api
+          .post(`/errata/reset-matched-packages?record_id=${this.advisory.id}`)
+          .then((response) => {
+            this.loadingReset = false
+            Notify.create({
+              message: response.data.message,
+              type: 'positive',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+          })
+          .catch((error) => {
+            console.log(error)
+            this.loadingReset = false
+            Notify.create({
+              message: `${error.response.status}: ${error.response.statusText}`,
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+          })
+      },
+      changeStatus(status) {
+        if (this.selected.length === 0) {
+          Notify.create({
+            message: 'Please select at least one rpm',
+            type: 'negative',
+            actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+          })
+          return
+        }
+
+        let request_body = []
+        this.selected.forEach((src) => {
+          if (src.selected_build && src.selected_build.status !== 'released') {
+            let data = {
+              errata_record_id: this.advisory.id,
+              status: status,
+              build_id: src.selected_build.build_id,
+              source: src.source_srpm,
+            }
+            if (data.build_id) request_body.push(data)
+          }
+        })
+        if (request_body.length) {
+          this.$api
+            .post('/errata/update_package_status/', request_body)
+            .then((response) => {
+              this.$emit('updatePackages', this.advisory.id)
+              if (!response.data.ok) {
+                Notify.create({
+                  message: response.data.error,
+                  type: 'negative',
+                  actions: [
+                    {label: 'Dismiss', color: 'white', handler: () => {}},
+                  ],
                 })
-              })
-              .catch(error => {
-                  Notify.create({
-                      message: `${error.response.status}: ${error.response.statusText}`,
-                      type: 'negative',
-                      actions: [
-                          { label: 'Dismiss', color: 'white', handler: () => {} }
-                      ]
-                  })
-              })
-          },
-          matchingPackage (advisory) {
-              let packages = {}
-              let arch_list = this.platforms.find(platform => platform.value == advisory.platform_id).arch_list
-              advisory.packages.forEach(pack => {
-                  if (arch_list.includes(pack.arch)) {
-                      packages[pack.source_srpm] ? packages[pack.source_srpm].push(pack) : packages[pack.source_srpm] = [pack]
-                  }
-              })
-              let projects = []
-              let notFoundProjects = {}
-              Object.keys(packages).forEach(src => {
-                  let build_options = {}
-                  let project = {
-                      source_srpm: packages[src][0].source_srpm,
-                      nevra: this.nevr(packages[src][0]),
-                      warning: false,
-                      released: false,
-                      packages: [
-                          {
-                              label: packages[src][0].source_srpm,
-                              icon: 'source',
-                              header: 'root',
-                              children: []
-                          }
-                      ]
-                  }
-                  let approved = false
-                  packages[src].forEach(pack => {
-                      if (pack.albs_packages.length === 0) this.hasSkippedPackages = true
-                      pack.albs_packages.forEach(albs => {
-                          if (albs.status === 'released'){
-                              build_options[albs.status] = {
-                                  status: albs.status,
-                                  label: src,
-                                  value: src
-                              }
-                              project.released = true
-                          } else {
-                              build_options[albs.build_id] = {
-                                  status: albs.status,
-                                  build_id: albs.build_id,
-                                  label: `Build ${albs.build_id}: ${src}`,
-                                  value:  albs.build_id
-                              }
-                              if (build_options[albs.build_id].build_tasks){
-                                  build_options[albs.build_id].build_tasks.push(albs.task_id)
-                              } else {
-                                  build_options[albs.build_id].build_tasks = [albs.task_id]
-                              }
-                          }
-                          if (albs.status === 'approved') approved = true
-                      })
-                      pack.label = this.nevra(pack)
-                      pack.header = 'generic'
-                      project.packages[0].children.push(pack)
-                  })
-                  project.albs_builds = Object.values(build_options)
-                   if (project.released){
-                      project.selected_build = project.albs_builds.find(build => build.status === 'released')
-                  }
-                  else if (approved) {
-                      project.selected_build = project.albs_builds.find(build => build.status === 'approved')
-                  }
-                  else {
-                      project.selected_build = project.albs_builds[0]
-                  }
-                  project.selected = false
-                  if (src === 'null') {
-                      notFoundProjects = project
-                  } else {
-                      projects.push(project)
-                  }
-              })
-              if (notFoundProjects && Object.keys(notFoundProjects).length !== 0)
-                  projects.push(notFoundProjects)
-              this.projects = projects
-          },
-          titleWarn (title) {
-              return title && title !== this.advisory.original_title
-          },
-          descriptionWarn (description) {
-              return description && description !== this.advisory.original_description
-          },
-          platformName (id) {
-              return this.platforms.find(platform => platform.value == id).label
-          },
-          cveRows (refs) {
-              return refs.filter(ref => ref.cve)
-          },
-          bugzillaRows (refs) {
-              return refs.filter(ref => ref.ref_type.split('.')[1] === 'bugzilla')
-          },
-          formatDate (date) {
-              const longEnUSFormatter = new Intl.DateTimeFormat('en-US', {
-                  year:  'numeric',
-                  month: 'long',
-                  day:   'numeric',
-              })
-              return longEnUSFormatter.format(new Date(date))
-          },
-          toCapitalize (str) {
-              return str.charAt(0).toUpperCase() + str.slice(1)
-          },
-          nevr (pack) {
-              if (pack.source_srpm) {
-                  return `${pack.epoch}:${pack.source_srpm}-${pack.version}-${pack.release}`
-              } else {
-                  return 'Not found'
               }
-          },
-          nevra (pack) {
-              return `${pack.epoch}:${pack.name}-${pack.version}-${pack.release}.${pack.arch}`
-          },
-          statusPackage (pack){
-              return pack ? this.toCapitalize(pack.status) : 'Skipped'
-          },
-          statusBuild (build){
-              return build ? this.toCapitalize(build.status) : 'Skipped'
-          },
-          statusColor(status){
-              let col = ''
-              switch (status) {
-                  case 'Proposal':
-                      col = 'orange'
-                      break;
-                  case 'Skipped':
-                      col = 'red'
-                      break;
-                  case 'Released':
-                      col = 'green'
-                      break;
-                  case 'Approved':
-                      col = 'primary'
-                      break;
-                  default:
-                      break;
+            })
+            .catch((error) => {
+              console.log(error)
+              if (error.response) {
+                Notify.create({
+                  message: `${error.response.status}: ${error.response.statusText}`,
+                  type: 'negative',
+                  actions: [
+                    {label: 'Dismiss', color: 'white', handler: () => {}},
+                  ],
+                })
               }
-              return col
-          },
-          notReleasedRPMs () {
-              let notReleasedRPMs = []
-              this.projects.forEach(src => {
-                  if (src.source_srpm && !src.released)
-                      notReleasedRPMs.push(src)
-              })
-              return notReleasedRPMs
-          },
-          selectRPM (src) {
-              if (this.notReleasedRPMs().length === 0) return
-
-              if (src.selected) {
-                  this.selected.push(src)
-              } else {
-                  let index = this.selected.indexOf(src)
-                  this.selected = [ ...this.selected.slice(0, index), ...this.selected.slice(index + 1) ]
-              }
-              switch (this.selected.length) {
-                  case this.notReleasedRPMs().length:
-                      this.selectedAll = true
-                      break;
-                  case 0:
-                      this.selectedAll = false
-                      break;
-                  default:
-                      this.selectedAll = null
-                      break;
-              }
-          },
-          selectAllRPMs () {
-              this.selected = this.selectedAll ?  this.notReleasedRPMs() : []
-              this.notReleasedRPMs().forEach (rpm => {
-                  rpm.selected = this.selectedAll
-              })
-          },
-          srcWarning (src) {
-              let warning = false
-              if (src.selected_build && src.selected_build.build_id) {
-                  let build_id = src.selected_build.build_id
-                  src.packages[0].children.forEach(pack =>{
-                      if (!pack.albs_packages.find(albs => albs.build_id === build_id)) {
-                          pack.warn = true
-                          warning = true
-                      } else {
-                          pack.warn = false
-                      }
-                  })
-              } else if (src.released) {
-                  src.packages[0].children.forEach(pack => {
-                      pack.warn = false
-                  })
-              }
-              return warning
-          },
-          changeStatus (status) {
-              if (this.selected.length === 0) {
-                  Notify.create({
-                      message: 'Please select at least one rpm',
-                      type: 'negative',
-                      actions: [
-                          { label: 'Dismiss', color: 'white', handler: () => {} }
-                      ]
-                  })
-                  return
-              }
-
-              let request_body = []
-              this.selected.forEach(src => {
-                      if (src.selected_build && src.selected_build.status !== 'released') {
-                          let data = {
-                              errata_record_id: this.advisory.id,
-                              status: status,
-                              build_id: src.selected_build.build_id,
-                              source: src.source_srpm
-                          }
-                          if (data.build_id) request_body.push(data)
-                      }
-              })
-              if (request_body.length) {
-                  this.$api.post('/errata/update_package_status/', request_body)
-                  .then(response => {
-                      this.$emit('updatePackages', this.advisory.id)
-                      if (!response.data.ok) {
-                          Notify.create({
-                              message: response.date.error,
-                              type: 'negative',
-                              actions: [
-                                  { label: 'Dismiss', color: 'white', handler: () => {} }
-                              ]
-                          })
-                      }
-                  })
-                  .catch(error => {
-                      console.log(error)
-                      if (error.response) {
-                          Notify.create({
-                              message: `${error.response.status}: ${error.response.statusText}`,
-                              type: 'negative',
-                              actions: [
-                                  { label: 'Dismiss', color: 'white', handler: () => {} }
-                              ]
-                          })
-                      }
-                  })
-              }
-          },
-          toRelease () {
-              let builds = new Set()
-              let build_tasks = []
-              this.projects.forEach(src => {
-                  if (src.source_srpm && src.selected_build && src.selected_build.status === 'approved'){
-                      builds.add(src.selected_build.build_id)
-                      build_tasks = build_tasks.concat(src.selected_build.build_tasks)
-                  }
-              })
-              if (build_tasks.length) {
-                  let request_body = {
-                      builds: Array.from(builds),
-                      build_tasks: build_tasks,
-                      product_id: 1, //AlmaLinux product
-                      platform_id: this.advisory.platform_id,
-                      reference_platform_id: this.advisory.platform_id,
-                  }
-                  request_body = JSON.stringify(request_body)
-                  this.$router.push({
-                      name: 'ErrataRelease',
-                      params: { request_body }
-                  })
-              } else {
-                  Notify.create({
-                      message: 'Please approve at least one package',
-                      type: 'negative',
-                      actions: [
-                          { label: 'Dismiss', color: 'white', handler: () => {} }
-                      ]
-                  })
-              }
-          },
-          releaseUpdateinfo (force = false) {
-              this.loadingRelease = true
-              this.$api.post(`/errata/release_record/${this.advisory.id}/?force=${force}`)
-              .then(response => {
-                  this.loadingRelease = false
-                  Notify.create({
-                      message: `${response.data.message}`,
-                      type: 'positive',
-                      actions: [
-                          { label: 'Dismiss', color: 'white', handler: () => {} }
-                      ]
-                  })
-                  this.$emit('updateFeed')
-              })
-              .catch(error => {
-                  this.loadingRelease = false
-                  console.log(error)
-                  if (error.response) {
-                      Notify.create({
-                          message: `${error.response.status}: ${error.response.statusText}`,
-                          type: 'negative',
-                          actions: [
-                              { label: 'Dismiss', color: 'white', handler: () => {} }
-                          ]
-                      })
-                  }
-              })
-              this.confirm = false
+            })
+        }
+      },
+      toRelease() {
+        let builds = new Set()
+        let build_tasks = []
+        this.projects.forEach((src) => {
+          if (
+            src.source_srpm &&
+            src.selected_build &&
+            src.selected_build.status === 'approved'
+          ) {
+            builds.add(src.selected_build.build_id)
+            build_tasks = build_tasks.concat(src.selected_build.build_tasks)
           }
+        })
+        if (build_tasks.length) {
+          let request_body = {
+            builds: Array.from(builds),
+            build_tasks: build_tasks,
+            product_id: 1, //AlmaLinux product
+            platform_id: this.advisory.platform_id,
+            reference_platform_id: this.advisory.platform_id,
+          }
+          request_body = JSON.stringify(request_body)
+          this.$router.push({
+            name: 'ErrataRelease',
+            params: {request_body},
+          })
+        } else {
+          Notify.create({
+            message: 'Please approve at least one package',
+            type: 'negative',
+            actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+          })
+        }
       },
-      components: {
-        UpdateInfo,
+      releaseUpdateinfo(force = false) {
+        this.loadingRelease = true
+        this.$api
+          .post(`/errata/release_record/${this.advisory.id}/?force=${force}`)
+          .then((response) => {
+            this.loadingRelease = false
+            Notify.create({
+              message: `${response.data.message}`,
+              type: 'positive',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+            this.$emit('updateFeed')
+          })
+          .catch((error) => {
+            this.loadingRelease = false
+            console.log(error)
+            if (error.response) {
+              Notify.create({
+                message: `${error.response.status}: ${error.response.statusText}`,
+                type: 'negative',
+                actions: [
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
+              })
+            }
+          })
+        this.confirm = false
       },
+    },
+    components: {
+      UpdateInfo,
+    },
   })
 </script>
 
@@ -989,7 +1076,12 @@
     white-space: pre-line;
     word-break: break-all;
     color: #0c5176 !important;
-    font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+    font-family:
+      Consolas,
+      Monaco,
+      Andale Mono,
+      Ubuntu Mono,
+      monospace;
     text-align: left;
   }
 </style>

@@ -10,6 +10,7 @@ const BuildStatus = {
   TEST_COMPLETED: 8,
   TEST_FAILED: 9,
   ALL_TESTS_FAILED: 10,
+  TEST_CANCELLED: 11,
   text: {
     0: 'idle',
     1: 'started',
@@ -22,6 +23,7 @@ const BuildStatus = {
     8: 'tests completed',
     9: 'some tests failed',
     10: 'all tests failed',
+    11: 'tests cancelled',
   },
   color: {
     0: 'faded',
@@ -35,6 +37,7 @@ const BuildStatus = {
     8: 'positive',
     9: 'warning',
     10: 'negative',
+    11: 'warning',
   },
 }
 
@@ -56,17 +59,20 @@ const TestStatus = {
   STARTED: 2,
   COMPLETED: 3,
   FAILED: 4,
+  CANCELLED: 5,
   text: {
     1: 'tests created',
     2: 'tests started',
     3: 'tests completed',
     4: 'tests failed',
+    5: 'tests cancelled',
   },
   color: {
     1: 'faded',
     2: 'faded',
     3: 'positive',
     4: 'negative',
+    5: 'warning',
   },
 }
 

@@ -8,16 +8,19 @@ jobs:
   prettier:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 16
       - name: Install prettier
         run: npm i prettier
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v42
+        with:
+          files: src/**/*.{vue,js}
+
       - name: Execute prettier
         run: |
           npx prettier --check ${{ steps.changed-files.outputs.all_changed_files }}

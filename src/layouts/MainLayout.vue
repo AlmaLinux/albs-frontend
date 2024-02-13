@@ -112,7 +112,7 @@
       id: 'mla-li-errata',
       icon: 'bug_report',
       link: '/errata',
-      allow: store.getters.isAuthenticated,
+      allow: true,
     },
     {
       title: 'Releases',
@@ -140,7 +140,7 @@
       id: 'mla-li-releases-feed',
       icon: 'cloud',
       link: 'release-feed',
-      allow: !store.getters.isAuthenticated
+      allow: !store.getters.isAuthenticated,
     },
     {
       title: 'Products',
@@ -162,6 +162,13 @@
           link: 'product/new',
         },
       ],
+    },
+    {
+      title: 'Products Feed',
+      id: 'mla-li-products-feed',
+      icon: 'category',
+      link: 'product-feed',
+      allow: !store.getters.isAuthenticated,
     },
     {
       title: 'Teams',

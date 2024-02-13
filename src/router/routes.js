@@ -97,7 +97,6 @@ const routes = [
       {
         path: 'errata',
         component: () => import('pages/ErrataFeed.vue'),
-        meta: {requiresAuth: true},
         beforeEnter(to, from, next) {
           store
             .dispatch('platforms/loadPlatformList')
@@ -109,12 +108,12 @@ const routes = [
         path: 'errata/:id',
         component: () => import('pages/ErrataFeed.vue'),
         props: true,
-        meta: {requiresAuth: true},
         beforeEnter(to, from, next) {
           store
             .dispatch('platforms/loadPlatformList')
             .then(next())
             .catch(next())
+          store.dispatch('users/loadUsersList').then(next()).catch(next())
         },
       },
       {
@@ -165,7 +164,6 @@ const routes = [
       },
       {
         path: 'product-feed',
-        meta: {requiresAuth: true},
         component: () => import('pages/ProductFeed'),
       },
       {
@@ -220,9 +218,9 @@ const routes = [
   // TODO: make this children
   {path: '/auth/login', component: () => import('pages/Login.vue')},
   {
-    path: '/auth/login/github',
+    path: '/auth/login/finished',
     props: (route) => ({code: route.query.code}),
-    component: () => import('pages/Github.vue'),
+    component: () => import('pages/LoginFinished.vue'),
   },
 
   // Always leave this as last one,
