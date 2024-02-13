@@ -227,6 +227,9 @@ export function getTaskCSS(task) {
     case BuildStatus.TEST_COMPLETED:
       css.push('text-green-7')
       break
+    case BuildStatus.TEST_CANCELLED:
+      css.push('text-negative')
+      break
   }
   return css
 }
