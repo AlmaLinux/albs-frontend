@@ -408,7 +408,7 @@
         <q-btn
           no-caps
           color="green"
-          @click="updateAdvisory(advisory.id)"
+          @click="updateAdvisory(advisory.id, advisory.platform_id)"
           :loading="loading"
         >
           Save
@@ -666,10 +666,11 @@
       userAuthenticated() {
         return this.$store.getters.isAuthenticated
       },
-      updateAdvisory(id) {
+      updateAdvisory(id, platform_id) {
         this.loading = true
         let data = {
           errata_record_id: id,
+          errata_platform_id: platform_id,
           title: this.title,
           description: this.description,
         }
@@ -1031,7 +1032,9 @@
       releaseUpdateinfo(force = false) {
         this.loadingRelease = true
         this.$api
-          .post(`/errata/release_record/${this.advisory.id}/?force=${force}`)
+          .post(
+            `/errata/release_record/${this.advisory.id}/?platform_id=${this.advisory.platform_id}&force=${force}`
+          )
           .then((response) => {
             this.loadingRelease = false
             Notify.create({
