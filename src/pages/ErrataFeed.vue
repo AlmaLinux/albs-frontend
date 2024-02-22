@@ -70,7 +70,7 @@
             :props="props"
             class="cursor-pointer"
             :class="markAdvisory(props.row.id)"
-            @click="loadAdvisory(props.row.id)"
+            @click="loadAdvisory(props.row.id, props.row.platform_id)"
           >
             <q-td key="release_status" :props="props">
               <q-chip
@@ -87,6 +87,9 @@
               formatDate(props.row.updated_date)
             }}</q-td>
             <q-td key="id" :props="props">{{ props.row.id }}</q-td>
+            <q-td key="platform" :props="props">{{
+              platformName(props.row.platform_id)
+            }}</q-td>
             <q-td key="original_title" :props="props">{{
               title(props.row)
             }}</q-td>
@@ -102,7 +105,7 @@
       <errata-info
         ref="errataInfo"
         :platforms="platforms"
-        @updateFeed="loadAdvisors"
+        @updateFeed="loadAdvisories"
         @updatePackages="loadAdvisory"
       />
     </div>
@@ -143,7 +146,20 @@
             field: 'updated_date',
             headerStyle: 'width: 120px',
           },
-          {name: 'id', required: true, align: 'left', label: 'ID', field: 'id'},
+          {
+            name: 'id',
+            required: true,
+            align: 'left',
+            label: 'ID',
+            field: 'id',
+          },
+          {
+            name: 'platform',
+            required: true,
+            align: 'left',
+            label: 'Platform',
+            field: 'platform',
+          },
           {
             name: 'original_title',
             required: true,
@@ -157,9 +173,9 @@
       }
     },
     created() {
-      this.loadAdvisors({pageNumber: this.errataPageNumber})
+      this.loadAdvisories({pageNumber: this.errataPageNumber})
       if (this.$route.query.id)
-        this.loadAdvisory(this.$route.query.id)
+        this.loadAdvisory(this.$route.query.id, this.$route.query.platform_id)
     },
     computed: {
       platforms() {
@@ -185,7 +201,7 @@
         },
         set(value) {
           this.$store.commit('errataFeed/setPageNumber', value)
-          this.loadAdvisors()
+          this.loadAdvisories()
         },
       },
     },
@@ -212,7 +228,7 @@
         }
         return col
       },
-      loadAdvisors() {
+      loadAdvisories() {
         let query = {
           title: this.bulletinTitle,
           id: this.id,
@@ -240,15 +256,20 @@
             })
           })
       },
-      loadAdvisory(id) {
+      loadAdvisory(id, platform_id) {
         this.loadingTable = true
-        let query = {errata_id: id}
+        let query = {errata_id: id, errata_platform_id: platform_id}
         this.$api
           .get(`/errata/`, {params: query})
           .then((response) => {
             this.loadingTable = false
             this.selectedAdvisory = response.data
-            this.$router.push({query: {id: this.selectedAdvisory.id}})
+            this.$router.push({
+              query: {
+                id: this.selectedAdvisory.id,
+                platform_id: this.selectedAdvisory.platform_id,
+              },
+            })
             this.$refs.errataInfo.open(this.selectedAdvisory)
           })
           .catch((error) => {
@@ -275,6 +296,9 @@
       },
       title(advisory) {
         return advisory.title ? advisory.title : advisory.original_title
+      },
+      platformName(id) {
+        return this.platforms.find((platform) => platform.value == id).label
       },
     },
     components: {
