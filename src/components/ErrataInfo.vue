@@ -959,6 +959,7 @@
           if (src.selected_build && src.selected_build.status !== 'released') {
             let data = {
               errata_record_id: this.advisory.id,
+              errata_platform_id: this.advisory.platform_id,
               status: status,
               build_id: src.selected_build.build_id,
               source: src.source_srpm,
