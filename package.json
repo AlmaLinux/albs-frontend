@@ -15,7 +15,7 @@
   "dependencies": {
     "@quasar/cli": "^2.4.0",
     "@quasar/extras": "^1.16.9",
-    "axios": "^1.6.7",
+    "axios": "^1.6.8",
     "core-js": "^3.36.1",
     "npm-check-updates": "^16.10.17",
     "quasar": "^2.12.3",
