@@ -27,14 +27,14 @@
           <q-tab-panel name="summary">
             <div
               class="q-pl-md"
-              v-if="rpm_modules && Object.keys(rpm_modules).length !== 0"
+              v-if="rpm_module && Object.keys(rpm_module).length !== 0"
             >
               <span class="row">
                 <b>Built modules:&nbsp;</b>
               </span>
               <span class="row q-pl-sm">
                 <b class="text-body2">
-                  {{ nsvca(rpm_modules[Object.keys(rpm_modules)[0]][0]) }}
+                  {{ nsvca(rpm_module[Object.keys(rpm_module)[0]]) }}
                 </b>
               </span>
             </div>
@@ -98,14 +98,14 @@
           >
             <div
               class="q-pl-md"
-              v-if="rpm_modules && Object.keys(rpm_modules).length !== 0"
+              v-if="rpm_module && Object.keys(rpm_module).length !== 0"
             >
               <span class="row">
                 <b>Built modules:&nbsp;</b>
               </span>
               <span class="row q-pl-sm">
                 <b class="text-body2">
-                  {{ nsvca(rpm_modules[target][0], target.split('.')[1]) }}
+                  {{ nsvca(rpm_module[target], target.split('.')[1]) }}
                 </b>
               </span>
             </div>
@@ -242,7 +242,7 @@
               color="primary"
               icon="description"
               label="Modules yaml"
-              v-if="rpm_modules && Object.keys(rpm_modules).length !== 0"
+              v-if="rpm_module && Object.keys(rpm_module).length !== 0"
               :loading="moduleYamlLoad"
               @click="onModuleYaml(target)"
             >
@@ -758,7 +758,7 @@
       return {
         tab: 'summary',
         build: null,
-        rpm_modules: {},
+        rpm_module: {},
         signs: [],
         reload: true,
         refreshTimer: null,
@@ -1168,9 +1168,9 @@
         Loading.show()
 
         this.build.tasks.forEach((task) => {
-          if (task.rpm_modules) {
-            this.rpm_modules[`${task.platform.name}.${task.arch}`] =
-              task.rpm_modules
+          if (task.rpm_module) {
+            this.rpm_module[`${task.platform.name}.${task.arch}`] =
+              task.rpm_module
           }
           if (task.status === BuildStatus.COMPLETED) {
             this.loadTestsInfo(task)
@@ -1197,9 +1197,7 @@
               (p) => !currentProducts.includes(p)
             )
             if (addedProducts.length) {
-              let msg = `Build successfully added to ${addedProducts.join(
-                ', '
-              )} product(s)`
+              let msg = `Build successfully added to ${addedProducts.join(', ')} product(s)`
               Notify.create({
                 message: msg,
                 type: 'positive',
@@ -1209,9 +1207,7 @@
               })
             }
             if (removedProducts.length) {
-              let msg = `Build successfully removed from ${removedProducts.join(
-                ', '
-              )} product(s)`
+              let msg = `Build successfully removed from ${removedProducts.join(', ')} product(s)`
               Notify.create({
                 message: msg,
                 type: 'positive',
@@ -1358,13 +1354,7 @@
             if (!item.name.match(/-debug(info|source)-/)) {
               debugSuffix = ''
             }
-            item.downloadUrl = `${window.origin}/pulp/content/builds/${
-              task.platform.name
-            }-${arch}-${
-              this.buildId
-            }${debugSuffix}-br/Packages/${item.name[0].toLowerCase()}/${
-              item.name
-            }`
+            item.downloadUrl = `${window.origin}/pulp/content/builds/${task.platform.name}-${arch}-${this.buildId}${debugSuffix}-br/Packages/${item.name[0].toLowerCase()}/${item.name}`
             return item
           })
       },
@@ -1387,45 +1377,22 @@
       onModuleYaml(target) {
         this.moduleYamlLoad = true
         let platform = target.split('.')[0]
-        let repodata_url = `${window.origin}/pulp/content/builds/${platform}-${this.rpm_modules[target][0].arch}-${this.buildId}-br/repodata/`
-        let modules_url = ''
-
+        let modules_url = `${window.origin}/pulp/content/builds/${platform}-${this.rpm_module[target].arch}-${this.buildId}-br/repodata/${this.rpm_module[target].sha256}-modules.yaml`
         axios
-          .get(repodata_url)
+          .get(modules_url)
           .then((response) => {
-            let regex = /[0-9a-f]{64}-modules.yaml/
-            let modules_yaml_file = regex.exec(response.data)
-            if (modules_yaml_file) {
-              modules_url = repodata_url + modules_yaml_file[0]
-              axios
-                .get(modules_url)
-                .then((response) => {
-                  this.moduleYamlLoad = false
-                  this.$refs.showModuleYaml.open({
-                    modules_yaml: response.data,
-                    module_name: this.rpm_modules[target][0].name,
-                    module_stream: this.rpm_modules[target][0].stream,
-                  })
-                })
-                .catch((error) => {
-                  this.moduleYamlLoad = false
-                  if (error.response.status === 404) {
-                    Notify.create({
-                      message: `Failed to find modules.yaml`,
-                      type: 'negative',
-                      actions: [
-                        {label: 'Dismiss', color: 'white', handler: () => {}},
-                      ],
-                    })
-                  }
-                })
-            }
+            this.moduleYamlLoad = false
+            this.$refs.showModuleYaml.open({
+              modules_yaml: response.data,
+              module_name: this.rpm_module[target].name,
+              module_stream: this.rpm_module[target].stream,
+            })
           })
           .catch((error) => {
             this.moduleYamlLoad = false
             if (error.response.status === 404) {
               Notify.create({
-                message: `Failed to read ${repodata_url}`,
+                message: `Failed to find modules.yaml`,
                 type: 'negative',
                 actions: [
                   {label: 'Dismiss', color: 'white', handler: () => {}},
