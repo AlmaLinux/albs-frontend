@@ -1168,7 +1168,7 @@
         Loading.show()
 
         this.build.tasks.forEach((task) => {
-          if (task.rpm_modules) {
+          if (task.rpm_modules.length) {
             this.rpm_modules[`${task.platform.name}.${task.arch}`] =
               task.rpm_modules
           }
