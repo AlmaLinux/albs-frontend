@@ -417,7 +417,7 @@
           v-if="advisory.release_status === errataStatuses.RELEASED"
           no-caps
           color="primary"
-          @click="getUpdateinfo(advisory.id)"
+          @click="getUpdateinfo(advisory.id, advisory.platform_id)"
         >
           Show updateinfo
         </q-btn>
@@ -701,9 +701,9 @@
           ? `${advisory.last_release_log}`
           : "This record doesn't have any logs"
       },
-      getUpdateinfo(id) {
+      getUpdateinfo(id, platform_id) {
         this.$api
-          .get(`/errata/${id}/updateinfo/`)
+          .get(`/errata/${id}/updateinfo/?platform_id=${platform_id}`)
           .then((response) => {
             this.loading = false
             this.$refs.showUpdateinfo.open({
