@@ -11,8 +11,8 @@ EOT
 ARG UID=1000
 ARG GID=1000
 RUN groupadd -g ${GID} albs && useradd --create-home -u ${UID} -g ${GID} albs
-USER albs
 
+USER albs
 WORKDIR /home/albs
 
 COPY package-lock.json .

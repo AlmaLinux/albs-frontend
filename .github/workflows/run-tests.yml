@@ -1,0 +1,44 @@
+name: Run Tests
+on:
+  push:
+    branches: [master]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Get UID and GID
+        id: get-id
+        run: printf "%s\n" uid=$(id -u) gid=$(id -g) >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        # https://github.com/marketplace/actions/docker-setup-buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        # https://github.com/marketplace/actions/build-and-push-docker-images
+        uses: docker/build-push-action@v5
+        id: docker
+        with:
+          context: .
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            UID=${{ steps.get-id.outputs.uid }}
+            GID=${{ steps.get-id.outputs.gid }}
+
+      - name: Run build
+        run: |
+          docker run --rm -v .:/home/albs/code ${{ steps.docker.outputs.imageid }} \
+              npm run build
