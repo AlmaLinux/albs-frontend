@@ -971,7 +971,11 @@
           this.$api
             .post('/errata/update_package_status/', request_body)
             .then((response) => {
-              this.$emit('updatePackages', this.advisory.id)
+              this.$emit(
+                'updatePackages',
+                this.advisory.id,
+                this.advisory.platform_id
+              )
               if (!response.data.ok) {
                 Notify.create({
                   message: response.data.error,
