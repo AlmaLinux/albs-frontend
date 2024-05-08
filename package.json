@@ -24,7 +24,7 @@
     "vuex": "^4.1.0"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.24.1",
+    "@babel/eslint-parser": "^7.24.5",
     "@quasar/app-webpack": "^3.13.0",
     "@quasar/babel-preset-app": "2.0.3",
     "autoprefixer": "^10.4.17",
