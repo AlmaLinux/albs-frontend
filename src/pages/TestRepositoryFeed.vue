@@ -138,6 +138,12 @@
             label="Tests prefix"
             hint="Enter a tests prefix for a new test repository"
           />
+          <q-select
+            v-model="current_team"
+            label="Select team"
+            :rules="[(val) => !!val || 'Team name is required']"
+            :options="userTeams"
+          />
         </q-card-section>
         <q-card-actions align="right">
           <q-btn
@@ -243,7 +249,7 @@
 <script>
   import {Notify} from "quasar"
   import {defineComponent, ref} from "vue"
-  import {pathJoin} from "../utils"
+  import {getFromApi, pathJoin} from "../utils"
 
   export default defineComponent({
     data() {
@@ -293,6 +299,8 @@
         newtestRepositoriesPrefix: "",
         addLoading: false,
         search: "",
+        current_team: null,
+        userTeams: [],
       }
     },
     created() {
@@ -370,6 +378,16 @@
               actions: [{label: "Dismiss", color: "white", handler: () => {}}],
             })
           })
+          let currentUserID = this.$store.state.users.self.user_id
+          this.userTeams = []
+          getFromApi(this.$api, `/users/${currentUserID}/teams`).then(teams => {
+            teams.forEach(team => {
+              this.userTeams.push({
+                label: team.name,
+                id: team.id,
+              })
+            })
+          }).catch()
       },
       newtestRepositories() {
         this.addLoading = true
@@ -378,6 +396,8 @@
           url: this.newtestRepositoriesUrl,
           tests_dir: this.newtestRepositoriesDir,
           tests_prefix: this.newtestRepositoriesPrefix,
+          team_id: this.current_team.id,
+          owner_id: this.$store.state.users.self.user_id,
         }
         this.$api
           .post(`/test_repositories/create/`, data)
@@ -397,6 +417,7 @@
                 message: error.response.data.detail,
                 type: "negative",
                 actions: [
+                  {label: "Dismiss", color: "white", handler: () => {}},
                   {label: "Dismiss", color: "white", handler: () => {}},
                 ],
               })
