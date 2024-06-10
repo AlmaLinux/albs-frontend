@@ -1075,6 +1075,7 @@
   .log-container {
     font-size: small;
     overflow-y: auto;
+    max-height: 600px;
     padding-left: 2em;
     padding-right: 2em;
     background-color: #f5f8fa !important;
