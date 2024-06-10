@@ -140,7 +140,7 @@
           />
           <q-select
             v-model="current_team"
-            label="Select team"
+            label="Select team*"
             :rules="[(val) => !!val || 'Team name is required']"
             :options="userTeams"
           />
@@ -417,7 +417,6 @@
                 message: error.response.data.detail,
                 type: "negative",
                 actions: [
-                  {label: "Dismiss", color: "white", handler: () => {}},
                   {label: "Dismiss", color: "white", handler: () => {}},
                 ],
               })
