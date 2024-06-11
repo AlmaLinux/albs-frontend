@@ -247,9 +247,9 @@
 </template>
 
 <script>
-  import {Notify} from "quasar"
-  import {defineComponent, ref} from "vue"
-  import {getFromApi, pathJoin} from "../utils"
+  import {Notify} from 'quasar'
+  import {defineComponent, ref} from 'vue'
+  import {getFromApi, pathJoin} from '../utils'
 
   export default defineComponent({
     data() {
@@ -263,54 +263,54 @@
         testRepositories: [],
         columns: [
           {
-            name: "name",
+            name: 'name',
             required: true,
-            align: "left",
-            label: "Name",
-            field: "name",
+            align: 'left',
+            label: 'Name',
+            field: 'name',
           },
           {
-            name: "url",
+            name: 'url',
             required: true,
-            align: "center",
-            label: "URL",
-            field: "url",
+            align: 'center',
+            label: 'URL',
+            field: 'url',
           },
           {
-            name: "tests_dir",
+            name: 'tests_dir',
             required: true,
-            align: "left",
-            label: "Tests directory",
-            field: "tests_dir",
+            align: 'left',
+            label: 'Tests directory',
+            field: 'tests_dir',
           },
           {
-            name: "packages",
+            name: 'packages',
             required: false,
-            align: "center",
-            label: "Packages",
-            field: "packages",
+            align: 'center',
+            label: 'Packages',
+            field: 'packages',
           },
         ],
         addNewtestRepositories: false,
         configureTestRepositories: false,
-        newtestRepositoriesName: "",
-        newtestRepositoriesUrl: "",
-        newtestRepositoriesDir: "",
-        newtestRepositoriesPrefix: "",
+        newtestRepositoriesName: '',
+        newtestRepositoriesUrl: '',
+        newtestRepositoriesDir: '',
+        newtestRepositoriesPrefix: '',
         addLoading: false,
-        search: "",
+        search: '',
         current_team: null,
         userTeams: [],
       }
     },
     created() {
-      this.search = this.$route.query.name ? this.$route.query.name : ""
+      this.search = this.$route.query.name ? this.$route.query.name : ''
       this.loadFeedPage(this.search)
     },
     computed: {
       testRepositoriesPageNumber() {
         return this.$store.getters[
-          "testRepositories/testRepositoriesPageNumber"
+          'testRepositories/testRepositoriesPageNumber'
         ]
       },
       currentPage: {
@@ -318,7 +318,7 @@
           return this.$store.state.testRepositories.pageNumber
         },
         set(value) {
-          this.$store.commit("testRepositories/setPageNumber", value)
+          this.$store.commit('testRepositories/setPageNumber', value)
           this.loadFeedPage()
         },
       },
@@ -328,35 +328,35 @@
         return pathJoin([repo.url, repo.tests_dir])
       },
       resetFilter() {
-        this.search = ""
+        this.search = ''
         this.$refs.searchField.blur()
         if (this.$route.query.name) {
           this.loadFeedPage()
-          this.$router.replace({name: "TestRepositoriesFeed"})
+          this.$router.replace({name: 'TestRepositoriesFeed'})
         }
       },
       searchRepos() {
         this.$refs.searchField.focus()
-        let query = this.$route.query.name ? this.$route.query.name : ""
+        let query = this.$route.query.name ? this.$route.query.name : ''
         if (this.search === query) return
 
         if (this.search) {
           this.$router.push({
-            name: "TestRepositoriesFeed",
+            name: 'TestRepositoriesFeed',
             query: {name: this.search},
           })
         } else {
-          this.$router.replace({name: "TestRepositoriesFeed"})
+          this.$router.replace({name: 'TestRepositoriesFeed'})
         }
         this.loadFeedPage(this.search)
       },
-      loadFeedPage(name = "") {
+      loadFeedPage(name = '') {
         this.loading = true
         let query = {
           pageNumber: this.testRepositoriesPageNumber,
         }
         if (name) {
-          query["name"] = name
+          query['name'] = name
           this.loadingSearch = true
         }
         this.$api
@@ -366,7 +366,7 @@
             this.loadingSearch = false
             this.testRepositories = response.data.test_repositories
             this.totalPages = Math.ceil(
-              response.data["total_test_repositories"] / 10
+              response.data['total_test_repositories'] / 10
             )
           })
           .catch((error) => {
@@ -374,20 +374,22 @@
             this.loadingSearch = false
             Notify.create({
               message: `${error.response.status}: ${error.response.statusText}`,
-              type: "negative",
-              actions: [{label: "Dismiss", color: "white", handler: () => {}}],
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
-          let currentUserID = this.$store.state.users.self.user_id
-          this.userTeams = []
-          getFromApi(this.$api, `/users/${currentUserID}/teams`).then(teams => {
-            teams.forEach(team => {
+        let currentUserID = this.$store.state.users.self.user_id
+        this.userTeams = []
+        getFromApi(this.$api, `/users/${currentUserID}/teams`)
+          .then((teams) => {
+            teams.forEach((team) => {
               this.userTeams.push({
                 label: team.name,
                 id: team.id,
               })
             })
-          }).catch()
+          })
+          .catch()
       },
       newtestRepositories() {
         this.addLoading = true
@@ -405,27 +407,27 @@
             this.addLoading = false
             this.addNewtestRepositories = false
             this.loadFeedPage()
-            this.newtestRepositoriesName = ""
-            this.newtestRepositoriesUrl = ""
-            this.newtestRepositoriesDir = ""
-            this.newtestRepositoriesPrefix = ""
+            this.newtestRepositoriesName = ''
+            this.newtestRepositoriesUrl = ''
+            this.newtestRepositoriesDir = ''
+            this.newtestRepositoriesPrefix = ''
           })
           .catch((error) => {
             this.addLoading = false
             if (+String(error.response.status)[0] === 4) {
               Notify.create({
                 message: error.response.data.detail,
-                type: "negative",
+                type: 'negative',
                 actions: [
-                  {label: "Dismiss", color: "white", handler: () => {}},
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
                 ],
               })
             } else {
               Notify.create({
                 message: `${error.response.status}: ${error.response.statusText}`,
-                type: "negative",
+                type: 'negative',
                 actions: [
-                  {label: "Dismiss", color: "white", handler: () => {}},
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
                 ],
               })
             }
@@ -458,17 +460,17 @@
             if (+String(error.response.status)[0] === 4) {
               Notify.create({
                 message: error.response.data.detail,
-                type: "negative",
+                type: 'negative',
                 actions: [
-                  {label: "Dismiss", color: "white", handler: () => {}},
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
                 ],
               })
             } else {
               Notify.create({
                 message: `${error.response.status}: ${error.response.statusText}`,
-                type: "negative",
+                type: 'negative',
                 actions: [
-                  {label: "Dismiss", color: "white", handler: () => {}},
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
                 ],
               })
             }
