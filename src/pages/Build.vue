@@ -98,7 +98,11 @@
           >
             <div
               class="q-pl-md"
-              v-if="rpm_modules && Object.keys(rpm_modules).length !== 0"
+              v-if="
+                target.split('.')[1] !== 'src' &&
+                rpm_modules &&
+                Object.keys(rpm_modules).length !== 0
+              "
             >
               <span class="row">
                 <b>Built modules:&nbsp;</b>
@@ -148,7 +152,7 @@
                         class="row"
                       >
                         <div
-                          v-if="pkgNameSrc(pkg.name)"
+                          v-if="pkgNameSrc(pkg.name) && !hasSrcArch"
                           class="q-pb-sm q-pt-md"
                         >
                           <a class="text-tertiary" :href="pkg.downloadUrl">
@@ -242,7 +246,11 @@
               color="primary"
               icon="description"
               label="Modules yaml"
-              v-if="rpm_modules && Object.keys(rpm_modules).length !== 0"
+              v-if="
+                target.split('.')[1] !== 'src' &&
+                rpm_modules &&
+                Object.keys(rpm_modules).length !== 0
+              "
               :loading="moduleYamlLoad"
               @click="onModuleYaml(target)"
             >
@@ -518,12 +526,7 @@
         <mock-options-show :mock_options="selectedTask.mock_options" />
         <q-card-actions align="right">
           <!-- prettier-ignore -->
-          <q-btn
-            flat
-            text-color="negative"
-            label="Close"
-            @click="selectedTask = null; taskMock = false"
-          />
+          <q-btn flat text-color="negative" label="Close" @click="selectedTask = null; taskMock = false" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -746,6 +749,7 @@
     copyToClipboard,
     deepDiff,
     isEmptyObject,
+    sortByArches,
   } from '../utils'
   import axios from 'axios'
 
@@ -782,6 +786,7 @@
         signStatus: SignStatus,
         previousBuildInfo: null,
         previousProducts: null,
+        hasSrcArch: false,
       }
     },
     computed: {
@@ -869,7 +874,23 @@
       },
       buildTasks() {
         let response = {}
-        for (let task of this.build.tasks) {
+        let tasks = JSON.parse(JSON.stringify(this.build.tasks))
+        let platformTargets = {}
+        for (let task of tasks) {
+          if (!platformTargets[task.platform.name]) {
+            platformTargets[task.platform.name] = []
+          }
+          platformTargets[task.platform.name].push(task)
+        }
+        tasks = []
+        for (let platform of Object.keys(platformTargets)) {
+          tasks = tasks.concat(
+            platformTargets[platform].sort((a, b) => {
+              return this.sortByArches(a.arch, b.arch)
+            })
+          )
+        }
+        for (let task of tasks) {
           const x = `${task.platform.name}.${task.arch}`
           if (!response.hasOwnProperty(x)) {
             response[x] = {}
@@ -885,14 +906,10 @@
             response[sortX][sortY].sort((a, b) => (a.id > b.id ? 1 : -1))
           }
         }
-        // TODO: sort here should use platform arch build order, instead
-        //       of alphabetical.
-        const ordered = Object.keys(response)
-          .sort()
-          .reduce((obj, key) => {
-            obj[key] = response[key]
-            return obj
-          }, {})
+        const ordered = Object.keys(response).reduce((obj, key) => {
+          obj[key] = response[key]
+          return obj
+        }, {})
         return ordered
       },
       buildTasksByIndex() {
@@ -929,6 +946,7 @@
       copyToClipboard: copyToClipboard,
       getTaskCSS: getTaskCSS,
       nsvca: nsvca,
+      sortByArches: sortByArches,
       userAuthenticated() {
         return this.$store.getters.isAuthenticated
       },
@@ -1233,6 +1251,8 @@
             let buildInfo = response.data
             if (!this.previousBuildInfo) {
               this.build = buildInfo
+              let srcTask = buildInfo.tasks.find((task) => task.arch === 'src')
+              this.hasSrcArch = !!srcTask
               this.previousBuildInfo = JSON.parse(JSON.stringify(buildInfo))
               this.renderBuildInfo()
             } else {
@@ -1320,10 +1340,18 @@
       buildRepos(platform) {
         let [platformName, arch] = platform.split('.')
         let repos = [
-          `${window.origin}/pulp/content/builds/${platformName}-src-${this.buildId}-br/`,
           `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-br/`,
-          `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-debug-br/`,
         ]
+        if (arch !== 'src') {
+          repos.push(
+            `${window.origin}/pulp/content/builds/${platformName}-${arch}-${this.buildId}-debug-br/`
+          )
+        }
+        if (!this.hasSrcArch) {
+          repos.unshift(
+            `${window.origin}/pulp/content/builds/${platformName}-src-${this.buildId}-br/`
+          )
+        }
         return repos
       },
       downloadArtifact(artifact) {
@@ -1348,7 +1376,12 @@
       },
       getTaskPackages(task) {
         return task.artifacts
-          .filter((item) => item.type === 'rpm')
+          .filter((item) => {
+            if (this.hasSrcArch && task.arch !== 'src') {
+              return item.type === 'rpm' && !item.name.includes('.src.')
+            }
+            return item.type === 'rpm'
+          })
           .map((item) => {
             let arch = task.arch
             if (item.name.includes('.src.')) {
