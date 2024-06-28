@@ -399,7 +399,6 @@
           tests_dir: this.newtestRepositoriesDir,
           tests_prefix: this.newtestRepositoriesPrefix,
           team_id: this.current_team.id,
-          owner_id: this.$store.state.users.self.user_id,
         }
         this.$api
           .post(`/test_repositories/create/`, data)
