@@ -82,7 +82,7 @@
   import {defineComponent} from 'vue'
   import {BuildStatus} from '../constants.js'
   import BuildRef from 'components/BuildRef.vue'
-  import {getTaskCSS, nsvca} from '../utils'
+  import {getTaskCSS, nsvca, sortByArches} from '../utils'
 
   export default defineComponent({
     name: 'BuildFeedItem',
@@ -113,8 +113,11 @@
           }
         }
         for (let platform of Object.keys(platforms)) {
-          platforms[platform] = Array.from(platforms[platform]).sort()
+          platforms[platform] = Array.from(platforms[platform]).sort(
+            this.sortByArches
+          )
         }
+
         return platforms
       },
       sortedTasks() {
@@ -156,6 +159,7 @@
       },
     },
     methods: {
+      sortByArches: sortByArches,
       getTaskCSS: getTaskCSS,
       nsvca: nsvca,
       getTaskTargets(task) {
@@ -168,6 +172,21 @@
               })
             )
           }
+        }
+        let platformTargets = {}
+        for (let target of targets) {
+          if (!platformTargets[target.platform.name]) {
+            platformTargets[target.platform.name] = []
+          }
+          platformTargets[target.platform.name].push(target)
+        }
+        targets = []
+        for (let platform of Object.keys(platformTargets)) {
+          targets = targets.concat(
+            platformTargets[platform].sort((a, b) => {
+              return this.sortByArches(a.arch, b.arch)
+            })
+          )
         }
         return targets
       },

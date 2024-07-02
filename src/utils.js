@@ -238,3 +238,19 @@ export function pathJoin(parts) {
   let replace = new RegExp('/' + '{1,}', 'g')
   return parts.join('/').replace(replace, '/')
 }
+
+export function sortByArches(a, b) {
+  const customOrder = ['src']
+  const indexA = customOrder.indexOf(a)
+  const indexB = customOrder.indexOf(b)
+  if (indexA !== -1 && indexB !== -1) {
+    return indexA - indexB
+  }
+  if (indexA !== -1) {
+    return -1
+  }
+  if (indexB !== -1) {
+    return 1
+  }
+  return a.localeCompare(b)
+}
