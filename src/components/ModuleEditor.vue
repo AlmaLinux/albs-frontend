@@ -318,6 +318,17 @@
                           <q-tooltip>Add item to build</q-tooltip>
                         </q-btn>
                       </td>
+                      <td v-if="moduleItem.enabled" class="text-tertiary">
+                        <q-btn
+                          @click="onDisableModuleItem(moduleItem)"
+                          flat
+                          small
+                          icon="do_not_disturb"
+                          class="no-padding text-right"
+                        >
+                          <q-tooltip> Disable build item </q-tooltip>
+                        </q-btn>
+                      </td>
                       <td class="text-tertiary">
                         <q-btn
                           @click="onDeleteModuleItem(moduleItem)"
@@ -452,6 +463,9 @@
         this.moduleInfo.refs.push(moduleItem)
       },
       addItemToBuild(moduleItem) {
+        moduleItem.enabled = !moduleItem.enabled
+      },
+      onDisableModuleItem(moduleItem) {
         moduleItem.enabled = !moduleItem.enabled
       },
       onDeleteModuleItem(moduleItem) {
