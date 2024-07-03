@@ -835,6 +835,7 @@
       testingCompleted() {
         let testing_completed = true
         for (let task of this.build.tasks) {
+          if (task.arch === 'src') continue
           if (
             task.status <= BuildStatus.COMPLETED ||
             task.status == BuildStatus.TEST_CREATED ||
