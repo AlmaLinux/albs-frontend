@@ -16,7 +16,7 @@
     "@quasar/cli": "^2.4.1",
     "@quasar/extras": "^1.16.11",
     "axios": "^1.7.2",
-    "core-js": "^3.37.0",
+    "core-js": "^3.37.1",
     "npm-check-updates": "^16.14.20",
     "quasar": "^2.16.4",
     "vue": "^3.4.31",
