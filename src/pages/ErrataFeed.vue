@@ -54,6 +54,34 @@
           Search
         </q-btn>
       </div>
+      <div
+        class="q-pb-md group row justify-center"
+        style="gap: 10px; margin: 10px"
+      >
+        <input
+          class="date"
+          type="datetime-local"
+          style="
+            border: 1px solid transparent;
+            padding: 5px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+          "
+        />
+        <q-btn
+          size="80%"
+          no-caps
+          icon="restart_alt"
+          color="grey-8"
+          @click="resetErratas()"
+          :loading="loadingReset"
+        >
+          Reset
+          <q-tooltip
+            >Reset matched packages of erratas issued after a specified date
+          </q-tooltip>
+        </q-btn>
+      </div>
       <q-table
         title="Advisory"
         :rows="advisors"
@@ -127,6 +155,7 @@
         status: '',
         platform: null,
         loading: false,
+        loadingReset: false,
         loadingTable: false,
         totalPages: ref(1),
         selectedAdvisory: null,
@@ -281,6 +310,46 @@
               actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
           })
+      },
+      resetErratas() {
+        const dateInput = document.querySelector('.date')
+        if (dateInput.value) {
+          const formattedDate = dateInput.value.replace('T', ' ') + ':00'
+          console.log(formattedDate)
+          this.loadingReset = true
+          this.$api
+            .post(
+              `/errata/reset-matched-packages-multiple?issued_date=${formattedDate}`
+            )
+            .then((response) => {
+              this.loadingReset = false
+              Notify.create({
+                message: response.data.message,
+                type: 'positive',
+                actions: [
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
+              })
+            })
+            .catch((error) => {
+              console.log(error)
+              this.loadingReset = false
+              Notify.create({
+                message: `${error.response.status}: ${error.response.statusText}`,
+                type: 'negative',
+                actions: [
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
+              })
+            })
+        } else {
+          this.loadingReset = false
+          Notify.create({
+            message: 'No date has been chosen',
+            type: 'negative',
+            actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+          })
+        }
       },
       markAdvisory(id) {
         if (this.selectedAdvisory)
