@@ -75,7 +75,8 @@
           >
             Reset
             <q-tooltip
-              >Reset matched packages of erratas issued after a specified date
+        <q-tooltip>
+            Reset matched packages of Advisories after a specified date
             </q-tooltip>
           </q-btn>
         </template>
