@@ -181,7 +181,7 @@ export default defineComponent({
     },
 
     async getTeam () {
-      return getFromApi(this.$api, `/teams/${this.teamId}`)
+      return getFromApi(this.$api, `/teams/${this.teamId}/`)
     },
 
     async getUserTeams () {
