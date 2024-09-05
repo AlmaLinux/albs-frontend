@@ -18,7 +18,7 @@
     "axios": "^1.7.4",
     "core-js": "^3.37.1",
     "npm-check-updates": "^17.1.0",
-    "quasar": "^2.16.6",
+    "quasar": "^2.16.10",
     "vue": "^3.4.38",
     "vue-router": "^4.4.3",
     "vuex": "^4.1.0"
