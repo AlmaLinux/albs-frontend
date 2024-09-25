@@ -725,7 +725,7 @@
           (platform) => platform.value == advisory.platform_id
         ).arch_list
         advisory.packages.forEach((pack) => {
-          if (arch_list.includes(pack.arch)) {
+          if (arch_list.includes(pack.arch) || pack.arch == 'noarch') {
             packages[pack.source_srpm]
               ? packages[pack.source_srpm].push(pack)
               : (packages[pack.source_srpm] = [pack])
