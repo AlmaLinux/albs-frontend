@@ -181,6 +181,13 @@ const ErrataReleaseStatus = {
   },
 }
 
+const ErrataReferenceType = {
+  'ErrataReferenceType.cve': 'CVE',
+  'ErrataReferenceType.rhsa': 'RHSA',
+  'ErrataReferenceType.self_ref': 'Self Ref',
+  'ErrataReferenceType.bugzilla': 'Bugzilla',
+}
+
 export {
   BuildStatus,
   BuildTaskRefType,
@@ -191,4 +198,5 @@ export {
   ReleasePackageTrustness,
   ReleasePackageMatched,
   ErrataReleaseStatus,
+  ErrataReferenceType,
 }
