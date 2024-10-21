@@ -181,6 +181,12 @@ const routes = [
         path: '/product/:productId',
         component: () => import('pages/ProductDetails.vue'),
         props: true,
+        beforeEnter(to, from, next) {
+          store
+            .dispatch('platforms/loadPlatformList')
+            .then(next())
+            .catch(next())
+        },
       },
       {
         path: '/product/new/',
