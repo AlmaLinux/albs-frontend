@@ -234,7 +234,11 @@
                         <q-tooltip>Reset matched packages</q-tooltip>
                       </q-btn>
                     </template>
-                    <template v-if="notReleasedRPMs().length !== 0">
+                    <template
+                      v-if="
+                        notReleasedRPMs().length !== 0 && selected.length !== 0
+                      "
+                    >
                       <q-btn
                         size="80%"
                         no-caps
@@ -406,6 +410,9 @@
       </q-card-section>
       <q-card-actions align="right" v-if="userAuthenticated()">
         <q-btn
+          v-if="
+            descriptionWarn(advisory.description) || titleWarn(advisory.title)
+          "
           no-caps
           color="green"
           @click="updateAdvisory(advisory.id, advisory.platform_id)"
@@ -425,13 +432,14 @@
           Release packages
         </q-btn>
         <q-btn
+          v-if="advisory.release_status !== errataStatuses.RELEASED"
           no-caps
           color="primary"
           @click="hasSkippedPackages ? (confirm = true) : releaseUpdateinfo()"
           :loading="loadingRelease"
         >
-          Release updateinfo</q-btn
-        >
+          Release updateinfo
+        </q-btn>
       </q-card-actions>
     </q-card>
   </div>
