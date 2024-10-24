@@ -43,7 +43,21 @@
           @keydown.enter.prevent="searchErrata()"
         />
       </div>
-      <div class="q-pb-md group row justify-end">
+      <div class="q-pb-md group row justify-between">
+        <q-btn
+          v-if="userAuthenticated()"
+          @click="
+            selectionHasSkippedPackages()
+              ? (confirm = true)
+              : bulkReleaseErratas()
+          "
+          no-caps
+          color="primary"
+          :disable="!selectedAdvisories.length"
+          :loading="loadingRelease"
+        >
+          Release selection
+        </q-btn>
         <q-btn
           @click="searchErrata()"
           no-caps
@@ -61,9 +75,12 @@
         color="primary"
         :loading="loadingTable"
         :rows-per-page-options="[10]"
+        row-key="id"
         hide-pagination
         binary-state-sort
         wrap-cells
+        :selection="userAuthenticated() ? 'multiple' : null"
+        v-model:selected="selectedAdvisories"
       >
         <template v-slot:top-right v-if="userAuthenticated()">
           <div class="q-gutter-md">
@@ -96,6 +113,9 @@
             :class="markAdvisory(props.row.id)"
             @click="loadAdvisory(props.row.id, props.row.platform_id)"
           >
+            <q-td v-if="userAuthenticated()" auto-width>
+              <q-checkbox v-model="props.selected" />
+            </q-td>
             <q-td key="release_status" :props="props">
               <q-chip
                 :color="statusColor(props.row)"
@@ -127,6 +147,7 @@
             <q-td key="original_title" :props="props">{{
               title(props.row)
             }}</q-td>
+            <q-td key="id" :props="props">{{ props.row.id }}</q-td>
           </q-tr>
         </template>
       </q-table>
@@ -168,6 +189,27 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+
+  <q-dialog v-model="confirm" persistent>
+    <q-card style="width: 50%">
+      <q-card-section>
+        <div class="text-h6">Warning</div>
+      </q-card-section>
+      <q-card-section>
+        Are you sure you want to release the record with skipped packages?
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn
+          flat
+          label="Ok"
+          color="primary"
+          @click="bulkReleaseErratas(true)"
+          :loading="loadingRelease"
+        />
+        <q-btn flat text-color="negative" label="Cancel" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script>
@@ -187,6 +229,7 @@
         loading: false,
         loadingReset: false,
         loadingTable: false,
+        loadingRelease: false,
         totalPages: ref(1),
         selectedAdvisory: null,
         showDialogAdvisories: false,
@@ -230,6 +273,8 @@
         ],
         errataStatuses: ErrataReleaseStatus,
         advisors: [],
+        selectedAdvisories: [],
+        confirm: false,
       }
     },
     created() {
@@ -269,6 +314,59 @@
       searchErrata() {
         this.loading = true
         this.currentPage = 1
+      },
+      bulkReleaseErratas(force = false) {
+        this.loadingRelease = true
+        let records_ids = this.selectedAdvisories.map((advisory) => advisory.id)
+        this.$api
+          .post(`/errata/bulk_release_records/?force=${force}`, records_ids)
+          .then((response) => {
+            this.loadingRelease = false
+            Notify.create({
+              message: `${response.data.message}`,
+              type: 'positive',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+            this.loadAdvisories()
+          })
+          .catch((error) => {
+            this.loadingRelease = false
+            Notify.create({
+              message: `${error.response.status}: ${error.response.statusText}`,
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+          })
+        this.confirm = false
+      },
+      selectionHasSkippedPackages() {
+        for (const advisory of this.selectedAdvisories) {
+          if (this.advisoryHasSkippedPackages(advisory)) {
+            return true
+          }
+        }
+        return false
+      },
+      advisoryHasSkippedPackages(advisory) {
+        let packages = {}
+        let arch_list = this.platforms.find(
+          (platform) => platform.value == advisory.platform_id
+        ).arch_list
+        advisory.packages.forEach((pack) => {
+          if (arch_list.includes(pack.arch)) {
+            packages[pack.source_srpm]
+              ? packages[pack.source_srpm].push(pack)
+              : (packages[pack.source_srpm] = [pack])
+          }
+        })
+        for (const src in packages) {
+          for (const pack of packages[src]) {
+            if (pack.albs_packages.length === 0) {
+              return true
+            }
+          }
+        }
+        return false
       },
       statusColor(record) {
         let col = ''
