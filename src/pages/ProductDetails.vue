@@ -161,7 +161,16 @@
         <div v-if="userAuthenticated()">
           <q-separator />
 
-          <q-card-actions class="row justify-end q-gutter-sm q-pr-sm">
+          <q-card-actions class="row justify-between q-gutter-md q-pr-md">
+            <q-btn
+              @click="enablePlatforms()"
+              color="primary"
+              style="width: 30%"
+              :loading="loadingPlatform"
+              no-caps
+            >
+              Add platforms
+            </q-btn>
             <q-skeleton type="circle" v-if="loadingPage" />
             <q-btn
               v-else
@@ -169,11 +178,57 @@
               icon="delete"
               round
               @click="confirm = true"
+              :disable="loadingPlatform"
               :loading="loading"
             >
               <q-tooltip> Delete product </q-tooltip>
             </q-btn>
           </q-card-actions>
+        </div>
+        <div v-if="platformsEnabled">
+          <q-card-section>
+            <q-select
+              v-model="platformsToAdd"
+              multiple
+              use-chips
+              clearable
+              style="max-width: 80%"
+              :options="platforms"
+              option-value="id"
+              option-label="name"
+              hint="Select platforms*"
+              label="Add platforms to the product"
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>
+                      {{ scope.opt.name }}
+                    </q-item-label>
+                    <q-item-label caption>{{
+                      scope.opt.arch_list.join(', ')
+                    }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+            <q-card-actions align="right">
+              <q-btn
+                color="primary"
+                style="width: 30%"
+                :loading="loadingPlatform"
+                :disable="!platformsToAdd.length"
+                label="Add to product"
+                @click="addPlatforms()"
+                no-caps
+              >
+                <template v-slot:loading>
+                  <q-spinner class="on-left" />
+                  Loading...
+                </template>
+              </q-btn>
+            </q-card-actions>
+          </q-card-section>
         </div>
       </q-card>
     </div>
@@ -231,6 +286,9 @@
         doc: false,
         loadingPage: false,
         loading: false,
+        loadingPlatform: false,
+        platformsEnabled: false,
+        platformsToAdd: [],
         // mockPackages: [
         //     { name: 'alsa-sof-firmware', version: '#1.9.3-4.el8_6'},
         //     { name: 'cheese', version: '#3.28.0-4.el8_6'},
@@ -261,8 +319,22 @@
     created() {
       this.loadProduct(this.productId)
     },
+    computed: {
+      platforms() {
+        const allPlatforms = this.$store.state.platforms.platforms
+        const productPlatformIds = this.product.platforms.map(
+          (platform) => platform.id
+        )
+        return allPlatforms.filter(
+          (platform) => !productPlatformIds.includes(platform.id)
+        )
+      },
+    },
     methods: {
       copyToClipboard: copyToClipboard,
+      enablePlatforms() {
+        this.platformsEnabled = this.platformsEnabled ? false : true
+      },
       userAuthenticated() {
         return this.$store.getters.isAuthenticated
       },
@@ -281,6 +353,31 @@
             console.log(error)
             Notify.create({
               message: `${error.response.status}: ${error.response.statusText}`,
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+          })
+      },
+      addPlatforms() {
+        this.loadingPlatform = true
+        this.$api
+          .post(
+            `products/${this.productId}/add_platforms/`,
+            this.platformsToAdd
+          )
+          .then((response) => {
+            this.loadingPlatform = false
+            this.platformsEnabled = false
+            this.platformsToAdd = []
+            this.loadProduct(this.productId)
+          })
+          .catch((error) => {
+            this.loadingPlatform = false
+            this.platformsEnabled = false
+            this.platformsToAdd = []
+            console.log(error)
+            Notify.create({
+              message: `${error.response.data.detail}`,
               type: 'negative',
               actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
             })
