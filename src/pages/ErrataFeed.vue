@@ -43,21 +43,7 @@
           @keydown.enter.prevent="searchErrata()"
         />
       </div>
-      <div class="q-pb-md group row justify-between">
-        <q-btn
-          v-if="userAuthenticated()"
-          @click="
-            selectionHasSkippedPackages()
-              ? (confirm = true)
-              : bulkReleaseErratas()
-          "
-          no-caps
-          color="primary"
-          :disable="!selectedAdvisories.length"
-          :loading="loadingRelease"
-        >
-          Release selection
-        </q-btn>
+      <div class="q-pb-md group row justify-end">
         <q-btn
           @click="searchErrata()"
           no-caps
@@ -75,7 +61,7 @@
         color="primary"
         :loading="loadingTable"
         :rows-per-page-options="[10]"
-        row-key="id"
+        row-key="complexId"
         hide-pagination
         binary-state-sort
         wrap-cells
@@ -84,6 +70,23 @@
       >
         <template v-slot:top-right v-if="userAuthenticated()">
           <div class="q-gutter-md">
+            <q-btn
+              size="80%"
+              square
+              v-if="selectedAdvisories.length"
+              @click="
+                selectionHasSkippedPackages()
+                  ? (confirm = true)
+                  : bulkReleaseErratas()
+              "
+              no-caps
+              icon="backup"
+              color="primary"
+              :loading="loadingRelease"
+            >
+              <q-tooltip> Release selected Advisories </q-tooltip>
+            </q-btn>
+
             <q-btn
               size="80%"
               square
@@ -106,6 +109,19 @@
             </q-btn>
           </div>
         </template>
+        <template v-slot:header="props">
+          <q-tr :props="props">
+            <q-th v-for="col in props.cols" :key="col.name" :props="props">
+              <q-checkbox
+                v-if="col.name === 'id' && userAuthenticated()"
+                v-model="props.selected"
+                :disable="loadingTable"
+                size="xs"
+              />
+              {{ col.label }}
+            </q-th>
+          </q-tr>
+        </template>
         <template v-slot:body="props">
           <q-tr
             :props="props"
@@ -113,8 +129,16 @@
             :class="markAdvisory(props.row.id)"
             @click="loadAdvisory(props.row.id, props.row.platform_id)"
           >
-            <q-td v-if="userAuthenticated()" auto-width>
-              <q-checkbox v-model="props.selected" />
+            <q-td key="id" :props="props">
+              <div class="row">
+                <q-checkbox
+                  v-if="userAuthenticated()"
+                  size="xs"
+                  v-model="props.selected"
+                  class="col"
+                />
+                <span class="col">{{ props.row.id }} </span>
+              </div>
             </q-td>
             <q-td key="release_status" :props="props">
               <q-chip
@@ -140,14 +164,12 @@
             <q-td key="updated_date" :props="props">{{
               formatDate(props.row.updated_date)
             }}</q-td>
-            <q-td key="id" :props="props">{{ props.row.id }}</q-td>
             <q-td key="platform" :props="props">{{
               platformName(props.row.platform_id)
             }}</q-td>
             <q-td key="original_title" :props="props">{{
               title(props.row)
             }}</q-td>
-            <q-td key="id" :props="props">{{ props.row.id }}</q-td>
           </q-tr>
         </template>
       </q-table>
@@ -235,6 +257,13 @@
         showDialogAdvisories: false,
         columns: [
           {
+            name: 'id',
+            required: true,
+            align: 'left',
+            label: 'ID',
+            field: 'id',
+          },
+          {
             name: 'release_status',
             required: true,
             align: 'left',
@@ -249,13 +278,7 @@
             field: 'updated_date',
             headerStyle: 'width: 120px',
           },
-          {
-            name: 'id',
-            required: true,
-            align: 'left',
-            label: 'ID',
-            field: 'id',
-          },
+
           {
             name: 'platform',
             required: true,
@@ -401,7 +424,10 @@
           .then((response) => {
             this.loading = false
             this.loadingTable = false
-            this.advisors = response.data.records
+            this.advisors = response.data.records.map((advisory) => ({
+              ...advisory,
+              complexId: `${advisory.platform_id}-${advisory.id}`,
+            }))
             this.totalPages = Math.ceil(response.data['total_records'] / 10)
           })
           .catch((error) => {
