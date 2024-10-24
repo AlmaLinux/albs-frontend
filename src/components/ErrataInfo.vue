@@ -1046,7 +1046,7 @@
         this.loadingRelease = true
         this.$api
           .post(
-            `/errata/release_record/${this.advisory.id}/?platform_id=${this.advisory.platform_id}&force=${force}`
+            `/errata/release_new_record/${this.advisory.id}/?platform_id=${this.advisory.platform_id}&force=${force}`
           )
           .then((response) => {
             this.loadingRelease = false
