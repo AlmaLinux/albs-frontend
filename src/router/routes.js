@@ -105,6 +105,17 @@ const routes = [
         },
       },
       {
+        path: 'errata/create',
+        name: 'CreateErrata',
+        component: () => import('pages/CreateErrata.vue'),
+        beforeEnter(to, from, next) {
+          store
+            .dispatch('platforms/loadPlatformList')
+            .then(next())
+            .catch(next())
+        },
+      },
+      {
         path: 'errata/:id',
         component: () => import('pages/ErrataFeed.vue'),
         props: true,

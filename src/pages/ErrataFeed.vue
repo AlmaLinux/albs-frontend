@@ -66,18 +66,28 @@
         wrap-cells
       >
         <template v-slot:top-right v-if="userAuthenticated()">
-          <q-btn
-            size="80%"
-            no-caps
-            icon="restart_alt"
-            color="grey-8"
-            @click="showDialogAdvisories = true"
-          >
-            Reset
-            <q-tooltip>
-              Reset matched packages of Advisories after a specified date
-            </q-tooltip>
-          </q-btn>
+          <div class="q-gutter-md">
+            <q-btn
+              size="80%"
+              square
+              icon="restart_alt"
+              color="grey-8"
+              @click="showDialogAdvisories = true"
+            >
+              <q-tooltip>
+                Reset matched packages of Advisories after a specified date
+              </q-tooltip>
+            </q-btn>
+            <q-btn
+              size="80%"
+              square
+              icon="add"
+              color="green"
+              @click="toNewErrata()"
+            >
+              <q-tooltip> Create a new Advisory </q-tooltip>
+            </q-btn>
+          </div>
         </template>
         <template v-slot:body="props">
           <q-tr
@@ -94,7 +104,17 @@
                 class="text-weight-bolder"
                 square
               >
-                {{ props.row.release_status }}
+                <q-tooltip
+                  anchor="center middle"
+                  self="center middle"
+                  :class="`bg-${statusColor(props.row)}`"
+                  transition-show="scale"
+                  transition-hide="scale"
+                >
+                  <b>
+                    {{ props.row.release_status }}
+                  </b>
+                </q-tooltip>
               </q-chip>
             </q-td>
             <q-td key="updated_date" :props="props">{{
@@ -361,6 +381,11 @@
             actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
           })
         }
+      },
+      toNewErrata() {
+        this.$router.push({
+          name: 'CreateErrata',
+        })
       },
       markAdvisory(id) {
         if (this.selectedAdvisory)
