@@ -161,75 +161,86 @@
         <div v-if="userAuthenticated()">
           <q-separator />
 
-          <q-card-actions class="row justify-between q-gutter-md q-pr-md">
-            <q-btn
-              @click="enablePlatforms()"
-              color="primary"
-              style="width: 30%"
-              :loading="loadingPlatform"
-              no-caps
-            >
-              Add platforms
-            </q-btn>
-            <q-skeleton type="circle" v-if="loadingPage" />
-            <q-btn
-              v-else
-              color="negative"
-              icon="delete"
-              round
-              @click="confirm = true"
-              :disable="loadingPlatform"
-              :loading="loading"
-            >
-              <q-tooltip> Delete product </q-tooltip>
-            </q-btn>
-          </q-card-actions>
-        </div>
-        <div v-if="platformsEnabled">
-          <q-card-section>
-            <q-select
-              v-model="platformsToAdd"
-              multiple
-              use-chips
-              clearable
-              style="max-width: 80%"
-              :options="platforms"
-              option-value="id"
-              option-label="name"
-              hint="Select platforms*"
-              label="Add platforms to the product"
-            >
-              <template v-slot:option="scope">
-                <q-item v-bind="scope.itemProps">
-                  <q-item-section>
-                    <q-item-label>
-                      {{ scope.opt.name }}
-                    </q-item-label>
-                    <q-item-label caption>{{
-                      scope.opt.arch_list.join(', ')
-                    }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-            <q-card-actions align="right">
+          <q-card-actions class="justify-end q-pr-sm">
+            <div class="q-gutter-md">
               <q-btn
+                @click="enablePlatforms()"
                 color="primary"
                 style="width: 30%"
                 :loading="loadingPlatform"
-                :disable="!platformsToAdd.length"
-                label="Add to product"
-                @click="addPlatforms()"
-                no-caps
+                round
+                icon="format_list_bulleted_add"
               >
-                <template v-slot:loading>
-                  <q-spinner class="on-left" />
-                  Loading...
-                </template>
+                <q-tooltip> Add platforms to product </q-tooltip>
               </q-btn>
-            </q-card-actions>
-          </q-card-section>
+              <q-skeleton type="circle" v-if="loadingPage" />
+              <q-btn
+                v-else
+                color="negative"
+                icon="delete"
+                round
+                @click="confirm = true"
+                :disable="loadingPlatform"
+                :loading="loading"
+              >
+                <q-tooltip> Delete product </q-tooltip>
+              </q-btn>
+            </div>
+          </q-card-actions>
         </div>
+        <q-dialog v-model="platformsEnabled" persistent>
+          <q-card style="width: 50%">
+            <q-card-section>
+              <q-select
+                v-model="platformsToAdd"
+                multiple
+                use-chips
+                clearable
+                style="max-width: 80%"
+                :options="platforms"
+                option-value="id"
+                option-label="name"
+                hint="Select platforms*"
+                label="Add platforms to the product"
+              >
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps">
+                    <q-item-section>
+                      <q-item-label>
+                        {{ scope.opt.name }}
+                      </q-item-label>
+                      <q-item-label caption>{{
+                        scope.opt.arch_list.join(', ')
+                      }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+              <q-card-actions align="right">
+                <q-btn
+                  flat
+                  label="Ok"
+                  color="primary"
+                  :loading="loadingPlatform"
+                  :disable="!platformsToAdd.length"
+                  @click="addPlatforms()"
+                >
+                  <template v-slot:loading>
+                    <q-spinner class="on-left" />
+                    Loading...
+                  </template>
+                </q-btn>
+                <q-btn
+                  flat
+                  text-color="negative"
+                  label="Cancel"
+                  v-close-popup
+                  @click="platformsEnabled = false"
+                />
+              </q-card-actions>
+            </q-card-section>
+          </q-card>
+        </q-dialog>
       </q-card>
     </div>
   </div>
