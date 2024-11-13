@@ -49,7 +49,7 @@
         </div>
       </q-card-section>
       <q-card-section
-        v-if="type.value === 'ErrataReferenceType.cve'"
+        v-if="type.value === 'cve'"
         class="row q-gutter-md"
         style="max-width: 100%"
       >
@@ -86,7 +86,7 @@
         />
       </q-card-section>
       <q-card-section
-        v-if="type.value === 'ErrataReferenceType.cve'"
+        v-if="type.value === 'cve'"
         class="row q-gutter-md"
         style="max-width: 100%"
       >
@@ -161,15 +161,15 @@
         let types = []
         for (let key in ErrataReferenceType) {
           types.push({
-            label: ErrataReferenceType[key],
-            value: key,
+            label: ErrataReferenceType[key].toUpperCase(),
+            value: ErrataReferenceType[key],
           })
         }
         return types
       },
       cardStyle() {
         let style = 'width: 700px; max-width: 80vw;'
-        if (this.type.value === 'ErrataReferenceType.cve') {
+        if (this.type.value === 'cve') {
           return style.concat(' max-height: 550px;')
         } else {
           return style.concat(' max-height: 300;')
@@ -205,12 +205,12 @@
           this.reference = JSON.parse(JSON.stringify(reference))
           this.url = reference.href
           this.type = {
-            label: ErrataReferenceType[reference.ref_type],
+            label: reference.ref_type.toUpperCase(),
             value: reference.ref_type,
           }
           this.origRefId = reference.ref_id
           this.refTitle = reference.title
-          if (reference.ref_type === 'ErrataReferenceType.cve') {
+          if (reference.ref_type === 'cve') {
             this.severity = reference.cve.impact
             this.cveId = reference.cve.id
             let cveDate = reference.cve.public.split('T')
@@ -243,7 +243,7 @@
           ref_id: refId,
           title: refId,
         }
-        if (this.type.value === 'ErrataReferenceType.cve') {
+        if (this.type.value === 'cve') {
           if (
             !this.$refs.refCveId.validate() ||
             !this.$refs.refCveSeverity.validate() ||
@@ -276,7 +276,7 @@
           ref_id: this.origRefId,
           title: this.refTitle,
         }
-        if (this.type.value === 'ErrataReferenceType.cve') {
+        if (this.type.value === 'cve') {
           if (
             !this.$refs.refCveId.validate() ||
             !this.$refs.refCveSeverity.validate() ||
