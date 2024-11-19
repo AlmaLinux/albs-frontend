@@ -39,7 +39,7 @@
         >
           <template v-slot:append>
             <q-btn
-              v-if="titleWarn(advisory.title)"
+              v-if="titleWarn(title)"
               round
               dense
               flat
@@ -63,7 +63,7 @@
         >
           <template v-slot:append>
             <q-btn
-              v-if="descriptionWarn(advisory.description)"
+              v-if="descriptionWarn(description)"
               round
               dense
               flat
@@ -410,9 +410,7 @@
       </q-card-section>
       <q-card-actions align="right" v-if="userAuthenticated()">
         <q-btn
-          v-if="
-            descriptionWarn(advisory.description) || titleWarn(advisory.title)
-          "
+          v-if="descriptionWarn(description) || titleWarn(title)"
           no-caps
           color="green"
           @click="updateAdvisory(advisory.id, advisory.platform_id)"
