@@ -132,7 +132,6 @@ const routes = [
         name: 'ErrataRelease',
         meta: {requiresAuth: true},
         component: () => import('pages/ErrataRelease.vue'),
-        props: (route) => ({...route.params}),
       },
       {
         path: 'release-feed',

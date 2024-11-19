@@ -8,17 +8,16 @@
 import { defineComponent } from 'vue'
 import PackageLocationSelectionForm from 'components/PackageLocationSelectionForm.vue'
 import { Notify } from 'quasar'
+import { useRoute } from 'vue-router'
 
 export default defineComponent({
-    props: {
-        request_body: String
-    },
     created () {
         this.createRelease()
     },
     methods: {
         createRelease() {
-            let data = JSON.parse(this.request_body)
+            const route = useRoute()
+            let data = JSON.parse(route.query.requestBody)
             this.$api.post(`/releases/new/`, data)
             .then(response => {
                 this.$refs.packageLocationSelectionForm.createTable(response.data)
