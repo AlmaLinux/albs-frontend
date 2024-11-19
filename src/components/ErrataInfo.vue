@@ -1022,17 +1022,18 @@
           }
         })
         if (build_tasks.length) {
-          let request_body = {
+          let requestBody = {
             builds: Array.from(builds),
             build_tasks: build_tasks,
+            // product_id should not be hardcoded
             product_id: 1, //AlmaLinux product
             platform_id: this.advisory.platform_id,
             reference_platform_id: this.advisory.platform_id,
           }
-          request_body = JSON.stringify(request_body)
+          requestBody = JSON.stringify(requestBody)
           this.$router.push({
             name: 'ErrataRelease',
-            params: {request_body},
+            query: {requestBody},
           })
         } else {
           Notify.create({
