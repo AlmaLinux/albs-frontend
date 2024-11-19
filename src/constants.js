@@ -182,10 +182,10 @@ const ErrataReleaseStatus = {
 }
 
 const ErrataReferenceType = {
-  'ErrataReferenceType.cve': 'CVE',
-  'ErrataReferenceType.rhsa': 'RHSA',
-  'ErrataReferenceType.self_ref': 'Self Ref',
-  'ErrataReferenceType.bugzilla': 'Bugzilla',
+  'ErrataReferenceType.cve': 'cve',
+  'ErrataReferenceType.rhsa': 'rhsa',
+  'ErrataReferenceType.self_ref': 'self',
+  'ErrataReferenceType.bugzilla': 'bugzilla',
 }
 
 export {

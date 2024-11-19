@@ -112,9 +112,9 @@
                   {{ props.row.ref_id }}
                 </q-td>
                 <q-td key="ref_type" :props="props">
-                  {{ errataReferenceType[props.row.ref_type] }}
+                  {{ props.row.ref_type.toUpperCase() }}
                   <q-btn
-                    v-if="errataReferenceType[props.row.ref_type] === 'CVE'"
+                    v-if="props.row.ref_type === 'cve'"
                     size="sm"
                     color="accent"
                     round
@@ -137,7 +137,7 @@
                       dense
                       round
                       icon="edit"
-                      @click="onEditReferance(props.row)"
+                      @click="onEditReference(props.row)"
                     />
                     <q-btn
                       class="del-btn"
@@ -343,8 +343,8 @@
     </q-card>
     <ErrataReferencesSelection
       ref="errataReferencesSelection"
-      @addRef="addReferance"
-      @editRef="editReferance"
+      @addRef="addReference"
+      @editRef="editReference"
     />
   </div>
 </template>
@@ -461,14 +461,14 @@
       onAddReferance() {
         this.$refs.errataReferencesSelection.open()
       },
-      onEditReferance(reference) {
+      onEditReference(reference) {
         this.$refs.errataReferencesSelection.open(reference)
       },
-      editReferance(oldRef, newRef) {
+      editReference(oldRef, newRef) {
         this.deleteRef(oldRef)
-        this.addReferance(newRef)
+        this.addReference(newRef)
       },
-      addReferance(newRef) {
+      addReference(newRef) {
         this.references.push(newRef)
       },
       nameRule(values) {
@@ -662,9 +662,6 @@
         })
         let data = {
           id: this.advisoryId,
-          freezed: false,
-          status: this.status,
-          version: this.version,
           platform_id: this.platform.value,
           issued_date: this.issued_date,
           updated_date: this.updated_date,
