@@ -61,12 +61,32 @@
         color="primary"
         :loading="loadingTable"
         :rows-per-page-options="[10]"
+        row-key="complexId"
         hide-pagination
         binary-state-sort
         wrap-cells
+        :selection="userAuthenticated() ? 'multiple' : null"
+        v-model:selected="selectedAdvisories"
       >
         <template v-slot:top-right v-if="userAuthenticated()">
           <div class="q-gutter-md">
+            <q-btn
+              size="80%"
+              square
+              v-if="selectedAdvisories.length"
+              @click="
+                selectionHasSkippedPackages()
+                  ? (confirm = true)
+                  : bulkReleaseErratas()
+              "
+              no-caps
+              icon="backup"
+              color="primary"
+              :loading="loadingRelease"
+            >
+              <q-tooltip> Release selected Advisories </q-tooltip>
+            </q-btn>
+
             <q-btn
               size="80%"
               square
@@ -89,6 +109,19 @@
             </q-btn>
           </div>
         </template>
+        <template v-slot:header="props">
+          <q-tr :props="props">
+            <q-th v-for="col in props.cols" :key="col.name" :props="props">
+              <q-checkbox
+                v-if="col.name === 'id' && userAuthenticated()"
+                v-model="props.selected"
+                :disable="loadingTable"
+                size="xs"
+              />
+              {{ col.label }}
+            </q-th>
+          </q-tr>
+        </template>
         <template v-slot:body="props">
           <q-tr
             :props="props"
@@ -96,6 +129,17 @@
             :class="markAdvisory(props.row.id)"
             @click="loadAdvisory(props.row.id, props.row.platform_id)"
           >
+            <q-td key="id" :props="props">
+              <div class="row">
+                <q-checkbox
+                  v-if="userAuthenticated()"
+                  size="xs"
+                  v-model="props.selected"
+                  class="col"
+                />
+                <span class="col">{{ props.row.id }} </span>
+              </div>
+            </q-td>
             <q-td key="release_status" :props="props">
               <q-chip
                 :color="statusColor(props.row)"
@@ -120,7 +164,6 @@
             <q-td key="updated_date" :props="props">{{
               formatDate(props.row.updated_date)
             }}</q-td>
-            <q-td key="id" :props="props">{{ props.row.id }}</q-td>
             <q-td key="platform" :props="props">{{
               platformName(props.row.platform_id)
             }}</q-td>
@@ -168,6 +211,27 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+
+  <q-dialog v-model="confirm" persistent>
+    <q-card style="width: 50%">
+      <q-card-section>
+        <div class="text-h6">Warning</div>
+      </q-card-section>
+      <q-card-section>
+        Are you sure you want to release the record with skipped packages?
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn
+          flat
+          label="Ok"
+          color="primary"
+          @click="bulkReleaseErratas(true)"
+          :loading="loadingRelease"
+        />
+        <q-btn flat text-color="negative" label="Cancel" v-close-popup />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script>
@@ -187,10 +251,18 @@
         loading: false,
         loadingReset: false,
         loadingTable: false,
+        loadingRelease: false,
         totalPages: ref(1),
         selectedAdvisory: null,
         showDialogAdvisories: false,
         columns: [
+          {
+            name: 'id',
+            required: true,
+            align: 'left',
+            label: 'ID',
+            field: 'id',
+          },
           {
             name: 'release_status',
             required: true,
@@ -206,13 +278,7 @@
             field: 'updated_date',
             headerStyle: 'width: 120px',
           },
-          {
-            name: 'id',
-            required: true,
-            align: 'left',
-            label: 'ID',
-            field: 'id',
-          },
+
           {
             name: 'platform',
             required: true,
@@ -230,6 +296,8 @@
         ],
         errataStatuses: ErrataReleaseStatus,
         advisors: [],
+        selectedAdvisories: [],
+        confirm: false,
       }
     },
     created() {
@@ -270,6 +338,59 @@
         this.loading = true
         this.currentPage = 1
       },
+      bulkReleaseErratas(force = false) {
+        this.loadingRelease = true
+        let records_ids = this.selectedAdvisories.map((advisory) => advisory.id)
+        this.$api
+          .post(`/errata/bulk_release_records/?force=${force}`, records_ids)
+          .then((response) => {
+            this.loadingRelease = false
+            Notify.create({
+              message: `${response.data.message}`,
+              type: 'positive',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+            this.loadAdvisories()
+          })
+          .catch((error) => {
+            this.loadingRelease = false
+            Notify.create({
+              message: `${error.response.status}: ${error.response.statusText}`,
+              type: 'negative',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+          })
+        this.confirm = false
+      },
+      selectionHasSkippedPackages() {
+        for (const advisory of this.selectedAdvisories) {
+          if (this.advisoryHasSkippedPackages(advisory)) {
+            return true
+          }
+        }
+        return false
+      },
+      advisoryHasSkippedPackages(advisory) {
+        let packages = {}
+        let arch_list = this.platforms.find(
+          (platform) => platform.value == advisory.platform_id
+        ).arch_list
+        advisory.packages.forEach((pack) => {
+          if (arch_list.includes(pack.arch)) {
+            packages[pack.source_srpm]
+              ? packages[pack.source_srpm].push(pack)
+              : (packages[pack.source_srpm] = [pack])
+          }
+        })
+        for (const src in packages) {
+          for (const pack of packages[src]) {
+            if (pack.albs_packages.length === 0) {
+              return true
+            }
+          }
+        }
+        return false
+      },
       statusColor(record) {
         let col = ''
         switch (record.release_status) {
@@ -303,7 +424,10 @@
           .then((response) => {
             this.loading = false
             this.loadingTable = false
-            this.advisors = response.data.records
+            this.advisors = response.data.records.map((advisory) => ({
+              ...advisory,
+              complexId: `${advisory.platform_id}-${advisory.id}`,
+            }))
             this.totalPages = Math.ceil(response.data['total_records'] / 10)
           })
           .catch((error) => {
