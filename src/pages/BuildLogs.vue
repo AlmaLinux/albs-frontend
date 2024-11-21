@@ -25,19 +25,17 @@
         @download="onDownload(artifact)"
       />
 
-      <template v-if="!hasSrcArch || arch === 'src'">
-        <q-item-section v-if="mockSrpmLogs.length">
-          mock src-RPM logs:
-        </q-item-section>
-        <build-log-link
-          v-for="artifact in mockSrpmLogs"
-          :key="artifact.name"
-          :artifact="artifact"
-          :selected="artifact.name === selectedLog"
-          @view="onView(artifact)"
-          @download="onDownload(artifact)"
-        />
-      </template>
+      <q-item-section v-if="mockSrpmLogs.length">
+        mock src-RPM logs:
+      </q-item-section>
+      <build-log-link
+        v-for="artifact in mockSrpmLogs"
+        :key="artifact.name"
+        :artifact="artifact"
+        :selected="artifact.name === selectedLog"
+        @view="onView(artifact)"
+        @download="onDownload(artifact)"
+      />
 
       <q-item-section v-if="buildArtifacts.length">
         Build artifacts:
@@ -89,7 +87,6 @@
         build: null,
         logText: '',
         selectedLog: null,
-        hasSrcArch: false,
         arch: this.$route.query.arch,
       }
     },
@@ -146,8 +143,6 @@
         Loading.show()
         this.$api.get(`/builds/${this.buildId}/`).then((response) => {
           this.build = response.data
-          let srcTask = this.build.tasks.find((task) => task.arch === 'src')
-          this.hasSrcArch = !!srcTask
           if (this.task.error) {
             this.task.artifacts.push({
               type: 'build_log',
