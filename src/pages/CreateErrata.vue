@@ -6,13 +6,6 @@
           <div class="text-h6">Create New Advisory</div>
         </q-card-section>
         <q-card-section class="row q-gutter-md" style="max-width: 100%">
-          <q-input
-            label="ID"
-            v-model="advisoryId"
-            class="col"
-            hint="Example: ALSA-2024:A001"
-            :rules="[(val) => !!val || 'ID is required']"
-          />
           <q-select
             v-model="platform"
             :options="platforms"
@@ -20,6 +13,14 @@
             class="col"
             clearable
             :rules="[(val) => !!val.value || 'Platform is required']"
+          />
+          <q-input
+            label="ID"
+            v-model="advisoryId"
+            class="col"
+            hint="Example: ALSA-2024:A001"
+            hide-hint
+            :rules="[isValidId]"
           />
           <q-input
             v-model="issued_date"
@@ -455,6 +456,30 @@
       },
     },
     methods: {
+      isValidId(val) {
+	if (!this.platform) {
+          return 'Select a platform first'
+        }
+        if (!val) {
+          return 'ID is required'
+        }
+        const regex = /^AL[B|E|S]A-\d{4}:A\d{3,4}$/
+        if (!regex.test(val)){
+          return 'ID is invalid. Example: ALSA-2024:A001'
+	}
+        return this.$api
+          .get(`/errata/query/?id=${val}&platform_id=${this.platform.value}`)
+          .then((response) => {
+            if (response.data.total_records > 0) {
+                return 'ID already exists, please choose another one'
+            }
+            return true
+          })
+          .catch((error) => {
+            console.log(error)
+            return false
+          })
+      },
       goToBuild(build_id) {
         window.open(`/build/${build_id}`, '_blank')
       },
