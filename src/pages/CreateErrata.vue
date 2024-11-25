@@ -576,8 +576,13 @@
             let build = response.data
             this.uniqueBuildsId.add(+buildId)
             let buildRunning = false
+            let wrongPlatform = false
 
-            build.tasks.forEach((task) => {
+            for (const task of build.tasks) {
+              if (task.platform.id !== this.platform.value) {
+                wrongPlatform = true
+                break
+              }
               switch (task.status) {
                 case BuildStatus.COMPLETED:
                   for (let artifact of task.artifacts) {
@@ -605,10 +610,19 @@
                 default:
                   buildRunning = true
               }
-            })
+            }
             if (buildRunning) {
               Notify.create({
                 message: `Build ${buildId} is still running`,
+                type: 'negative',
+                actions: [
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
+              })
+              this.uniqueBuildsId.delete(+buildId)
+            } else if (wrongPlatform) {
+              Notify.create({
+                message: `Packages in build ${buildId} do not match the selected platform`,
                 type: 'negative',
                 actions: [
                   {label: 'Dismiss', color: 'white', handler: () => {}},
