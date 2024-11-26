@@ -441,21 +441,21 @@
     },
     methods: {
       isValidId(val) {
-	if (!this.platform) {
+        if (!this.platform) {
           return 'Select a platform first'
         }
         if (!val) {
           return 'ID is required'
         }
         const regex = /^AL[B|E|S]A-\d{4}:A\d{3,4}$/
-        if (!regex.test(val)){
+        if (!regex.test(val)) {
           return 'ID is invalid. Example: ALSA-2024:A001'
-	}
+        }
         return this.$api
           .get(`/errata/query/?id=${val}&platform_id=${this.platform.value}`)
           .then((response) => {
             if (response.data.total_records > 0) {
-                return 'ID already exists, please choose another one'
+              return 'ID already exists, please choose another one'
             }
             return true
           })
@@ -579,12 +579,13 @@
                       continue
                     let newPkg = splitRpmFileName(artifact.name)
                     let alreadyAdded = pkgs.find((pkg) => {
-                      return (pkg.name === newPkg.name &&
-                      pkg.version === newPkg.version &&
-                      pkg.release === newPkg.release)
+                      return (
+                        pkg.name === newPkg.name &&
+                        pkg.version === newPkg.version &&
+                        pkg.release === newPkg.release
+                      )
                     })
-                    if (alreadyAdded)
-                      continue
+                    if (alreadyAdded) continue
                     pkgs.push({
                       name: newPkg.name,
                       epoch: 0,

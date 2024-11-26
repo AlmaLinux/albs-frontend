@@ -256,10 +256,7 @@
         this.close()
       },
       editRef() {
-        if (
-          !this.$refs.refURL.validate() ||
-          !this.$refs.refType.validate()
-        )
+        if (!this.$refs.refURL.validate() || !this.$refs.refType.validate())
           return
         let newRef = {
           href: this.url,
