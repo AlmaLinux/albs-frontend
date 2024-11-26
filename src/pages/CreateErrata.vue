@@ -572,16 +572,25 @@
                   for (let artifact of task.artifacts) {
                     if (
                       artifact.type !== 'rpm' ||
-                      artifact.name.includes('.src.')
+                      artifact.name.includes('.src.') ||
+                      artifact.name.includes('debugsource') ||
+                      artifact.name.includes('debuginfo')
                     )
                       continue
-                    let pkg = splitRpmFileName(artifact.name)
+                    let newPkg = splitRpmFileName(artifact.name)
+                    let alreadyAdded = pkgs.find((pkg) => {
+                      return (pkg.name === newPkg.name &&
+                      pkg.version === newPkg.version &&
+                      pkg.release === newPkg.release)
+                    })
+                    if (alreadyAdded)
+                      continue
                     pkgs.push({
-                      name: pkg.name,
+                      name: newPkg.name,
                       epoch: 0,
-                      version: pkg.version,
-                      release: pkg.release,
-                      arch: pkg.arch,
+                      version: newPkg.version,
+                      release: newPkg.release,
+                      arch: newPkg.arch,
                       reboot_suggested: false,
                       build_id: build.id,
                     })
