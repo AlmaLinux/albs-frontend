@@ -96,7 +96,7 @@
             <template v-slot:body="props">
               <q-tr :props="props">
                 <q-td key="id" :props="props">
-                  {{ props.row.ref_id }}
+                  {{ props.row.title }}
                 </q-td>
                 <q-td key="ref_type" :props="props">
                   {{ props.row.ref_type.toUpperCase() }}
@@ -364,9 +364,9 @@
           {
             name: 'id',
             required: true,
-            label: 'ID',
+            label: 'Title',
             align: 'left',
-            field: (row) => row.ref_id,
+            field: (row) => row.title,
             sortable: true,
           },
           {

@@ -47,7 +47,7 @@
       >
         <q-input
           ref="refCveId"
-          label="CVE ID"
+          label="CVE ID (Title)"
           v-model="cveId"
           class="col"
           :rules="[(val) => !!val || 'ID is required']"
@@ -258,8 +258,7 @@
       editRef() {
         if (
           !this.$refs.refURL.validate() ||
-          !this.$refs.refType.validate() ||
-          !this.$refs.refId.validate()
+          !this.$refs.refType.validate()
         )
           return
         let newRef = {
