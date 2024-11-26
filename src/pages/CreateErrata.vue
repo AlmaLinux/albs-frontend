@@ -44,20 +44,6 @@
             class="col"
             hint="Can be empty"
           />
-          <q-input
-            label="Version"
-            v-model="version"
-            class="col"
-            hint="'3' by default"
-            :rules="[(val) => !!val || 'Version is required']"
-          />
-          <q-input
-            label="Status"
-            v-model="status"
-            class="col"
-            hint="'final' by default"
-            :rules="[(val) => !!val || 'Status is required']"
-          />
           <q-select
             ref="refSeverity"
             v-model="severity"
@@ -363,8 +349,6 @@
       return {
         advisoryId: '',
         platform: '',
-        version: '3',
-        status: 'final',
         severity: '',
         issued_date: '',
         updated_date: '',

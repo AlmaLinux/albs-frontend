@@ -25,15 +25,7 @@
         />
         <div class="row q-gutter-md">
           <q-input
-            v-if="Object.keys(reference).length !== 0"
-            ref="refId"
-            label="Ref ID"
-            v-model="origRefId"
-            class="col"
-            :rules="[(val) => !!val || 'Ref ID is required']"
-          />
-          <q-input
-            v-if="Object.keys(reference).length !== 0"
+            v-if="Object.keys(reference).length !== 0 && type.value !== 'cve'"
             label="Title"
             v-model="refTitle"
             class="col"
