@@ -561,10 +561,15 @@
                       artifact.name.includes('.src.')
                     )
                       continue
-                    let pkg = splitRpmFileName(artifact.name)
+                    let pkg = artifact.meta
+                    // TODO: Remove this fallback afte some time
+                    if (!pkg) {
+                      pkg = splitRpmFileName(artifact.name)
+                      pkg.epoch = 0
+                    }
                     pkgs.push({
                       name: pkg.name,
-                      epoch: 0,
+                      epoch: pkg.epoch,
                       version: pkg.version,
                       release: pkg.release,
                       arch: pkg.arch,
