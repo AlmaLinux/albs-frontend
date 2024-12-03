@@ -2,10 +2,7 @@
   <q-card square class="shadow-1">
     <q-card-section class="no-padding row">
       <div style="overflow: auto" class="col-10">
-        <div
-          class="q-pt-sm q-pl-md"
-          v-if="rpm_module && Object.keys(rpm_module).length !== 0"
-        >
+        <div class="q-pt-sm q-pl-md" v-if="rpm_module">
           <span>
             <b>Built modules:&nbsp;</b>
           </span>
@@ -148,14 +145,13 @@
         return new Date(this.build.created_at).toLocaleString()
       },
       rpm_module() {
-        let rpm_module = []
-        this.build.tasks.forEach((task) => {
+        for (const task of this.build.tasks) {
+          if (task.arch === 'src') continue
           if (task.rpm_modules) {
-            rpm_module = task.rpm_modules[0]
-            return
+            return task.rpm_modules[0]
           }
-        })
-        return rpm_module
+        }
+        return false
       },
     },
     methods: {
