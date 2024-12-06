@@ -6,13 +6,6 @@
           <div class="text-h6">Create New Advisory</div>
         </q-card-section>
         <q-card-section class="row q-gutter-md" style="max-width: 100%">
-          <q-input
-            label="ID"
-            v-model="advisoryId"
-            class="col"
-            hint="Example: ALSA-2024:A001"
-            :rules="[(val) => !!val || 'ID is required']"
-          />
           <q-select
             v-model="platform"
             :options="platforms"
@@ -20,6 +13,14 @@
             class="col"
             clearable
             :rules="[(val) => !!val.value || 'Platform is required']"
+          />
+          <q-input
+            label="ID"
+            v-model="advisoryId"
+            class="col"
+            hint="Example: ALSA-2024:A001"
+            hide-hint
+            :rules="[isValidId]"
           />
           <q-input
             v-model="issued_date"
@@ -42,20 +43,6 @@
             v-model="errataModule"
             class="col"
             hint="Can be empty"
-          />
-          <q-input
-            label="Version"
-            v-model="version"
-            class="col"
-            hint="'3' by default"
-            :rules="[(val) => !!val || 'Version is required']"
-          />
-          <q-input
-            label="Status"
-            v-model="status"
-            class="col"
-            hint="'final' by default"
-            :rules="[(val) => !!val || 'Status is required']"
           />
           <q-select
             ref="refSeverity"
@@ -109,7 +96,7 @@
             <template v-slot:body="props">
               <q-tr :props="props">
                 <q-td key="id" :props="props">
-                  {{ props.row.ref_id }}
+                  {{ props.row.title }}
                 </q-td>
                 <q-td key="ref_type" :props="props">
                   {{ props.row.ref_type.toUpperCase() }}
@@ -362,8 +349,6 @@
       return {
         advisoryId: '',
         platform: '',
-        version: '3',
-        status: 'final',
         severity: '',
         issued_date: '',
         updated_date: '',
@@ -379,9 +364,9 @@
           {
             name: 'id',
             required: true,
-            label: 'ID',
+            label: 'Title',
             align: 'left',
-            field: (row) => row.ref_id,
+            field: (row) => row.title,
             sortable: true,
           },
           {
@@ -455,6 +440,30 @@
       },
     },
     methods: {
+      isValidId(val) {
+        if (!this.platform) {
+          return 'Select a platform first'
+        }
+        if (!val) {
+          return 'ID is required'
+        }
+        const regex = /^AL[B|E|S]A-\d{4}:A\d{3,4}$/
+        if (!regex.test(val)) {
+          return 'ID is invalid. Example: ALSA-2024:A001'
+        }
+        return this.$api
+          .get(`/errata/query/?id=${val}&platform_id=${this.platform.value}`)
+          .then((response) => {
+            if (response.data.total_records > 0) {
+              return 'ID already exists, please choose another one'
+            }
+            return true
+          })
+          .catch((error) => {
+            console.log(error)
+            return false
+          })
+      },
       goToBuild(build_id) {
         window.open(`/build/${build_id}`, '_blank')
       },
@@ -551,14 +560,21 @@
             let build = response.data
             this.uniqueBuildsId.add(+buildId)
             let buildRunning = false
+            let wrongPlatform = false
 
-            build.tasks.forEach((task) => {
+            for (const task of build.tasks) {
+              if (task.platform.id !== this.platform.value) {
+                wrongPlatform = true
+                break
+              }
               switch (task.status) {
                 case BuildStatus.COMPLETED:
                   for (let artifact of task.artifacts) {
                     if (
                       artifact.type !== 'rpm' ||
-                      artifact.name.includes('.src.')
+                      artifact.name.includes('.src.') ||
+                      artifact.name.includes('debugsource') ||
+                      artifact.name.includes('debuginfo')
                     )
                       continue
                     let pkg = artifact.meta
@@ -567,6 +583,14 @@
                       pkg = splitRpmFileName(artifact.name)
                       pkg.epoch = 0
                     }
+                    let alreadyAdded = pkgs.find((p) => {
+                      return (
+                        p.name === pkg.name &&
+                        p.version === pkg.version &&
+                        p.release === pkg.release
+                      )
+                    })
+                    if (alreadyAdded) continue
                     pkgs.push({
                       name: pkg.name,
                       epoch: pkg.epoch,
@@ -585,10 +609,19 @@
                 default:
                   buildRunning = true
               }
-            })
+            }
             if (buildRunning) {
               Notify.create({
                 message: `Build ${buildId} is still running`,
+                type: 'negative',
+                actions: [
+                  {label: 'Dismiss', color: 'white', handler: () => {}},
+                ],
+              })
+              this.uniqueBuildsId.delete(+buildId)
+            } else if (wrongPlatform) {
+              Notify.create({
+                message: `Packages in build ${buildId} do not match the selected platform`,
                 type: 'negative',
                 actions: [
                   {label: 'Dismiss', color: 'white', handler: () => {}},

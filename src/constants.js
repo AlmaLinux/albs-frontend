@@ -184,7 +184,6 @@ const ErrataReleaseStatus = {
 const ErrataReferenceType = {
   'ErrataReferenceType.cve': 'cve',
   'ErrataReferenceType.rhsa': 'rhsa',
-  'ErrataReferenceType.self_ref': 'self',
   'ErrataReferenceType.bugzilla': 'bugzilla',
 }
 
