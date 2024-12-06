@@ -577,21 +577,26 @@
                       artifact.name.includes('debuginfo')
                     )
                       continue
-                    let newPkg = splitRpmFileName(artifact.name)
-                    let alreadyAdded = pkgs.find((pkg) => {
+                    let pkg = artifact.meta
+                    // TODO: Remove this fallback afte some time
+                    if (!pkg) {
+                      pkg = splitRpmFileName(artifact.name)
+                      pkg.epoch = 0
+                    }
+                    let alreadyAdded = pkgs.find((p) => {
                       return (
-                        pkg.name === newPkg.name &&
-                        pkg.version === newPkg.version &&
-                        pkg.release === newPkg.release
+                        p.name === pkg.name &&
+                        p.version === pkg.version &&
+                        p.release === pkg.release
                       )
                     })
                     if (alreadyAdded) continue
                     pkgs.push({
-                      name: newPkg.name,
-                      epoch: 0,
-                      version: newPkg.version,
-                      release: newPkg.release,
-                      arch: newPkg.arch,
+                      name: pkg.name,
+                      epoch: pkg.epoch,
+                      version: pkg.version,
+                      release: pkg.release,
+                      arch: pkg.arch,
                       reboot_suggested: false,
                       build_id: build.id,
                     })
