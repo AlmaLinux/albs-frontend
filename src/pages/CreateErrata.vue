@@ -42,8 +42,16 @@
             label="Module"
             v-model="errataModule"
             class="col"
-            hint="Can be empty"
+            hint="Can be empty. When provided, it should follow the format 'name:stream'"
           />
+          <q-toggle v-model="develModule" v-if="errataModule" left-label>
+            <q-tooltip>
+              Add devel module to errata? If so, don't forget to also add it in
+              title
+            </q-tooltip>
+          </q-toggle>
+        </q-card-section>
+        <q-card-section class="q-gutter-md" style="max-width: 100%">
           <q-select
             ref="refSeverity"
             v-model="severity"
@@ -57,6 +65,7 @@
           <q-input
             v-model="title"
             label="Bulletin title"
+            hint="i.e.: 'vim security update', 'squid:4 security update', 'nginx:1.22 and nginx-devel:1.22 security update'"
             :rules="[(val) => !!val || 'Title is required']"
           />
           <q-input
@@ -359,6 +368,7 @@
         references: [],
         uniqueBuildsId: new Set(),
         errataModule: '',
+        develModule: false,
         packages: [],
         refColumns: [
           {
@@ -705,7 +715,8 @@
           updated_date: this.updated_date,
           title: this.title,
           description: this.description,
-          module: this.module,
+          module: this.errataModule,
+          devel_module: this.develModule,
           severity: this.severity,
           references: this.references,
           packages: pkgs,
