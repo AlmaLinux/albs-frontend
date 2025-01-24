@@ -126,7 +126,7 @@
           <q-tr
             :props="props"
             class="cursor-pointer"
-            :class="markAdvisory(props.row.id)"
+            :class="markAdvisory(props.row.complexId)"
             @click="loadAdvisory(props.row.id, props.row.platform_id)"
           >
             <q-td key="id" :props="props">
@@ -266,14 +266,14 @@
           {
             name: 'release_status',
             required: true,
-            align: 'left',
+            align: 'center',
             label: 'Status',
             field: 'release_status',
           },
           {
             name: 'updated_date',
             required: true,
-            label: 'Update date',
+            label: 'Updated date',
             align: 'left',
             field: 'updated_date',
             headerStyle: 'width: 120px',
@@ -448,6 +448,7 @@
           .then((response) => {
             this.loadingTable = false
             this.selectedAdvisory = response.data
+            this.selectedAdvisory.complexId = `${platform_id}-${id}`
             this.$router.push({
               query: {
                 id: this.selectedAdvisory.id,
@@ -470,7 +471,6 @@
         const dateInput = document.querySelector('.date')
         if (dateInput.value) {
           const formattedDate = dateInput.value.replace('T', ' ') + ':00'
-          console.log(formattedDate)
           this.loadingReset = true
           this.$api
             .post(
@@ -511,9 +511,11 @@
           name: 'CreateErrata',
         })
       },
-      markAdvisory(id) {
+      markAdvisory(complexId) {
         if (this.selectedAdvisory)
-          return this.selectedAdvisory.id === id ? 'bg-grey-4' : ''
+          return this.selectedAdvisory.complexId === complexId
+            ? 'bg-grey-4'
+            : ''
       },
       formatDate(date) {
         const longEnUSFormatter = new Intl.DateTimeFormat('en-US', {
