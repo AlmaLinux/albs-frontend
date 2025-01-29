@@ -931,7 +931,9 @@
       resetMatchedPackages() {
         this.loadingReset = true
         this.$api
-          .post(`/errata/reset-matched-packages?record_id=${this.advisory.id}`)
+          .post(
+            `/errata/reset-matched-packages?record_id=${this.advisory.id}&platform_id=${this.advisory.platform_id}`
+          )
           .then((response) => {
             this.loadingReset = false
             Notify.create({
