@@ -597,7 +597,8 @@
                       return (
                         p.name === pkg.name &&
                         p.version === pkg.version &&
-                        p.release === pkg.release
+                        p.release === pkg.release &&
+                        p.arch === pkg.arch
                       )
                     })
                     if (alreadyAdded) continue
