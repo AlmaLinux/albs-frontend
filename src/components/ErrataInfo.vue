@@ -815,7 +815,8 @@
         return description && description !== this.advisory.original_description
       },
       platformName(id) {
-        return this.platforms.find((platform) => platform.value == id).label
+        const platform = this.platforms.find((platform) => platform.value == id)
+        return platform ? platform.label : ''
       },
       cveRows(refs) {
         return refs.filter((ref) => ref.cve)

@@ -532,7 +532,8 @@
         return advisory.title ? advisory.title : advisory.original_title
       },
       platformName(id) {
-        return this.platforms.find((platform) => platform.value == id).label
+        const platform = this.platforms.find((platform) => platform.value == id)
+        return platform ? platform.label : ''
       },
     },
     components: {
