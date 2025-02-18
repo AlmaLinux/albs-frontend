@@ -1,23 +1,25 @@
 <template>
   <div class="row no-wrap no-scroll q-pa-md">
     <table class="q-table horizontal-separator full-width col-lg-12 col-xl-10">
-      <tr>
-        <td colspan="2">
-          <q-input placeholder="Search" v-model="search" debounce="300">
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
-        </td>
-        <td>
-          <q-select
-            v-model="statusFilter"
-            label="Status filter"
-            radio
-            :options="testsStatusFilterLabels"
-          />
-        </td>
-      </tr>
+      <thead>
+        <tr>
+          <td colspan="2">
+            <q-input placeholder="Search" v-model="search" debounce="300">
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+          </td>
+          <td>
+            <q-select
+              v-model="statusFilter"
+              label="Status filter"
+              radio
+              :options="testsStatusFilterLabels"
+            />
+          </td>
+        </tr>
+      </thead>
       <tbody v-for="test in tests" :key="test.id">
         <tr class="bg-grey-2">
           <td width="1px"></td>
