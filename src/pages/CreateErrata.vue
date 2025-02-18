@@ -706,6 +706,7 @@
               epoch: pkg.epoch,
               arch: pkg.arch,
               reboot_suggested: pkg.reboot_suggested,
+              build_id: pkg.build_id,
             })
           }
         })
