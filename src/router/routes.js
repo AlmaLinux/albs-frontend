@@ -27,11 +27,10 @@ const routes = [
         name: 'BuildFeed',
         component: () => import('pages/BuildFeed.vue'),
         beforeEnter(to, from, next) {
-          store.dispatch('users/loadUsersList').then(next()).catch(next())
-          store
-            .dispatch('platforms/loadPlatformList')
-            .then(next())
-            .catch(next())
+          Promise.all([
+            store.dispatch('users/loadUsersList'),
+            store.dispatch('platforms/loadPlatformList'),
+          ]).finally(next)
         },
         children: [
           {
@@ -98,10 +97,7 @@ const routes = [
         path: 'errata',
         component: () => import('pages/ErrataFeed.vue'),
         beforeEnter(to, from, next) {
-          store
-            .dispatch('platforms/loadPlatformList')
-            .then(next())
-            .catch(next())
+          store.dispatch('platforms/loadPlatformList').then(next)
         },
       },
       {
