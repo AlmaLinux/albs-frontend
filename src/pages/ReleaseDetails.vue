@@ -130,7 +130,7 @@
             this.release.status === this.releaseStatus.SCHEDULED ))
         },
         revertRelease(releaseId) {
-          this.$api.post(`/releases/${releaseId}/revert`).then(() => {
+          this.$api.post(`/releases/${releaseId}/revert/`).then(() => {
             Notify.create({
               message: `Release ${releaseId} has been queued for revert`,
               type: 'positive',
