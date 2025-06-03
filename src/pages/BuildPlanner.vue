@@ -345,7 +345,7 @@
             description: platform.arch_list.join(', '),
             archList: platform.arch_list,
             modularityVersions: platform.modularity
-              ? platform.modularity.versions
+              ? platform.data.versions
               : '',
           }
         })

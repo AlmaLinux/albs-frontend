@@ -216,11 +216,9 @@
           let flavor = this.$store.state.platform_flavors.flavors.filter(
             (item) => item.id == flavorId.id
           )[0]
-          if (flavor.modularity && flavor.modularity.versions) {
+          if (flavor.modularity && flavor.data.versions) {
             buildItem.module_platform_version =
-              flavor.modularity.versions[
-                flavor.modularity.versions.length - 1
-              ].name
+              flavor.data.versions[flavor.data.versions.length - 1].name
           }
         }
         this.$emit('change', [...this.buildItems, buildItem])
