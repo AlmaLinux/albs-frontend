@@ -230,6 +230,7 @@
           'system_info',
           'install_package',
           'tests',
+          'package_integrity_tests',
           'third_party',
           'uninstall_package',
           'stop_environment',
@@ -350,6 +351,12 @@
                     }
                   }
                 })
+              parsed_test.result.sort((a, b) => {
+                return (
+                  this.test_options.indexOf(a.short_name) -
+                  this.test_options.indexOf(b.short_name)
+                )
+              })
               this.tests.push(parsed_test)
             })
           })
