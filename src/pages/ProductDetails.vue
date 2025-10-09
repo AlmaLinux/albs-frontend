@@ -373,7 +373,7 @@
         this.loadingPlatform = true
         this.$api
           .post(
-            `products/${this.productId}/add_platforms/`,
+            `products/${this.productId}/add-platforms/`,
             this.platformsToAdd
           )
           .then((response) => {
