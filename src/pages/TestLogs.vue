@@ -1,23 +1,25 @@
 <template>
   <div class="row no-wrap no-scroll q-pa-md">
     <table class="q-table horizontal-separator full-width col-lg-12 col-xl-10">
-      <tr>
-        <td colspan="2">
-          <q-input placeholder="Search" v-model="search" debounce="300">
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
-        </td>
-        <td>
-          <q-select
-            v-model="statusFilter"
-            label="Status filter"
-            radio
-            :options="testsStatusFilterLabels"
-          />
-        </td>
-      </tr>
+      <thead>
+        <tr>
+          <td colspan="2">
+            <q-input placeholder="Search" v-model="search" debounce="300">
+              <template v-slot:append>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+          </td>
+          <td>
+            <q-select
+              v-model="statusFilter"
+              label="Status filter"
+              radio
+              :options="testsStatusFilterLabels"
+            />
+          </td>
+        </tr>
+      </thead>
       <tbody v-for="test in tests" :key="test.id">
         <tr class="bg-grey-2">
           <td width="1px"></td>
@@ -190,11 +192,13 @@
           </template>
         </template>
       </tbody>
-      <tr v-if="!tests || tests.length == 0">
-        <td colspan="4" class="text-center text-blue-7">
-          <h6>Nothing here yet</h6>
-        </td>
-      </tr>
+      <tbody v-if="!tests || tests.length == 0">
+        <tr>
+          <td colspan="4" class="text-center text-blue-7">
+            <h6>Nothing here yet</h6>
+          </td>
+        </tr>
+      </tbody>
     </table>
   </div>
 
@@ -305,7 +309,7 @@
                 .filter((opt) => test.alts_response.result[opt])
                 .forEach((opt) => {
                   let res = {}
-                  if (test.alts_response.result.skipped_tests.length) {
+                  if (test.alts_response.result.skipped_tests?.length > 0) {
                     while (test.alts_response.result.skipped_tests.length > 0) {
                       let res = {
                         skipped: true,
