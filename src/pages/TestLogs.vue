@@ -150,13 +150,21 @@
               </td>
               <td class="text-center" width="15%">
                 <q-chip
-                  :color="log.success ? 'green' : 'negative'"
+                  :color="
+                    log.skipped ? 'warning' : log.success ? 'green' : 'negative'
+                  "
                   text-color="white"
                   dense
                   class="text-weight-bolder text-capitalize"
                   square
                 >
-                  {{ log.success ? 'done' : 'failed' }}
+                  {{
+                    log.skipped
+                      ? 'skipped' // If skipped
+                      : log.success
+                        ? 'done'
+                        : 'failed'
+                  }}
                 </q-chip>
               </td>
             </tr>
@@ -184,11 +192,13 @@
           </template>
         </template>
       </tbody>
-      <tr v-if="!tests || tests.length == 0">
-        <td colspan="4" class="text-center text-blue-7">
-          <h6>Nothing here yet</h6>
-        </td>
-      </tr>
+      <tbody v-if="!tests || tests.length == 0">
+        <tr>
+          <td colspan="4" class="text-center text-blue-7">
+            <h6>Nothing here yet</h6>
+          </td>
+        </tr>
+      </tbody>
     </table>
   </div>
 
@@ -224,6 +234,7 @@
           'system_info',
           'install_package',
           'tests',
+          'package_integrity_tests',
           'third_party',
           'uninstall_package',
           'stop_environment',
@@ -298,6 +309,17 @@
                 .filter((opt) => test.alts_response.result[opt])
                 .forEach((opt) => {
                   let res = {}
+                  if (test.alts_response.result.skipped_tests?.length > 0) {
+                    while (test.alts_response.result.skipped_tests.length > 0) {
+                      let res = {
+                        skipped: true,
+                        name: 'Skipped test',
+                        short_name:
+                          test.alts_response.result.skipped_tests.shift(),
+                      }
+                      parsed_test.result.push(res)
+                    }
+                  }
                   if (['tests', 'third_party'].includes(opt)) {
                     for (const item in test.alts_response.result[opt]) {
                       res = {
@@ -333,6 +355,12 @@
                     }
                   }
                 })
+              parsed_test.result.sort((a, b) => {
+                return (
+                  this.test_options.indexOf(a.short_name) -
+                  this.test_options.indexOf(b.short_name)
+                )
+              })
               this.tests.push(parsed_test)
             })
           })
@@ -362,12 +390,18 @@
         }
       },
       onView(log) {
-        let logUrl = `${window.origin}/pulp/content/test_logs/build-${this.buildId}-test_log/${log.name}`
-        this.selectedLog = log.name
-        axios.get(logUrl).then((response) => {
-          this.logText = response.data
+        if (log.name === 'Skipped test') {
+          this.logText =
+            'This test was marked to be skipped specifically for this project and platform'
           this.$refs.openLogView.open()
-        })
+        } else {
+          let logUrl = `${window.origin}/pulp/content/test_logs/build-${this.buildId}-test_log/${log.name}`
+          this.selectedLog = log.name
+          axios.get(logUrl).then((response) => {
+            this.logText = response.data
+            this.$refs.openLogView.open()
+          })
+        }
       },
     },
     components: {
