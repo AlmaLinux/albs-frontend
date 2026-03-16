@@ -1,7 +1,7 @@
 <template>
   <q-card square class="shadow-1">
     <q-card-section class="no-padding row">
-      <div style="overflow: auto" class="col-10">
+      <div style="overflow-x: auto; min-width: 0" class="col-10">
         <div class="q-pt-sm q-pl-md" v-if="rpm_module">
           <span>
             <b>Built modules:&nbsp;</b>
