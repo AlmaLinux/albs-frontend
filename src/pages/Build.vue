@@ -3,7 +3,7 @@
     <span> </span>
     <!--<deploy-tool-link-window ref="deployToolWindow" :build_id="build_id"/>-->
 
-    <q-card flat>
+    <q-card flat style="max-width: 100%; min-width: 0">
       <q-card-section class="text-h6 text-center">
         <router-link :to="{path: `/build/${build.id}`}">
           Build {{ build.id }}
@@ -38,56 +38,58 @@
                 </b>
               </span>
             </div>
-            <table
-              class="text-left q-table horizontal-separator build-info-table"
-            >
-              <thead>
-                <tr>
-                  <th />
-                  <th
-                    v-for="targetName of Object.keys(buildTasks)"
-                    :key="targetName"
-                    class="platform-name text-center"
-                  >
-                    {{ targetName }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
-                  <td>
-                    <buildRef
-                      :buildRef="tasks[0].ref"
-                      :show_cas="true"
-                      :is_cas_authenticated="tasks[0].is_cas_authenticated"
-                      :cas_hash="tasks[0].alma_commit_cas_hash"
-                    />
-                  </td>
-                  <template
-                    v-for="targetName of Object.keys(buildTasks)"
-                    :key="targetName"
-                  >
-                    <td
-                      class="text-center"
-                      v-for="task in buildTasks[targetName][tasks[0].index]"
-                      :key="task.id"
+            <div class="table-scroll-container">
+              <table
+                class="text-left q-table horizontal-separator build-info-table"
+              >
+                <thead>
+                  <tr>
+                    <th />
+                    <th
+                      v-for="targetName of Object.keys(buildTasks)"
+                      :key="targetName"
+                      class="platform-name text-center"
                     >
-                      <q-skeleton
-                        style="margin-left: auto; margin-right: auto"
-                        size="23px"
-                        type="circle"
-                        v-if="buildLoad"
-                      />
-                      <build-status-circle
-                        v-else
-                        :status="task.status"
-                        @click="openTaskLogs(task)"
+                      {{ targetName }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
+                    <td>
+                      <buildRef
+                        :buildRef="tasks[0].ref"
+                        :show_cas="true"
+                        :is_cas_authenticated="tasks[0].is_cas_authenticated"
+                        :cas_hash="tasks[0].alma_commit_cas_hash"
                       />
                     </td>
-                  </template>
-                </tr>
-              </tbody>
-            </table>
+                    <template
+                      v-for="targetName of Object.keys(buildTasks)"
+                      :key="targetName"
+                    >
+                      <td
+                        class="text-center"
+                        v-for="task in buildTasks[targetName][tasks[0].index]"
+                        :key="task.id"
+                      >
+                        <q-skeleton
+                          style="margin-left: auto; margin-right: auto"
+                          size="23px"
+                          type="circle"
+                          v-if="buildLoad"
+                        />
+                        <build-status-circle
+                          v-else
+                          :status="task.status"
+                          @click="openTaskLogs(task)"
+                        />
+                      </td>
+                    </template>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </q-tab-panel>
 
           <q-tab-panel
@@ -113,112 +115,120 @@
                 </b>
               </span>
             </div>
-            <table
-              class="text-left q-table horizontal-separator build-info-table"
-            >
-              <thead>
-                <tr>
-                  <th />
-                  <th>Status</th>
-                  <th>Packages</th>
-                  <th class="text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
-                  <td>
-                    <buildRef
-                      :buildRef="tasks[0].ref"
-                      :show_cas="true"
-                      :is_cas_authenticated="tasks[0].is_cas_authenticated"
-                      :cas_hash="tasks[0].alma_commit_cas_hash"
-                    />
-                  </td>
-                  <template
-                    v-for="task in buildTasks[target][tasks[0].index]"
-                    :key="task.id"
-                  >
-                    <td
-                      :class="getTaskCSS(task)"
-                      @click="openTaskLogs(task)"
-                      :id="`bui-tm-task-${task.id}-status`"
-                    >
-                      {{ getTextStatus(task) }}
-                    </td>
+            <div class="table-scroll-container">
+              <table
+                class="text-left q-table horizontal-separator build-info-table"
+              >
+                <thead>
+                  <tr>
+                    <th />
+                    <th>Status</th>
+                    <th>Packages</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="tasks in buildTasksByIndex" :key="tasks[0].index">
                     <td>
-                      <div
-                        v-for="pkg in sortTaskPackage(getTaskPackages(task))"
-                        :key="pkg.name"
-                        class="row"
+                      <buildRef
+                        :buildRef="tasks[0].ref"
+                        :show_cas="true"
+                        :is_cas_authenticated="tasks[0].is_cas_authenticated"
+                        :cas_hash="tasks[0].alma_commit_cas_hash"
+                      />
+                    </td>
+                    <template
+                      v-for="task in buildTasks[target][tasks[0].index]"
+                      :key="task.id"
+                    >
+                      <td
+                        :class="getTaskCSS(task)"
+                        @click="openTaskLogs(task)"
+                        :id="`bui-tm-task-${task.id}-status`"
                       >
+                        {{ getTextStatus(task) }}
+                      </td>
+                      <td>
                         <div
-                          v-if="pkgNameSrc(pkg.name) && !hasSrcArch"
-                          class="q-pb-sm q-pt-md"
+                          v-for="pkg in sortTaskPackage(getTaskPackages(task))"
+                          :key="pkg.name"
+                          class="row"
                         >
-                          <a class="text-tertiary" :href="pkg.downloadUrl">
+                          <div
+                            v-if="pkgNameSrc(pkg.name) && !hasSrcArch"
+                            class="q-pb-sm q-pt-md"
+                          >
+                            <a class="text-tertiary" :href="pkg.downloadUrl">
+                              {{ pkg.name }}
+                            </a>
+                            <q-separator />
+                          </div>
+                          <a
+                            v-else
+                            class="text-tertiary"
+                            :href="pkg.downloadUrl"
+                          >
                             {{ pkg.name }}
                           </a>
-                          <q-separator />
+                          <q-badge
+                            color="white"
+                            align="bottom"
+                            class="cursor-pointer"
+                          >
+                            <q-icon
+                              v-if="pkg.cas_hash"
+                              size="xs"
+                              name="key"
+                              color="primary"
+                              @click="copyToClipboard(pkg.cas_hash)"
+                            >
+                              <q-tooltip class="text-center">
+                                {{ pkg.cas_hash }} <br />
+                                (click to copy)
+                              </q-tooltip>
+                            </q-icon>
+                            <q-icon
+                              v-else
+                              size="xs"
+                              name="key_off"
+                              color="negative"
+                            >
+                              <q-tooltip>
+                                Package is not notarized
+                              </q-tooltip>
+                            </q-icon>
+                          </q-badge>
                         </div>
-                        <a v-else class="text-tertiary" :href="pkg.downloadUrl">
-                          {{ pkg.name }}
-                        </a>
-                        <q-badge
-                          color="white"
-                          align="bottom"
-                          class="cursor-pointer"
-                        >
-                          <q-icon
-                            v-if="pkg.cas_hash"
-                            size="xs"
-                            name="key"
+                      </td>
+                      <td class="text-center">
+                        <div class="q-gutter-xs">
+                          <q-btn
+                            round
                             color="primary"
-                            @click="copyToClipboard(pkg.cas_hash)"
-                          >
-                            <q-tooltip class="text-center">
-                              {{ pkg.cas_hash }} <br />
-                              (click to copy)
-                            </q-tooltip>
-                          </q-icon>
-                          <q-icon
-                            v-else
-                            size="xs"
-                            name="key_off"
-                            color="negative"
-                          >
-                            <q-tooltip> Package is not notarized </q-tooltip>
-                          </q-icon>
-                        </q-badge>
-                      </div>
-                    </td>
-                    <td class="text-center">
-                      <div class="q-gutter-xs">
-                        <q-btn
-                          round
-                          color="primary"
-                          icon="settings"
-                          size="sm"
-                          title="Show mock options"
-                          v-if="checkMockOptions(task)"
-                          @click="showMock(task)"
-                        />
-                        <q-btn
-                          round
-                          color="primary"
-                          icon="restart_alt"
-                          size="sm"
-                          title="Restart build task tests"
-                          v-if="
-                            testTaskFailed(task.status) && userAuthenticated()
-                          "
-                          @click="restartTestTask(task.id)"
-                        />
-                      </div>
-                    </td>
-                  </template>
-                </tr>
-              </tbody>
-            </table>
+                            icon="settings"
+                            size="sm"
+                            title="Show mock options"
+                            v-if="checkMockOptions(task)"
+                            @click="showMock(task)"
+                          />
+                          <q-btn
+                            round
+                            color="primary"
+                            icon="restart_alt"
+                            size="sm"
+                            title="Restart build task tests"
+                            v-if="
+                              testTaskFailed(task.status) && userAuthenticated()
+                            "
+                            @click="restartTestTask(task.id)"
+                          />
+                        </div>
+                      </td>
+                    </template>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <q-card-section class="no-padding">
               <q-expansion-item
                 label="Repositories"
@@ -1508,6 +1518,10 @@
 <style scoped>
   .q-tab {
     text-transform: none !important;
+  }
+
+  .table-scroll-container {
+    overflow-x: auto;
   }
 
   table.build-info-table tr:last-child td {
