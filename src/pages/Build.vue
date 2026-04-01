@@ -289,6 +289,19 @@
         </q-chip>
       </q-card-section>
 
+      <q-card-section v-if="build.platform_flavors && build.platform_flavors.length">
+        <q-expansion-item label="Platform Flavors" expand-separator icon="local_offer" default-opened>
+          <q-list dense separator>
+            <q-item v-for="flavor in build.platform_flavors" :key="flavor.id">
+              <q-item-section avatar>
+                <q-icon name="local_offer" color="deep-purple" size="xs" />
+              </q-item-section>
+              <q-item-section>{{ flavor.name }}</q-item-section>
+            </q-item>
+          </q-list>
+        </q-expansion-item>
+      </q-card-section>
+
       <q-card-section v-if="build.products.length">
         <q-expansion-item label="Products" expand-separator icon="list">
           <q-item v-for="product in build.products" :key="product.id">
