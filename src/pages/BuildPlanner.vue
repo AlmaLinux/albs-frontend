@@ -30,6 +30,14 @@
           id="bpl-qc-parallel-mode"
         />
 
+        <q-checkbox
+          left-label
+          class="text-grey-8 text-body1 q-pb-sm"
+          v-model="independentTasks"
+          label="Independent tasks"
+          id="bpl-qc-independent-tasks"
+        />
+
         <q-select
           v-model="product"
           :options="productsOptions"
@@ -318,6 +326,7 @@
         },
         product: null,
         parallelMode: true,
+        independentTasks: false,
         platformArches: platformArches,
         currentStep: 'buildEnvironment',
         linked_builds_input: '',
@@ -496,6 +505,7 @@
             name: platform.value,
             arch_list: this.platformArches[platform.value],
             parallel_mode_enabled: this.parallelMode,
+            independent_tasks: this.independentTasks,
           })
         }
         this.buildPlan.platforms = platforms
