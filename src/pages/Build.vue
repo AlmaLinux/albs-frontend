@@ -274,6 +274,19 @@
           <q-avatar icon="shield" color="primary" text-color="white" />
           Secure boot build
         </q-chip>
+        <q-chip
+          v-if="missingSecureBootPackages.length"
+          id="build-qb-secure-boot-warning"
+        >
+          <q-avatar icon="warning" color="negative" text-color="white" />
+          Secure boot required: {{ missingSecureBootPackages.join(', ') }}
+          <q-tooltip>
+            This build was queued without Secure Boot, but the platform
+            requires these package(s) to be built with Secure Boot enabled.
+            The produced artifacts will NOT be usable on Secure Boot
+            systems — please rebuild with the Secure Boot flag.
+          </q-tooltip>
+        </q-chip>
         <q-chip v-if="build.released">
           <q-avatar
             icon="cloud"
@@ -941,6 +954,49 @@
       },
       buildCreatedTime() {
         return new Date(this.build.created_at).toLocaleString()
+      },
+      missingSecureBootPackages() {
+        // Returns SRPM names from this build that the build's platform marks
+        // as "must be built with Secure Boot" but the build itself was
+        // queued with is_secure_boot=false. Empty list = nothing to warn
+        // about. Used to render a red warning chip on completed/in-flight
+        // builds.
+        if (
+          !this.build ||
+          !this.build.tasks ||
+          !this.build.tasks.length
+        ) {
+          return []
+        }
+        if (this.build.tasks[0].is_secure_boot) return []
+        const platforms = this.$store.state.platforms.platforms || []
+        if (!platforms.length) return []
+        const extract = (url) => {
+          if (!url) return null
+          try {
+            const path = new URL(url).pathname
+            const last =
+              path.replace(/\/+$/, '').split('/').pop() || ''
+            return last.replace(/\.git$/, '').trim().toLowerCase() || null
+          } catch (_) {
+            const last = String(url).split('/').pop() || ''
+            return last.replace(/\.git$/, '').trim().toLowerCase() || null
+          }
+        }
+        const offenders = new Set()
+        for (const task of this.build.tasks) {
+          const platformName = task.platform && task.platform.name
+          if (!platformName) continue
+          const platform = platforms.find((p) => p.name === platformName)
+          if (!platform || !platform.data) continue
+          const required = (
+            platform.data.secure_boot_required_packages || []
+          ).map((p) => String(p).toLowerCase())
+          if (!required.length) continue
+          const name = extract(task.ref && task.ref.url)
+          if (name && required.includes(name)) offenders.add(name)
+        }
+        return [...offenders].sort()
       },
     },
     created() {
