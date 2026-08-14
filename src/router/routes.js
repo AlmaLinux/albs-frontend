@@ -71,9 +71,7 @@ const routes = [
           // Platforms are needed so the Build page can detect packages
           // that should have been built with Secure Boot. The endpoint
           // is public, so it's loaded unconditionally.
-          store
-            .dispatch('platforms/loadPlatformList')
-            .catch(() => {})
+          store.dispatch('platforms/loadPlatformList').catch(() => {})
           if (store.getters.isUserValid) {
             store
               .dispatch('products/loadProductList')

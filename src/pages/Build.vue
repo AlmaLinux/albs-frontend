@@ -193,9 +193,7 @@
                               name="key_off"
                               color="negative"
                             >
-                              <q-tooltip>
-                                Package is not notarized
-                              </q-tooltip>
+                              <q-tooltip> Package is not notarized </q-tooltip>
                             </q-icon>
                           </q-badge>
                         </div>
@@ -281,10 +279,10 @@
           <q-avatar icon="warning" color="negative" text-color="white" />
           Secure boot required: {{ missingSecureBootPackages.join(', ') }}
           <q-tooltip>
-            This build was queued without Secure Boot, but the platform
-            requires these package(s) to be built with Secure Boot enabled.
-            The produced artifacts will NOT be usable on Secure Boot
-            systems — please rebuild with the Secure Boot flag.
+            This build was queued without Secure Boot, but the platform requires
+            these package(s) to be built with Secure Boot enabled. The produced
+            artifacts will NOT be usable on Secure Boot systems — please rebuild
+            with the Secure Boot flag.
           </q-tooltip>
         </q-chip>
         <q-chip v-if="build.released">
@@ -302,8 +300,15 @@
         </q-chip>
       </q-card-section>
 
-      <q-card-section v-if="build.platform_flavors && build.platform_flavors.length">
-        <q-expansion-item label="Platform Flavors" expand-separator icon="local_offer" default-opened>
+      <q-card-section
+        v-if="build.platform_flavors && build.platform_flavors.length"
+      >
+        <q-expansion-item
+          label="Platform Flavors"
+          expand-separator
+          icon="local_offer"
+          default-opened
+        >
           <q-list dense separator>
             <q-item v-for="flavor in build.platform_flavors" :key="flavor.id">
               <q-item-section avatar>
@@ -900,11 +905,7 @@
         // queued with is_secure_boot=false. Empty list = nothing to warn
         // about. Used to render a red warning chip on completed/in-flight
         // builds.
-        if (
-          !this.build ||
-          !this.build.tasks ||
-          !this.build.tasks.length
-        ) {
+        if (!this.build || !this.build.tasks || !this.build.tasks.length) {
           return []
         }
         if (this.build.tasks[0].is_secure_boot) return []
@@ -914,12 +915,21 @@
           if (!url) return null
           try {
             const path = new URL(url).pathname
-            const last =
-              path.replace(/\/+$/, '').split('/').pop() || ''
-            return last.replace(/\.git$/, '').trim().toLowerCase() || null
+            const last = path.replace(/\/+$/, '').split('/').pop() || ''
+            return (
+              last
+                .replace(/\.git$/, '')
+                .trim()
+                .toLowerCase() || null
+            )
           } catch (_) {
             const last = String(url).split('/').pop() || ''
-            return last.replace(/\.git$/, '').trim().toLowerCase() || null
+            return (
+              last
+                .replace(/\.git$/, '')
+                .trim()
+                .toLowerCase() || null
+            )
           }
         }
         const offenders = new Set()
