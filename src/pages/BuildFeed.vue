@@ -6,7 +6,11 @@
         :key="build._id"
         :build="build"
         :loading="loading"
+        :selected="isSelected(build)"
+        :selectable="selectionMode"
         style="margin-top: 1vw"
+        @sign="onSign"
+        @toggleSelect="toggleSelect"
       />
     </div>
     <div class="q-pa-lg flex flex-center">
@@ -18,12 +22,61 @@
         id="bfe-qp-pagination"
       />
     </div>
+    <q-page-sticky
+      v-if="userAuthenticated()"
+      position="bottom-right"
+      :offset="[18, 18]"
+    >
+      <q-btn
+        v-if="!selectionMode"
+        no-caps
+        color="primary"
+        icon="playlist_add_check"
+        label="Select for release"
+        class="shadow-4"
+        id="bfe-qb-selection-mode"
+        @click="selectionMode = true"
+      >
+        <q-tooltip>
+          Pick the builds to release, then go to the release form
+        </q-tooltip>
+      </q-btn>
+      <div
+        v-else
+        class="row items-center q-gutter-sm q-pa-sm bg-white shadow-4 rounded-borders"
+      >
+        <span class="text-grey-8">
+          {{ selectedBuilds.length }} build(s) selected
+        </span>
+        <q-btn
+          flat
+          dense
+          no-caps
+          color="grey-8"
+          icon="close"
+          label="Cancel"
+          id="bfe-qb-cancel-selection"
+          @click="cancelSelection()"
+        />
+        <q-btn
+          no-caps
+          color="primary"
+          icon="cloud_upload"
+          label="Create release"
+          :disable="!selectedBuilds.length"
+          id="bfe-qb-create-release"
+          @click="toNewRelease()"
+        />
+      </div>
+    </q-page-sticky>
+    <sign-build-dialog ref="signBuildDialog" @signed="onBuildSigned" />
   </q-page>
 </template>
 
 <script>
   import {defineComponent, ref} from 'vue'
   import BuildFeedItem from 'components/BuildFeedItem.vue'
+  import SignBuildDialog from 'components/SignBuildDialog.vue'
   import {Loading, LocalStorage} from 'quasar'
   import {BuildStatus, SignStatus, TestStatus} from 'src/constants'
   import {parseJwt} from 'src/utils'
@@ -35,6 +88,12 @@
         builds: [],
         totalPages: ref(1),
         loading: false,
+        // Turned on by the "Select for release" button: only then the feed
+        // items show their selection checkbox.
+        selectionMode: false,
+        // Builds picked for a release, kept across pagination so that a
+        // release can be assembled from builds shown on different pages.
+        selectedBuilds: [],
       }
     },
     created() {
@@ -63,6 +122,41 @@
       '$route.query': 'updateFilter',
     },
     methods: {
+      userAuthenticated() {
+        return this.$store.getters.isAuthenticated
+      },
+      isSelected(build) {
+        return this.selectedBuilds.some((selected) => selected.id === build.id)
+      },
+      toggleSelect(build) {
+        if (this.isSelected(build)) {
+          this.selectedBuilds = this.selectedBuilds.filter(
+            (selected) => selected.id !== build.id
+          )
+        } else {
+          this.selectedBuilds.push(build)
+        }
+      },
+      cancelSelection() {
+        this.selectionMode = false
+        this.selectedBuilds = []
+      },
+      toNewRelease() {
+        this.$router.push({
+          path: '/release/create',
+          query: {builds: this.selectedBuilds.map((b) => b.id).join(',')},
+        })
+      },
+      onSign(build) {
+        this.$refs.signBuildDialog.open(build)
+      },
+      onBuildSigned({buildId, signTask}) {
+        let build = this.builds.find((item) => item.id === buildId)
+        if (!build) return
+
+        build.sign_tasks.push({id: signTask.id, status: signTask.status})
+        this.getReleaseStatus(build)
+      },
       checkAuthorize() {
         let user = LocalStorage.getItem('user')
         if (user) {
@@ -178,6 +272,7 @@
     },
     components: {
       BuildFeedItem,
+      SignBuildDialog,
     },
   })
 </script>

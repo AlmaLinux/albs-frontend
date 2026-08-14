@@ -14,16 +14,29 @@
           <thead>
             <tr>
               <th>
-                <q-btn
-                  color="tertiary"
-                  small
-                  flat
-                  class="q-pl-sm no-margin"
-                  icon="info"
-                  :to="{path: `/build/${build.id}`}"
-                  label="details"
-                  :id="`bfi-qb-details-${build.id}`"
-                />
+                <div class="row items-center no-wrap">
+                  <q-checkbox
+                    v-if="selectable"
+                    size="xs"
+                    class="q-ml-xs"
+                    :model-value="selected"
+                    :disable="!releasable"
+                    :id="`bfi-qc-release-${build.id}`"
+                    @update:model-value="$emit('toggleSelect', build)"
+                  >
+                    <q-tooltip> {{ selectionTooltip }} </q-tooltip>
+                  </q-checkbox>
+                  <q-btn
+                    color="tertiary"
+                    small
+                    flat
+                    class="q-pl-sm no-margin"
+                    icon="info"
+                    :to="{path: `/build/${build.id}`}"
+                    label="details"
+                    :id="`bfi-qb-details-${build.id}`"
+                  />
+                </div>
               </th>
               <template v-for="platform in buildPlatforms">
                 <th
@@ -64,12 +77,39 @@
         <br />
         at {{ buildCreatedTime }}
       </div>
-      <div class="q-pt-sm q-pl-md q-pb-md" v-if="build.releaseStatus">
-        <q-skeleton style="width: 100px" v-if="loading" type="text" />
-        <div v-else>
+    </q-card-section>
+    <q-card-section
+      v-if="build.releaseStatus || showSignButton"
+      class="no-padding row items-center"
+    >
+      <div class="col q-pt-sm q-pl-md q-pb-md">
+        <q-skeleton
+          style="width: 100px"
+          v-if="loading && build.releaseStatus"
+          type="text"
+        />
+        <div v-else-if="build.releaseStatus">
           <span class="text-bold"> Release status: </span>
           <span> {{ build.releaseStatus }} </span>
         </div>
+      </div>
+      <div
+        class="col-auto row items-center q-pt-sm q-pr-md q-pb-md"
+        v-if="showSignButton"
+      >
+        <q-btn
+          dense
+          no-caps
+          size="sm"
+          color="primary"
+          icon="lock"
+          label="Sign"
+          class="q-px-sm"
+          :id="`bfi-qb-sign-${build.id}`"
+          @click="$emit('sign', build)"
+        >
+          <q-tooltip> {{ signTooltip }} </q-tooltip>
+        </q-btn>
       </div>
     </q-card-section>
   </q-card>
@@ -79,15 +119,60 @@
   import {defineComponent} from 'vue'
   import {BuildStatus} from '../constants.js'
   import BuildRef from 'components/BuildRef.vue'
-  import {getTaskCSS, nsvca, sortByArches} from '../utils'
+  import {
+    getTaskCSS,
+    isBuildFinished,
+    isBuildSignable,
+    isBuildSigned,
+    lastSignStatus,
+    nsvca,
+    sortByArches,
+  } from '../utils'
+  import {SignStatus} from '../constants.js'
 
   export default defineComponent({
     name: 'BuildFeedItem',
     props: {
       build: Object,
       loading: Boolean,
+      selected: Boolean,
+      selectable: Boolean,
     },
+    emits: ['sign', 'toggleSelect'],
     computed: {
+      buildFinished() {
+        return isBuildFinished(this.build)
+      },
+      buildSigned() {
+        return isBuildSigned(this.build)
+      },
+      // Signing is only offered for builds that still need it: never signed,
+      // or the previous attempt failed. Signed, released and currently
+      // being signed builds have nothing left to do.
+      showSignButton() {
+        return (
+          this.$store.getters.isAuthenticated && isBuildSignable(this.build)
+        )
+      },
+      // A build can only be put into a release once it is built and signed,
+      // the very same conditions the release build selector enforces.
+      releasable() {
+        return this.buildFinished && this.buildSigned
+      },
+      signTooltip() {
+        return lastSignStatus(this.build) === SignStatus.FAILED
+          ? `Signing of build ${this.build.id} failed, click to sign it again`
+          : `Sign build ${this.build.id}`
+      },
+      selectionTooltip() {
+        if (!this.buildFinished) {
+          return `Build ${this.build.id} is not finished yet and cannot be released`
+        }
+        if (!this.buildSigned) {
+          return `Build ${this.build.id} is not signed and cannot be released`
+        }
+        return `Select build ${this.build.id} for a release`
+      },
       buildPlatforms() {
         let platformsNames = new Set()
         let platforms = []

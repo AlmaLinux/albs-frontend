@@ -239,6 +239,10 @@
       releasePlatform: Object,
       releseProduct: Object,
       releaseId: Number,
+      preselectedBuildIds: {
+        type: Array,
+        default: () => [],
+      },
     },
     emits: ['nextStep', 'saveState'],
     data() {
@@ -286,7 +290,47 @@
         })
       },
     },
+    mounted() {
+      if (this.preselectedBuildIds.length) {
+        this.loadPreselectedBuilds()
+      }
+    },
     methods: {
+      // Adds the builds selected in the build feed to the release. They are
+      // loaded one by one, so that every build goes through the very same
+      // checks as a manually added one.
+      async loadPreselectedBuilds() {
+        for (const buildId of this.preselectedBuildIds) {
+          try {
+            await this.loadBuildInfo(buildId)
+          } catch (error) {
+            this.loading = false
+          }
+        }
+        this.preselectPlatform()
+      },
+      // Picks the platform of the added builds, there is nothing to choose
+      // from when all of them were built for the same one.
+      preselectPlatform() {
+        if (this.platform || !this.builds.length) return
+
+        let platforms = {}
+        this.builds.forEach((build) => {
+          build.tasks.forEach((task) => {
+            platforms[task.platform.name] = task.platform
+          })
+        })
+        let names = Object.keys(platforms)
+        if (names.length !== 1) return
+
+        let platform = platforms[names[0]]
+        this.platform = {
+          label: platform.name,
+          value: platform.name,
+          description: platform.arch_list.join(', '),
+          id: platform.id,
+        }
+      },
       productFilter(val, update, abort) {
         update(() => {
           const needle = val.toLocaleLowerCase()
@@ -332,7 +376,7 @@
         if (this.loading) return
 
         this.loading = true
-        this.$api
+        return this.$api
           .get(`/builds/${buildId}/`)
           .then((response) => {
             this.loading = false

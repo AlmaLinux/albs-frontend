@@ -18,6 +18,7 @@
                 :releasePlatform="platform"
                 :releaseId="release_id"
                 :releseProduct="product"
+                :preselectedBuildIds="preselectedBuildIds"
                 @saveState="saveState"
                 @nextStep="onPackagesLocationSelector"
                 ref="buildSelectionForm"
@@ -70,6 +71,18 @@ export default defineComponent({
     },
     created() {
         this.getRealese()
+    },
+    computed: {
+        // Builds picked in the build feed and passed over as
+        // ?builds=1,2,3 so they end up already added to the release.
+        preselectedBuildIds () {
+            if (this.releaseId || !this.$route.query.builds) return []
+
+            return String(this.$route.query.builds)
+                .split(',')
+                .map(id => parseInt(id, 10))
+                .filter(id => !isNaN(id))
+        }
     },
     methods: {
         onPackagesLocationSelector (request_body) {

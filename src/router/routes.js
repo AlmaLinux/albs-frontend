@@ -27,10 +27,16 @@ const routes = [
         name: 'BuildFeed',
         component: () => import('pages/BuildFeed.vue'),
         beforeEnter(to, from, next) {
-          Promise.all([
+          let requests = [
             store.dispatch('users/loadUsersList'),
             store.dispatch('platforms/loadPlatformList'),
-          ]).finally(next)
+          ]
+          // Sign keys are needed by the sign dialog, which is available
+          // right from the feed for every finished build.
+          if (store.getters.isUserValid) {
+            requests.push(store.dispatch('keys/loadKeysList'))
+          }
+          Promise.all(requests).finally(next)
         },
         children: [
           {
