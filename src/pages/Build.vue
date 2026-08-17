@@ -193,9 +193,7 @@
                               name="key_off"
                               color="negative"
                             >
-                              <q-tooltip>
-                                Package is not notarized
-                              </q-tooltip>
+                              <q-tooltip> Package is not notarized </q-tooltip>
                             </q-icon>
                           </q-badge>
                         </div>
@@ -281,10 +279,10 @@
           <q-avatar icon="warning" color="negative" text-color="white" />
           Secure boot required: {{ missingSecureBootPackages.join(', ') }}
           <q-tooltip>
-            This build was queued without Secure Boot, but the platform
-            requires these package(s) to be built with Secure Boot enabled.
-            The produced artifacts will NOT be usable on Secure Boot
-            systems — please rebuild with the Secure Boot flag.
+            This build was queued without Secure Boot, but the platform requires
+            these package(s) to be built with Secure Boot enabled. The produced
+            artifacts will NOT be usable on Secure Boot systems — please rebuild
+            with the Secure Boot flag.
           </q-tooltip>
         </q-chip>
         <q-chip v-if="build.released">
@@ -302,8 +300,15 @@
         </q-chip>
       </q-card-section>
 
-      <q-card-section v-if="build.platform_flavors && build.platform_flavors.length">
-        <q-expansion-item label="Platform Flavors" expand-separator icon="local_offer" default-opened>
+      <q-card-section
+        v-if="build.platform_flavors && build.platform_flavors.length"
+      >
+        <q-expansion-item
+          label="Platform Flavors"
+          expand-separator
+          icon="local_offer"
+          default-opened
+        >
           <q-list dense separator>
             <q-item v-for="flavor in build.platform_flavors" :key="flavor.id">
               <q-item-section avatar>
@@ -432,7 +437,7 @@
             <q-item
               clickable
               v-close-popup
-              @click="sign_build = true"
+              @click="$refs.signBuildDialog.open(build)"
               v-if="buildFinished"
             >
               <q-item-section avatar>
@@ -700,46 +705,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <q-dialog v-model="sign_build">
-      <q-card style="width: 400px">
-        <q-card-section>
-          <div class="text-h6">Sign build</div>
-        </q-card-section>
-        <q-form @submit="signBuild">
-          <q-card-section>
-            <q-select
-              v-model="current_sign"
-              label="Choose PGP key"
-              :rules="[(val) => !!val || 'PGP key is required']"
-              :options="existingKeys"
-            />
-            <span v-if="!testingCompleted" class="text-negative">
-              <br />
-              <b>Warning:</b> the build testing is not finished yet. Are you
-              sure you want to sign it?
-            </span>
-          </q-card-section>
-          <q-card-actions align="right">
-            <q-btn
-              flat
-              text-color="primary"
-              label="Sign"
-              style="width: 150px"
-              :loading="loading"
-              type="submit"
-            >
-            </q-btn>
-            <q-btn
-              flat
-              text-color="negative"
-              label="Cancel"
-              v-close-popup
-              @click="current_sign = null"
-            />
-          </q-card-actions>
-        </q-form>
-      </q-card>
-    </q-dialog>
+    <sign-build-dialog ref="signBuildDialog" @signed="onBuildSigned" />
 
     <q-dialog v-model="sign_log">
       <q-card style="max-width: 900px">
@@ -778,12 +744,15 @@
   import BuildStatusCircle from 'components/BuildStatusCircle.vue'
   import ModuleYaml from 'components/ModuleYaml.vue'
   import MockOptionsShow from 'components/MockOptionsShow.vue'
+  import SignBuildDialog from 'components/SignBuildDialog.vue'
   import {BuildStatus, TestStatus, SignStatus} from '../constants.js'
   import {
     getTaskCSS,
     nsvca,
     copyToClipboard,
     deepDiff,
+    isBuildFinished,
+    isBuildTestingCompleted,
     isEmptyObject,
     sortByArches,
   } from '../utils'
@@ -803,7 +772,6 @@
         reload: true,
         refreshTimer: null,
         linked_builds: null,
-        sign_build: false,
         sign_log: false,
         add_to_product: false,
         remove_from_product: false,
@@ -813,7 +781,6 @@
         loading: false,
         buildLoad: false,
         moduleYamlLoad: false,
-        current_sign: null,
         current_product: null,
         mock_options: null,
         selectedTask: null,
@@ -853,11 +820,6 @@
           return this.build.products.find((p) => p.name === product.label)
         })
       },
-      existingKeys() {
-        return this.$store.state.keys.keys.map((key) => {
-          return {label: key.name, value: key.id}
-        })
-      },
       failedItems() {
         let rebuilt = false
         for (let task of this.build.tasks) {
@@ -869,28 +831,10 @@
         return rebuilt
       },
       testingCompleted() {
-        let testing_completed = true
-        for (let task of this.build.tasks) {
-          if (task.arch === 'src') continue
-          if (
-            task.status <= BuildStatus.COMPLETED ||
-            task.status == BuildStatus.TEST_CREATED ||
-            task.status == BuildStatus.TEST_STARTED
-          ) {
-            testing_completed = false
-            break
-          }
-        }
-        return testing_completed
+        return isBuildTestingCompleted(this.build)
       },
       buildFinished() {
-        let build_finished = true
-        for (let task of this.build.tasks) {
-          if (task.status < BuildStatus.COMPLETED) {
-            build_finished = false
-          }
-        }
-        return build_finished
+        return isBuildFinished(this.build)
       },
       buildTargets() {
         let targetsSet = new Set()
@@ -961,11 +905,7 @@
         // queued with is_secure_boot=false. Empty list = nothing to warn
         // about. Used to render a red warning chip on completed/in-flight
         // builds.
-        if (
-          !this.build ||
-          !this.build.tasks ||
-          !this.build.tasks.length
-        ) {
+        if (!this.build || !this.build.tasks || !this.build.tasks.length) {
           return []
         }
         if (this.build.tasks[0].is_secure_boot) return []
@@ -975,12 +915,21 @@
           if (!url) return null
           try {
             const path = new URL(url).pathname
-            const last =
-              path.replace(/\/+$/, '').split('/').pop() || ''
-            return last.replace(/\.git$/, '').trim().toLowerCase() || null
+            const last = path.replace(/\/+$/, '').split('/').pop() || ''
+            return (
+              last
+                .replace(/\.git$/, '')
+                .trim()
+                .toLowerCase() || null
+            )
           } catch (_) {
             const last = String(url).split('/').pop() || ''
-            return last.replace(/\.git$/, '').trim().toLowerCase() || null
+            return (
+              last
+                .replace(/\.git$/, '')
+                .trim()
+                .toLowerCase() || null
+            )
           }
         }
         const offenders = new Set()
@@ -1195,32 +1144,8 @@
           })
         })
       },
-      signBuild() {
-        this.loading = true
-        let request_body = {
-          build_id: this.buildId,
-          sign_key_id: this.current_sign.value,
-        }
-        this.$api
-          .post('/sign-tasks/', request_body)
-          .then((response) => {
-            this.loading = false
-            this.signs = [response.data]
-            this.sign_build = false
-            Notify.create({
-              message: `Build ${this.buildId} is queued for signing`,
-              type: 'positive',
-              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
-            })
-          })
-          .catch((error) => {
-            this.loading = false
-            Notify.create({
-              message: error.response.data.detail,
-              type: 'negative',
-              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
-            })
-          })
+      onBuildSigned({signTask}) {
+        this.signs = [signTask]
       },
       showSignLog(sign) {
         this.sign_log = true
@@ -1580,6 +1505,7 @@
       BuildStatusCircle,
       ModuleYaml,
       MockOptionsShow,
+      SignBuildDialog,
     },
   })
 </script>

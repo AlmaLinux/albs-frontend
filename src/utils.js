@@ -1,4 +1,4 @@
-import {BuildStatus, BuildTaskRefType} from './constants'
+import {BuildStatus, BuildTaskRefType, SignStatus} from './constants'
 import {Notify} from 'quasar'
 
 /**
@@ -232,6 +232,135 @@ export function getTaskCSS(task) {
       break
   }
   return css
+}
+
+/**
+ * Returns true if every build task has finished, i.e. the build itself
+ * is not being built anymore.
+ *
+ * @param {Object} build - Build.
+ * @returns {Boolean}
+ */
+export function isBuildFinished(build) {
+  if (!build || !build.tasks) {
+    return false
+  }
+  return build.tasks.every((task) => task.status >= BuildStatus.COMPLETED)
+}
+
+/**
+ * Returns true if the testing stage is over for every non-src build task.
+ *
+ * @param {Object} build - Build.
+ * @returns {Boolean}
+ */
+export function isBuildTestingCompleted(build) {
+  if (!build || !build.tasks) {
+    return false
+  }
+  return build.tasks.every((task) => {
+    if (task.arch === 'src') {
+      return true
+    }
+    return (
+      task.status > BuildStatus.COMPLETED &&
+      task.status !== BuildStatus.TEST_CREATED &&
+      task.status !== BuildStatus.TEST_STARTED
+    )
+  })
+}
+
+/**
+ * Returns the status of the latest sign task of the build, or null when the
+ * build has never been sent for signing.
+ *
+ * @param {Object} build - Build.
+ * @returns {Number|null}
+ */
+export function lastSignStatus(build) {
+  if (!build || !build.sign_tasks || !build.sign_tasks.length) {
+    return null
+  }
+  let signTasks = build.sign_tasks
+  return signTasks[signTasks.length - 1].status
+}
+
+/**
+ * Returns true if the latest sign task of the build has succeeded.
+ *
+ * @param {Object} build - Build.
+ * @returns {Boolean}
+ */
+export function isBuildSigned(build) {
+  return lastSignStatus(build) === SignStatus.DONE
+}
+
+/**
+ * Returns true if the build is waiting to be signed: it is built, not
+ * released, and either was never sent for signing or the last attempt
+ * failed. A build that is signed, queued or being signed right now needs
+ * no signing action.
+ *
+ * @param {Object} build - Build.
+ * @returns {Boolean}
+ */
+export function isBuildSignable(build) {
+  if (!isBuildFinished(build) || build.released) {
+    return false
+  }
+  let status = lastSignStatus(build)
+  return status === null || status === SignStatus.FAILED
+}
+
+/**
+ * Returns the PGP key that should be pre-selected when signing the build.
+ *
+ * Sign keys are bound to products and platforms in the build system
+ * configuration, so that a build made for AlmaLinux 8 gets the AlmaLinux 8
+ * key pre-selected. Product keys take precedence, because community builds
+ * are always signed with the key of their own product.
+ *
+ * More than one key can be bound to the same platform (for instance both
+ * AlmaLinux-10 and AlmaLinux-10-EPEL-AltArch cover the AlmaLinux 10
+ * platforms) and the build system has no notion of a default one. In that
+ * case the oldest key wins, which is the main key of the distribution,
+ * so that the pre-selection does not depend on the order the API happens
+ * to return the keys in.
+ *
+ * @param {Object} build - Build.
+ * @param {Array} keys - Sign keys, as returned by the /sign-keys/ endpoint.
+ * @returns {Object|null}
+ */
+export function defaultSignKey(build, keys) {
+  if (!build || !keys || !keys.length) {
+    return null
+  }
+  let oldestFirst = keys
+    .filter((key) => key.active !== false)
+    .slice()
+    .sort((a, b) => a.id - b.id)
+  let productIds = new Set((build.products || []).map((product) => product.id))
+  if (productIds.size) {
+    let productKey = oldestFirst.find(
+      (key) => key.product_id && productIds.has(key.product_id)
+    )
+    if (productKey) {
+      return productKey
+    }
+  }
+  let platformIds = new Set(
+    (build.tasks || [])
+      .filter((task) => task.platform)
+      .map((task) => task.platform.id)
+  )
+  if (!platformIds.size) {
+    return null
+  }
+  return (
+    oldestFirst.find((key) =>
+      (key.platform_ids || []).some((id) => platformIds.has(id))
+    ) || null
+  )
 }
 
 export function pathJoin(parts) {

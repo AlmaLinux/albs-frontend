@@ -27,10 +27,16 @@ const routes = [
         name: 'BuildFeed',
         component: () => import('pages/BuildFeed.vue'),
         beforeEnter(to, from, next) {
-          Promise.all([
+          let requests = [
             store.dispatch('users/loadUsersList'),
             store.dispatch('platforms/loadPlatformList'),
-          ]).finally(next)
+          ]
+          // Sign keys are needed by the sign dialog, which is available
+          // right from the feed for every finished build.
+          if (store.getters.isUserValid) {
+            requests.push(store.dispatch('keys/loadKeysList'))
+          }
+          Promise.all(requests).finally(next)
         },
         children: [
           {
@@ -65,9 +71,7 @@ const routes = [
           // Platforms are needed so the Build page can detect packages
           // that should have been built with Secure Boot. The endpoint
           // is public, so it's loaded unconditionally.
-          store
-            .dispatch('platforms/loadPlatformList')
-            .catch(() => {})
+          store.dispatch('platforms/loadPlatformList').catch(() => {})
           if (store.getters.isUserValid) {
             store
               .dispatch('products/loadProductList')
