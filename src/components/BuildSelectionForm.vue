@@ -424,6 +424,7 @@
                     successful.delete(task.index)
                   }
                   break
+                case BuildStatus.CANCELLED:
                 case BuildStatus.EXCLUDED:
                   break
                 default:
