@@ -291,12 +291,38 @@
             color="green-8"
             text-color="white"
             :class="build.release_id ? 'cursor-pointer' : ''"
-            @click="goToRelease()"
+            @click="goToRelease(build.release_id)"
           />
           Released
           <q-tooltip v-if="build.release_id">
             Click to the cloud to see last release
           </q-tooltip>
+        </q-chip>
+        <q-chip
+          v-for="release in buildReleases"
+          :key="release.id"
+          clickable
+          :id="`build-qc-release-${release.id}`"
+          @click="goToRelease(release.id)"
+        >
+          <q-avatar
+            icon="cloud"
+            :color="releaseStatus.color[release.status] || 'green-8'"
+            text-color="white"
+          />
+          Release {{ release.id }}
+          <span v-if="release.product_name" class="q-pl-xs">
+            &middot; {{ release.product_name }}
+          </span>
+          <q-chip
+            v-if="releaseStatus.text[release.status]"
+            dense
+            :color="releaseStatus.color[release.status]"
+            class="text-weight-bolder text-white text-capitalize"
+          >
+            {{ releaseStatus.text[release.status] }}
+          </q-chip>
+          <q-tooltip>{{ releaseTooltip(release) }}</q-tooltip>
         </q-chip>
       </q-card-section>
 
@@ -745,7 +771,12 @@
   import ModuleYaml from 'components/ModuleYaml.vue'
   import MockOptionsShow from 'components/MockOptionsShow.vue'
   import SignBuildDialog from 'components/SignBuildDialog.vue'
-  import {BuildStatus, TestStatus, SignStatus} from '../constants.js'
+  import {
+    BuildStatus,
+    TestStatus,
+    SignStatus,
+    ReleaseStatus,
+  } from '../constants.js'
   import {
     getTaskCSS,
     nsvca,
@@ -787,6 +818,8 @@
         taskMock: false,
         signLogText: '',
         signStatus: SignStatus,
+        releaseStatus: ReleaseStatus,
+        releases: [],
         previousBuildInfo: null,
         previousProducts: null,
         hasSrcArch: false,
@@ -795,6 +828,17 @@
     computed: {
       innerHeight: function () {
         return window.innerHeight
+      },
+      // Every release the build got into, reverted ones left out. The build
+      // itself only knows about the release it was put into last, so if the
+      // releases endpoint gave us nothing we fall back to that one.
+      buildReleases() {
+        if (!this.build) return []
+        let releases = this.releases.filter(
+          (release) => release.status !== ReleaseStatus.REVERTED
+        )
+        if (releases.length) return releases
+        return this.build.release_id ? [{id: this.build.release_id}] : []
       },
       allowProductModify() {
         let allow_modify = true
@@ -1248,6 +1292,7 @@
       },
       loadBuildInfo(buildId) {
         this.reload = false
+        this.loadBuildReleases(buildId)
         if (!this.build) Loading.show()
         this.$api
           .get(`/builds/${buildId}/`)
@@ -1472,9 +1517,25 @@
             }
           })
       },
-      goToRelease() {
-        if (this.build.release_id) {
-          this.$router.push(`/release/${this.build.release_id}`)
+      loadBuildReleases(buildId) {
+        this.$api
+          .get(`/builds/${buildId}/releases/`)
+          .then((response) => {
+            this.releases = response.data
+          })
+          .catch(() => {
+            this.releases = []
+          })
+      },
+      releaseTooltip(release) {
+        let tooltip = 'Click to see the release'
+        return release.platform_name
+          ? `${release.platform_name}. ${tooltip}`
+          : tooltip
+      },
+      goToRelease(releaseId) {
+        if (releaseId) {
+          this.$router.push(`/release/${releaseId}`)
         }
       },
       checkMockOptions(task) {
