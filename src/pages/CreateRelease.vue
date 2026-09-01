@@ -125,6 +125,7 @@
                   options[task.index] = {
                     ids: [task.id],
                     ref: task.ref,
+                    hasFailedTasks: failed.has(task.index),
                   }
                 }
                 break
@@ -133,6 +134,7 @@
 
                 if (successful.has(task.index)) {
                   build.warning = true
+                  options[task.index].hasFailedTasks = true
                   successful.delete(task.index)
                 }
                 break
@@ -147,6 +149,7 @@
               value: +index,
               ids: options[index].ids,
               ref: options[index].ref,
+              hasFailedTasks: options[index].hasFailedTasks,
               selected: this.isSubArray(
                 this.release.build_task_ids,
                 options[index].ids
