@@ -198,6 +198,36 @@
           >
             <template v-slot:top-right>
               <q-btn
+                class="q-mr-xs"
+                flat
+                dense
+                no-caps
+                size="sm"
+                color="primary"
+                label="Select all"
+                @click="selectAllProjects(activeBuild)"
+              >
+                <q-tooltip
+                  anchor="bottom middle"
+                  self="top middle"
+                  max-width="200px"
+                  transition-show="scale"
+                  transition-hide="scale"
+                >
+                  Selects every project except the ones with failed build tasks
+                </q-tooltip>
+              </q-btn>
+              <q-btn
+                class="q-mr-sm"
+                flat
+                dense
+                no-caps
+                size="sm"
+                color="primary"
+                label="Unselect all"
+                @click="unselectAllProjects(activeBuild)"
+              />
+              <q-btn
                 round
                 dense
                 flat
@@ -348,6 +378,20 @@
           if (opt.selected) active.selected.push(opt)
         })
       },
+      // Brings back the default selection: every project of the build but the
+      // ones having failed build tasks, those are unselected.
+      selectAllProjects(active) {
+        active.options.forEach((opt) => {
+          opt.selected = !opt.hasFailedTasks
+        })
+        this.selectProject(active)
+      },
+      unselectAllProjects(active) {
+        active.options.forEach((opt) => {
+          opt.selected = false
+        })
+        this.selectProject(active)
+      },
       parseBuildId(textValue) {
         if (
           textValue.match(`${window.origin}/build/`) &&
@@ -411,6 +455,7 @@
                     options[task.index] = {
                       ids: [task.id],
                       ref: task.ref,
+                      hasFailedTasks: failed.has(task.index),
                     }
                     options[task.index].selected = !failed.has(task.index)
                   }
@@ -420,6 +465,7 @@
 
                   if (successful.has(task.index)) {
                     build.warning = true
+                    options[task.index].hasFailedTasks = true
                     options[task.index].selected = false
                     successful.delete(task.index)
                   }
@@ -468,6 +514,7 @@
                   value: +index,
                   ids: options[index].ids,
                   ref: options[index].ref,
+                  hasFailedTasks: options[index].hasFailedTasks,
                   selected: options[index].selected,
                 }
                 build.options.push(opt)
