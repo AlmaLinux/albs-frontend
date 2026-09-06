@@ -5,12 +5,36 @@
 
     <q-card flat style="max-width: 100%; min-width: 0">
       <q-card-section class="text-h6 text-center">
-        <router-link :to="{path: `/build/${build.id}`}">
-          Build {{ build.id }}
-        </router-link>
-        created by
-        <a :href="`mailto:${build.owner.email}`">{{ build.owner.username }}</a>
-        at {{ buildCreatedTime }}
+        <div class="row items-center justify-center q-gutter-sm">
+          <q-btn
+            flat
+            dense
+            no-caps
+            text-color="primary"
+            icon="navigate_before"
+            label="Previous"
+            :disable="!adjacentBuilds.prev"
+            @click="$router.push(`/build/${adjacentBuilds.prev}`)"
+          />
+          <span>
+            <router-link :to="{path: `/build/${build.id}`}">
+              Build {{ build.id }}
+            </router-link>
+            created by
+            <a :href="`mailto:${build.owner.email}`">{{ build.owner.username }}</a>
+            at {{ buildCreatedTime }}
+          </span>
+          <q-btn
+            flat
+            dense
+            no-caps
+            text-color="primary"
+            icon-right="navigate_next"
+            label="Next"
+            :disable="!adjacentBuilds.next"
+            @click="$router.push(`/build/${adjacentBuilds.next}`)"
+          />
+        </div>
       </q-card-section>
 
       <q-card-section>
@@ -823,6 +847,7 @@
         previousBuildInfo: null,
         previousProducts: null,
         hasSrcArch: false,
+        adjacentBuilds: {prev: null, next: null},
       }
     },
     computed: {
@@ -994,6 +1019,7 @@
     },
     created() {
       this.loadBuildInfo(this.buildId)
+      this.checkAdjacentBuilds(this.buildId)
       // update the build state every minute
       this.refreshTimer = setInterval(() => {
         if (this.reload) {
@@ -1015,6 +1041,28 @@
     methods: {
       loadLinkedBuildInfo(params) {
         this.loadBuildInfo(params.buildId)
+        this.checkAdjacentBuilds(params.buildId)
+      },
+      checkAdjacentBuilds(id) {
+        const numId = parseInt(id)
+        this.probeAdjacentBuild(numId, numId - 1, 'prev')
+        this.probeAdjacentBuild(numId, numId + 1, 'next')
+      },
+      probeAdjacentBuild(fromId, targetId, direction) {
+        if (targetId < 1) {
+          this.adjacentBuilds[direction] = false
+          return
+        }
+        // Ignore stale responses if the user navigated away mid-flight.
+        const isCurrent = () => parseInt(this.buildId) === fromId
+        this.$api
+          .get(`/builds/${targetId}/`)
+          .then(() => {
+            if (isCurrent()) this.adjacentBuilds[direction] = targetId
+          })
+          .catch(() => {
+            if (isCurrent()) this.adjacentBuilds[direction] = false
+          })
       },
       copyToClipboard: copyToClipboard,
       getTaskCSS: getTaskCSS,
