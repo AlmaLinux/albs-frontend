@@ -363,6 +363,47 @@ export function defaultSignKey(build, keys) {
   )
 }
 
+/**
+ * Tells whether the sign key belongs to a community product.
+ *
+ * The build system generates a PGP key per community product and keeps it
+ * bound to that product, while the keys of the distributions themselves are
+ * bound to platforms only, so a product is what tells the two apart.
+ *
+ * @param {Object} key - Sign key, as returned by the /sign-keys/ endpoint.
+ * @returns {Boolean}
+ */
+export function isCommunitySignKey(key) {
+  return !!(key && key.product_id)
+}
+
+/**
+ * Returns the sign keys to offer when signing the build.
+ *
+ * Every community product owns a PGP key and a user allowed to use them all
+ * ends up with the handful of distribution keys buried under dozens of
+ * community ones. Community keys are therefore left out, except the ones
+ * belonging to a product of the build itself, which is what such a build is
+ * signed with, and except when the caller asks for all of them.
+ *
+ * @param {Object} build - Build.
+ * @param {Array} keys - Sign keys, as returned by the /sign-keys/ endpoint.
+ * @param {Boolean} withCommunity - Keep the community keys of other products.
+ * @returns {Array}
+ */
+export function signKeyChoices(build, keys, withCommunity) {
+  if (!keys) {
+    return []
+  }
+  if (withCommunity) {
+    return keys.slice()
+  }
+  let productIds = new Set(((build || {}).products || []).map((p) => p.id))
+  return keys.filter(
+    (key) => !isCommunitySignKey(key) || productIds.has(key.product_id)
+  )
+}
+
 export function pathJoin(parts) {
   let replace = new RegExp('/' + '{1,}', 'g')
   return parts.join('/').replace(replace, '/')
