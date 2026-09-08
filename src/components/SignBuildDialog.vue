@@ -17,6 +17,15 @@
           <span v-if="preselectedKeyName" class="text-caption text-grey-7">
             Pre-selected default key: {{ preselectedKeyName }}
           </span>
+          <div v-if="hiddenKeysCount" class="q-mt-sm">
+            <q-toggle
+              v-model="showCommunityKeys"
+              :label="`Show community keys (${hiddenKeysCount})`"
+              class="text-grey-8"
+              dense
+              id="sbd-qt-community"
+            />
+          </div>
           <span v-if="!testingCompleted" class="text-negative">
             <br />
             <b>Warning:</b> the build testing is not finished yet. Are you sure
@@ -49,7 +58,11 @@
 <script>
   import {defineComponent} from 'vue'
   import {Notify} from 'quasar'
-  import {defaultSignKey, isBuildTestingCompleted} from '../utils'
+  import {
+    defaultSignKey,
+    isBuildTestingCompleted,
+    signKeyChoices,
+  } from '../utils'
 
   export default defineComponent({
     name: 'sign-build-dialog',
@@ -60,18 +73,41 @@
         build: null,
         current_sign: null,
         preselectedKeyName: null,
+        showCommunityKeys: false,
         loading: false,
         keysLoad: false,
       }
     },
     computed: {
       existingKeys() {
-        return this.$store.state.keys.keys.map((key) => {
+        return signKeyChoices(
+          this.build,
+          this.$store.state.keys.keys,
+          this.showCommunityKeys
+        ).map((key) => {
           return {label: key.name, value: key.id}
         })
       },
+      hiddenKeysCount() {
+        let keys = this.$store.state.keys.keys
+        return keys.length - signKeyChoices(this.build, keys, false).length
+      },
       testingCompleted() {
         return isBuildTestingCompleted(this.build)
+      },
+    },
+    watch: {
+      showCommunityKeys(value) {
+        if (value || !this.current_sign) {
+          return
+        }
+        let listed = this.existingKeys.some(
+          (option) => option.value === this.current_sign.value
+        )
+        if (!listed) {
+          this.current_sign = null
+          this.applyDefaultKey()
+        }
       },
     },
     methods: {
@@ -79,6 +115,7 @@
         this.build = build
         this.current_sign = null
         this.preselectedKeyName = null
+        this.showCommunityKeys = false
         this.show = true
         if (this.$store.state.keys.keys.length) {
           this.applyDefaultKey()
