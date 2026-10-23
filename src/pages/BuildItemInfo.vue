@@ -1,5 +1,15 @@
 <template>
   <div class="text-left bg-grey-2 shadow-2" style="padding-left: 5em">
+    <q-btn
+      flat
+      dense
+      no-caps
+      text-color="primary"
+      icon="navigate_before"
+      :to="`/build/${buildId}`"
+      label="Back to Build"
+      class="q-mt-sm"
+    />
     <p class="text-dark" style="font-size: 25px">
       {{ `${project_name} ${arch}` }}
     </p>
