@@ -70,7 +70,7 @@
                     <tbody>
                       <tr
                         v-for="enable_module of moduleInfo.enabled_modules_table"
-                        :key="enable_module.name"
+                        :key="`${enable_module.name}:${enable_module.stream}`"
                       >
                         <td style="min-width: 250px">
                           <q-icon size="sm" :name="iconName(enable_module)">
