@@ -327,14 +327,15 @@
             buildtime: true,
             add_to_buildtime: !!stream,
             no_stream: !stream,
+            add_to_runtime: false,
           }
           moduleInfo.enabled_modules.runtime.forEach((m) => {
-            if (m.includes(name)) {
+            let [mName, mStream] = m.split(':')
+            if (mName === name) {
               enable_module.runtime = true
-              let mStream = m.split(':')[1]
-              enable_module.add_to_runtime = mStream
-                ? mStream === stream
-                : !!stream
+              // Requires keep their own stream from the template,
+              // e.g. "nginx: []" must not become the buildrequires stream
+              if (mStream === stream) enable_module.add_to_runtime = true
             }
           })
           moduleInfo.selectedModules.add(`${name}:${stream}`)
@@ -350,14 +351,15 @@
               enable: !!stream,
               no_stream: !stream,
               runtime: true,
-              add_to_runtime: false,
+              add_to_runtime: true,
             }
             moduleInfo.enabled_modules.buildtime.forEach((m) => {
-              if (m.includes(name)) {
+              if (m.split(':')[0] === name) {
                 enable_module.buildtime = true
                 enable_module.add_to_buildtime = false
               }
             })
+            moduleInfo.selectedModules.add(`${name}:${stream}`)
             moduleInfo.enabled_modules_table.push(enable_module)
           }
         })
