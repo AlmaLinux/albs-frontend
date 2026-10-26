@@ -543,6 +543,19 @@
             <q-item
               clickable
               v-close-popup
+              @click="restartBuildTests(true)"
+              v-if="testingCompleted && failedTests"
+            >
+              <q-item-section avatar>
+                <q-avatar icon="restart_alt" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>Restart failed build tests</q-item-label>
+              </q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-close-popup
               @click="stop_build = true"
               v-if="!buildFinished"
             >
@@ -874,6 +887,13 @@
         }
         return rebuilt
       },
+      failedTests() {
+        return this.build.tasks.some(
+          (task) =>
+            task.status === BuildStatus.TEST_FAILED ||
+            task.status === BuildStatus.ALL_TESTS_FAILED
+        )
+      },
       testingCompleted() {
         return isBuildTestingCompleted(this.build)
       },
@@ -1167,14 +1187,20 @@
             this.reload = true
           })
       },
-      restartBuildTests() {
-        this.$api.put(`/tests/build/${this.buildId}/restart`).then(() => {
-          Notify.create({
-            message: `Build tests for build ${this.buildId} has been restarted`,
-            type: 'positive',
-            actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+      restartBuildTests(onlyFailed = false) {
+        this.$api
+          .put(`/tests/build/${this.buildId}/restart`, null, {
+            params: {only_failed: onlyFailed},
           })
-        })
+          .then(() => {
+            Notify.create({
+              message: onlyFailed
+                ? `Failed build tests for build ${this.buildId} have been restarted`
+                : `Build tests for build ${this.buildId} has been restarted`,
+              type: 'positive',
+              actions: [{label: 'Dismiss', color: 'white', handler: () => {}}],
+            })
+          })
       },
       testTaskFailed(taskStatus) {
         return taskStatus >= BuildStatus.TEST_FAILED
