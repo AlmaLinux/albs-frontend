@@ -209,6 +209,11 @@
         }
       },
       loadTestsInfo(task) {
+        // No test workers for the architecture, so no test tasks
+        if (task.tests_skipped) {
+          task.status = BuildStatus.TEST_SKIPPED
+          return
+        }
         let count_failed = 0
         let tests_failed = false
         let test_started = false

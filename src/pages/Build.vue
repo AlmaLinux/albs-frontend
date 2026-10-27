@@ -1203,7 +1203,11 @@
           })
       },
       testTaskFailed(taskStatus) {
-        return taskStatus >= BuildStatus.TEST_FAILED
+        return [
+          BuildStatus.TEST_FAILED,
+          BuildStatus.ALL_TESTS_FAILED,
+          BuildStatus.TEST_CANCELLED,
+        ].includes(taskStatus)
       },
       restartTestTask(taskId) {
         this.$api.put(`/tests/build_task/${taskId}/restart`).then(() => {
@@ -1354,6 +1358,11 @@
           })
       },
       loadTestsInfo(task) {
+        // No test workers for the architecture, so no test tasks
+        if (task.tests_skipped) {
+          task.status = BuildStatus.TEST_SKIPPED
+          return
+        }
         let count_failed = 0
         let tests_failed = false
         let test_started = false
