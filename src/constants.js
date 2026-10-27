@@ -11,6 +11,7 @@ const BuildStatus = {
   TEST_FAILED: 9,
   ALL_TESTS_FAILED: 10,
   TEST_CANCELLED: 11,
+  TEST_SKIPPED: 12,
   text: {
     0: 'idle',
     1: 'started',
@@ -24,6 +25,7 @@ const BuildStatus = {
     9: 'some tests failed',
     10: 'all tests failed',
     11: 'tests cancelled',
+    12: 'tests skipped',
   },
   color: {
     0: 'faded',
@@ -38,6 +40,7 @@ const BuildStatus = {
     9: 'warning',
     10: 'negative',
     11: 'warning',
+    12: 'grey-7',
   },
 }
 

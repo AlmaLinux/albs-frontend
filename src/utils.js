@@ -230,6 +230,9 @@ export function getTaskCSS(task) {
     case BuildStatus.TEST_CANCELLED:
       css.push('text-negative')
       break
+    case BuildStatus.TEST_SKIPPED:
+      css.push('text-black-6')
+      break
   }
   return css
 }
