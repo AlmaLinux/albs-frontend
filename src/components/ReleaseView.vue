@@ -9,7 +9,7 @@
         narrow-indicator
     >
         <q-tab  name="urls" label="Publication urls" icon="cloud_sync"/>
-        <!-- <q-tab  name="errata" label="Errata/OVAL" /> -->
+        <q-tab  name="errata" label="Errata" icon="security"/>
         <q-tab  name="pack_list" label="Packages list" icon="toc"/>
         <q-tab  name="logs" label="Logs" icon="sticky_note_2"/>
     </q-tabs>
@@ -45,10 +45,9 @@
             </div>
         </q-tab-panel>
 
-        <!-- <q-tab-panel name="errata">
-            <div class="text-h6">Errata/OVAL</div>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit.
-        </q-tab-panel> -->
+        <q-tab-panel name="errata">
+            <release-errata :errata="release.plan.errata || []" :viewOnly="true"/>
+        </q-tab-panel>
 
         <q-tab-panel name="pack_list" style="max-width: 100%;">  
             <package-location-selection-form :release="release" :viewOnly="true"/>
@@ -68,6 +67,7 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import PackageLocationSelectionForm from 'components/PackageLocationSelectionForm.vue'
+import ReleaseErrata from 'components/ReleaseErrata.vue'
 
 export default defineComponent({
     props: {
@@ -108,7 +108,8 @@ export default defineComponent({
         }
     },
     components: {
-        PackageLocationSelectionForm
+        PackageLocationSelectionForm,
+        ReleaseErrata
     }
 })
 </script>

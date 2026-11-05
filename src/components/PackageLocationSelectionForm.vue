@@ -1,14 +1,32 @@
 <template>
   <div class="q-pa-md">
+    <div v-if="!viewOnly" class="row items-center q-mb-md">
+      <div class="text-h6">Release plan</div>
+      <q-space />
+      <div
+        v-if="userAuthenticated() && releaseStatus === releaseStatuses.SCHEDULED"
+        class="q-gutter-md"
+      >
+        <q-btn @click="saveRelease" :loading="loadingSave" color="green">
+          Save
+        </q-btn>
+        <q-btn @click="confirm = true" :loading="loading" color="primary">
+          Commit
+        </q-btn>
+      </div>
+    </div>
+    <component
+      :is="viewOnly ? 'div' : expansionItem"
+      v-bind="viewOnly ? {} : sectionProps('Packages', packagesCaption)"
+    >
     <q-table
-      :title="viewOnly ? '' : 'Package location selector'"
       :rows="packagesLocation"
       :columns="columns"
       row-key="id"
       color="primary"
       :loading="loadingTable"
       hide-pagination
-      :flat="viewOnly"
+      flat
       :rows-per-page-options="[0]"
       :filter="filter"
       no-results-label="No packages found"
@@ -38,23 +56,14 @@
             class="q-ml-md"
           />
           <template
-            v-if="userAuthenticated() && releaseStatus === releaseStatuses.SCHEDULED"
+            v-if="viewOnly && userAuthenticated() && releaseStatus === releaseStatuses.SCHEDULED"
           >
             <q-btn
-              v-if="viewOnly"
               @click.stop
               :to="{path: `/release/${releaseId}/update`}"
               color="grey"
             >
               Edit
-            </q-btn>
-            <q-btn
-              v-else
-              @click="saveRelease"
-              :loading="loadingSave"
-              color="green"
-            >
-              Save
             </q-btn>
             <q-btn @click="confirm = true" :loading="loading" color="primary">
               Commit
@@ -356,6 +365,14 @@
         </q-tr>
       </template>
     </q-table>
+    </component>
+    <q-expansion-item
+      v-if="!viewOnly && !loadingTable"
+      v-bind="sectionProps('Errata', errataCaption)"
+      class="q-mt-md"
+    >
+      <release-errata :errata="errata" />
+    </q-expansion-item>
   </div>
   <q-dialog v-model="confirm" persistent>
     <q-card style="width: 50%">
@@ -381,11 +398,15 @@
 
 <script>
   import { defineComponent } from 'vue'
-  import { Notify } from 'quasar'
+  import { Notify, QExpansionItem } from 'quasar'
   import { nsvca } from '../utils';
   import { ReleasePackageTrustness, ReleasePackageMatched, ReleaseStatus } from 'src/constants';
+  import ReleaseErrata from 'components/ReleaseErrata.vue'
 
   export default defineComponent({
+    components: {
+      ReleaseErrata
+    },
     props: {
       release: Object,
       viewOnly: Boolean
@@ -430,12 +451,28 @@
         forceAll: false,
         forceNotNotarizedAll: false,
         modules: [],
+        errata: [],
         confirm: false,
         releaseStatus: null,
         releaseStatuses: ReleaseStatus,
         packageTrustness: ReleasePackageTrustness,
         packageMatched: ReleasePackageMatched,
       }
+    },
+    computed: {
+      expansionItem() {
+        return QExpansionItem
+      },
+      packagesCaption() {
+        let caption = `${this.packagesLocation.length} packages`
+        if (this.modules.length) caption += `, ${this.modules.length} modules`
+        return caption
+      },
+      errataCaption() {
+        if (!this.errata.length) return 'No errata found'
+        const selected = this.errata.filter((errata) => errata.release).length
+        return `${this.errata.length} found, ${selected} selected for release`
+      },
     },
     created () {
       if (this.viewOnly) this.createTable(JSON.parse(JSON.stringify(this.release)))
@@ -444,6 +481,15 @@
       nsvca: nsvca,
       userAuthenticated () {
         return this.$store.getters.isAuthenticated
+      },
+      sectionProps(label, caption) {
+        return {
+          label: label,
+          caption: caption,
+          defaultOpened: true,
+          headerClass: 'text-h6',
+          class: 'shadow-1 rounded-borders',
+        }
       },
       tableFullScreen(props) {
         props.toggleFullscreen()
@@ -516,6 +562,7 @@
         this.releaseId = data.id
         this.orig_repos = data.plan.repositories
         this.moduleLocation(data.plan.modules)
+        this.errata = data.plan.errata || []
         this.allPackagesRepoOptions = this.reposOptions(data.plan.repositories, 'nodebug')
         this.packagesLocation = []
         for (const item of packages) {
@@ -740,7 +787,8 @@
         let plan = {
             packages: [],
             modules: [],
-            repositories: this.orig_repos
+            repositories: this.orig_repos,
+            errata: this.errata
         }
         this.modules.forEach(moduleLocation => {
             let repos = []
