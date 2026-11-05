@@ -2,7 +2,7 @@
   <q-table
     :rows="errata"
     :columns="columns"
-    :row-key="row => `${row.id}-${row.platform_id}`"
+    :row-key="(row) => `${row.id}-${row.platform_id}`"
     hide-pagination
     flat
     :rows-per-page-options="[0]"
