@@ -74,12 +74,13 @@
 </template>
 
 <script>
-  import {defineComponent, ref} from 'vue'
+  import {defineComponent, markRaw, ref} from 'vue'
   import BuildFeedItem from 'components/BuildFeedItem.vue'
   import SignBuildDialog from 'components/SignBuildDialog.vue'
   import {Loading, LocalStorage} from 'quasar'
   import {BuildStatus, SignStatus, TestStatus} from 'src/constants'
   import {parseJwt} from 'src/utils'
+  import {isEqual} from 'lodash'
 
   export default defineComponent({
     name: 'BuildFeed',
@@ -94,6 +95,8 @@
         // Builds picked for a release, kept across pagination so that a
         // release can be assembled from builds shown on different pages.
         selectedBuilds: [],
+        // query of the request in flight, see loadFeedPage()
+        pendingQuery: null,
       }
     },
     created() {
@@ -245,11 +248,21 @@
         if (test_started) task.status = BuildStatus.TEST_STARTED
       },
       loadFeedPage() {
+        // raw, so the identity check below compares the object itself
+        const query = markRaw({...this.buildFeedQuery})
+        // opening the page and applying a search change the filter twice
+        // in a row (directly and through the route), so don't send the
+        // same request again while it is still running
+        if (isEqual(query, this.pendingQuery)) return
+        this.pendingQuery = query
         this.loading = true
         Loading.show()
         this.$api
-          .get(`/builds/`, {params: this.buildFeedQuery})
+          .get(`/builds/`, {params: query})
           .then((response) => {
+            // a newer request was sent meanwhile, its result will be shown
+            if (this.pendingQuery !== query) return
+            this.pendingQuery = null
             this.builds = response.data['builds']
             this.builds.forEach((build) => {
               this.getReleaseStatus(build)
@@ -264,6 +277,8 @@
             this.loading = false
           })
           .catch((error) => {
+            if (this.pendingQuery !== query) return
+            this.pendingQuery = null
             this.loading = false
             Loading.hide()
             // TODO: add error here
