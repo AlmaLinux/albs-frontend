@@ -24,12 +24,16 @@
       <q-table
         :rows="packagesLocation"
         :columns="columns"
-        row-key="id"
+        row-key="rowKey"
         color="primary"
         :loading="loadingTable"
         hide-pagination
         flat
         :rows-per-page-options="[0]"
+        virtual-scroll
+        :virtual-scroll-item-size="75"
+        :virtual-scroll-target="tableInFullscreen ? undefined : 'body'"
+        @fullscreen="(value) => (tableInFullscreen = value)"
         :filter="filter"
         no-results-label="No packages found"
         :hide-no-data="!!(modules && modules.length)"
@@ -209,7 +213,7 @@
             <q-td
               key="force_not_notarized"
               :props="props"
-              v-if="NotNotarizedPackages().length !== 0"
+              v-if="hasNotNotarizedPackages"
               class="text-center"
             >
               <q-checkbox
@@ -228,9 +232,9 @@
               />
             </q-td>
             <q-td v-if="!viewOnly" key="trustness" :props="props">
-              <q-badge :color="getTrustness(props.row).trustnessColor">
+              <q-badge :color="props.row.trustBadge.trustnessColor">
                 <q-tooltip>
-                  {{ getTrustness(props.row).trustnessTooltip }}
+                  {{ props.row.trustBadge.trustnessTooltip }}
                 </q-tooltip>
               </q-badge>
             </q-td>
@@ -312,10 +316,7 @@
               >
               </q-select>
             </q-td>
-            <q-td
-              v-if="NotNotarizedPackages().length !== 0"
-              class="text-center"
-            >
+            <q-td v-if="hasNotNotarizedPackages" class="text-center">
               <q-checkbox
                 v-model="build_module.force_not_notarized"
                 disable
@@ -330,9 +331,9 @@
               </q-checkbox>
             </q-td>
             <q-td v-if="!viewOnly" class="text-center">
-              <q-badge :color="getTrustness(build_module).trustnessColor">
+              <q-badge :color="build_module.trustBadge.trustnessColor">
                 <q-tooltip>
-                  {{ getTrustness(build_module).trustnessTooltip }}
+                  {{ build_module.trustBadge.trustnessTooltip }}
                 </q-tooltip>
               </q-badge>
             </q-td>
@@ -423,6 +424,11 @@
   } from 'src/constants'
   import ReleaseErrata from 'components/ReleaseErrata.vue'
 
+  // packages have no id and the same package can be added to the plan
+  // several times, so every table row gets its own key
+  let lastRowKey = 0
+  const nextRowKey = () => ++lastRowKey
+
   export default defineComponent({
     components: {
       ReleaseErrata,
@@ -474,6 +480,7 @@
         errata: [],
         confirm: false,
         releaseStatus: null,
+        tableInFullscreen: false,
         releaseStatuses: ReleaseStatus,
         packageTrustness: ReleasePackageTrustness,
         packageMatched: ReleasePackageMatched,
@@ -487,6 +494,12 @@
         let caption = `${this.packagesLocation.length} packages`
         if (this.modules.length) caption += `, ${this.modules.length} modules`
         return caption
+      },
+      notNotarizedPackages() {
+        return this.packagesLocation.filter((pack) => !pack.cas_hash)
+      },
+      hasNotNotarizedPackages() {
+        return this.notNotarizedPackages.length !== 0
       },
       errataCaption() {
         if (!this.errata.length) return 'No errata found'
@@ -556,6 +569,7 @@
           for (const item of modules) {
             let build_module = item.module
             build_module.trustRepos = item.repositories
+            build_module.trustBadge = this.getTrustness(build_module)
             build_module.nsvca = this.nsvca(build_module, build_module.arch)
             build_module.destinationOptions = this.reposOptions(
               this.orig_repos,
@@ -585,16 +599,22 @@
         let packages = data.plan.packages
         this.releaseId = data.id
         this.orig_repos = data.plan.repositories
+        this.repositories = this.groupReposByArch(data.plan.repositories)
         this.moduleLocation(data.plan.modules)
         this.errata = data.plan.errata || []
         this.allPackagesRepoOptions = this.reposOptions(
           data.plan.repositories,
           'nodebug'
         )
-        this.packagesLocation = []
+        const repoNames = new Map(
+          this.orig_repos.map((repo) => [repo.id, `${repo.name}-${repo.arch}`])
+        )
+        const packagesLocation = []
         for (const item of packages) {
           let pack = item.package
+          pack.rowKey = nextRowKey()
           pack.trustRepos = item.repositories
+          pack.trustBadge = this.getTrustness(pack)
           pack.nevra = this.nevra(pack)
           let pkgInRepos = data.plan.packages_in_repos
             ? data.plan.packages_in_repos[pack.full_name]
@@ -603,43 +623,36 @@
             ? data.plan.packages_from_repos[pack.full_name]
             : undefined
           if (repoId !== undefined) {
-            pack.takenFromRepo = this.orig_repos
-              .map((repo) => {
-                if (repoId === repo.id) {
-                  return `${repo.name}-${repo.arch}`
-                }
-              })
-              .filter((value) => value !== undefined)
-              .join()
+            pack.takenFromRepo = repoNames.get(repoId) || ''
           }
           if (pkgInRepos !== undefined) {
-            pack.pkgInRepos = [
-              ...this.orig_repos
-                .map((repo) => {
-                  if (pkgInRepos.includes(repo.id)) {
-                    return `${repo.name}-${repo.arch}`
-                  }
-                })
-                .filter((value) => value !== undefined),
-            ]
+            pkgInRepos = new Set(pkgInRepos)
+            pack.pkgInRepos = this.orig_repos
+              .filter((repo) => pkgInRepos.has(repo.id))
+              .map((repo) => repoNames.get(repo.id))
           }
           pack.destinationOptions = this.reposOptions(
             data.plan.repositories,
             pack.arch
           )
           this.beholderRepo(item, 'package')
-          this.selectForce(pack)
-          this.selectNotNotarized(pack)
           if (item.repo_arch_location) {
             for (let repo_arch of item.repo_arch_location) {
               pack[repo_arch] = true
             }
           }
-          this.packagesLocation.push(pack)
+          packagesLocation.push(pack)
+        }
+        this.packagesLocation = packagesLocation
+        if (!this.viewOnly) {
+          this.selected = packagesLocation.filter((pack) => pack.force)
+          this.selectedNotNotarized = packagesLocation.filter(
+            (pack) => !pack.cas_hash && pack.force_not_notarized
+          )
         }
         this.setForceAll()
         this.setNotNotarizedAll()
-        if (this.NotNotarizedPackages().length !== 0) {
+        if (this.hasNotNotarizedPackages) {
           let col = {
             name: 'force_not_notarized',
             align: 'center',
@@ -664,9 +677,32 @@
           }
         }
       },
+      groupReposByArch(repos) {
+        const repositories = {}
+        repos.forEach((rep) => {
+          if (!repositories[rep.arch]) repositories[rep.arch] = {}
+          repositories[rep.arch][rep.name] = rep
+        })
+        return repositories
+      },
       reposOptions(repos, arch) {
+        // every package of the same arch gets the same options, so build
+        // them once per arch and share them between the rows; frozen
+        // options aren't wrapped into reactive proxies for every row
+        if (this.reposOptionsSource !== repos) {
+          this.reposOptionsSource = repos
+          this.reposOptionsCache = new Map()
+        }
+        if (!this.reposOptionsCache.has(arch)) {
+          const options = this.buildReposOptions(repos, arch).map((option) =>
+            Object.freeze(option)
+          )
+          this.reposOptionsCache.set(arch, Object.freeze(options))
+        }
+        return this.reposOptionsCache.get(arch)
+      },
+      buildReposOptions(repos, arch) {
         let reposNames = new Set()
-        this.repositories = {}
 
         repos.forEach((rep) => {
           switch (arch) {
@@ -689,9 +725,6 @@
               }
               break
           }
-
-          if (!this.repositories[rep.arch]) this.repositories[rep.arch] = {}
-          this.repositories[rep.arch][rep.name] = rep
         })
 
         return Array.from(reposNames, (repName) => {
@@ -718,15 +751,9 @@
           )
         })
       },
-      NotNotarizedPackages() {
-        let notNotarized = this.packagesLocation.filter(
-          (pack) => !pack.cas_hash
-        )
-        return notNotarized
-      },
       setNotNotarizedAll() {
         switch (this.selectedNotNotarized.length) {
-          case this.NotNotarizedPackages().length:
+          case this.notNotarizedPackages.length:
             this.forceNotNotarizedAll = true
             break
           case 0:
@@ -746,6 +773,7 @@
           this.selectedNotNotarized.push(row)
         } else {
           let index = this.selectedNotNotarized.indexOf(row)
+          if (index === -1) return
           this.selectedNotNotarized = [
             ...this.selectedNotNotarized.slice(0, index),
             ...this.selectedNotNotarized.slice(index + 1),
@@ -757,7 +785,7 @@
         if (this.viewOnly) return
 
         this.selectedNotNotarized = this.forceNotNotarizedAll
-          ? this.NotNotarizedPackages
+          ? this.notNotarizedPackages.slice()
           : []
         this.packagesLocation.forEach((pack) => {
           if (!pack.cas_hash)
@@ -767,7 +795,7 @@
       selectForceAll() {
         if (this.viewOnly) return
 
-        this.selected = this.forceAll ? this.packagesLocation : []
+        this.selected = this.forceAll ? this.packagesLocation.slice() : []
         this.packagesLocation.forEach((pack) => {
           pack.force = this.forceAll
         })
@@ -792,6 +820,7 @@
           this.selected.push(row)
         } else {
           let index = this.selected.indexOf(row)
+          if (index === -1) return
           this.selected = [
             ...this.selected.slice(0, index),
             ...this.selected.slice(index + 1),
@@ -838,6 +867,7 @@
         if (item.destination) {
           let index = this.packagesLocation.indexOf(item)
           let row = JSON.parse(JSON.stringify(item))
+          row.rowKey = nextRowKey()
           row.destination = ''
           this.packagesLocation.splice(index + 1, 0, row)
         }
@@ -927,13 +957,14 @@
         return plan
       },
       checkDestinations() {
-        let flag = false
+        // the virtual scroll renders only the visible rows, so highlight
+        // the rendered selects but check the destinations of all packages
         for (const name in this.$refs) {
-          if (this.$refs[name]) {
-            flag = name.includes('destination') && !this.$refs[name].validate()
+          if (name.startsWith('destination_') && this.$refs[name]) {
+            this.$refs[name].validate()
           }
         }
-        return flag
+        return this.packagesLocation.some((pack) => !pack.destination)
       },
       saveRelease() {
         if (this.checkDestinations()) {
