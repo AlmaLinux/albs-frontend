@@ -9,3 +9,8 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    ignore:
+      # ESLint 9 needs Node.js 18.18+ and a flat config, while the Docker
+      # image runs Node.js 16 and the project uses .eslintrc.js.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
