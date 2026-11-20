@@ -81,9 +81,9 @@
       id: 'mla-li-admin',
       icon: 'settings',
       expand: true,
-      // is_superuser workaround
-      // We update the allow value manually after the Link is populated
-      allow: false,
+      // is_superuser workaround: shown to superusers only, see
+      // the essentialLinks computed property
+      adminOnly: true,
       children: [
         {
           title: 'Users',
@@ -184,11 +184,19 @@
       link: 'test-repositories-feed',
       allow: store.getters.isAuthenticated,
     },
+    {
+      title: 'Build nodes',
+      id: 'mla-li-build-nodes',
+      icon: 'dns',
+      link: '/build-nodes',
+      adminOnly: true,
+    },
   ]
 
   import {defineComponent, ref} from 'vue'
   import {LocalStorage} from 'quasar'
   import {parseJwt} from '../utils'
+  import {isLinkAllowed} from '../adminAccess'
 
   export default defineComponent({
     name: 'MainLayout',
@@ -197,6 +205,20 @@
       EssentialLink,
     },
     computed: {
+      // is_superuser workaround
+      // Here's where we show/hide the superuser links of the menu. It
+      // follows isAdmin of the store, so the links appear and disappear
+      // as soon as users/setIsAdmin updates it.
+      essentialLinks() {
+        const access = {
+          isAuthenticated: this.$store.getters.isAuthenticated,
+          isAdmin: this.$store.getters.isAdmin,
+        }
+        return linksList.map((link) => ({
+          ...link,
+          allow: isLinkAllowed(link, access),
+        }))
+      },
       onBuildFeed() {
         return this.$route.name && this.$route.name.startsWith('BuildFeed')
       },
@@ -234,21 +256,12 @@
           }
         }
       })
-      // is_superuser workaround
-      // Here's where we show/hide the Admin section from the menu
-      if (store.getters.isAuthenticated && store.getters.isAdmin) {
-        let adminLink = this.essentialLinks.find(
-          (link) => link.title === 'Administration'
-        )
-        adminLink.allow = true
-      }
     },
     setup() {
       const leftDrawerOpen = ref(false)
       const rightDrawerOpen = ref(false)
 
       return {
-        essentialLinks: linksList,
         leftDrawerOpen,
         toggleLeftDrawer() {
           leftDrawerOpen.value = !leftDrawerOpen.value

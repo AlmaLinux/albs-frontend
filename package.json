@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",
-    "test": "echo \"No test specified\" && exit 0",
+    "test": "node --experimental-loader ./test/esm-loader.mjs --test test/*.test.mjs",
     "dev": "quasar dev",
     "build": "quasar build",
     "build:pwa": "quasar build -m pwa"
