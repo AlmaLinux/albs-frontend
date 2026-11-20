@@ -1,4 +1,5 @@
 import store from '../store/index'
+import {enterAdminOnly} from '../adminAccess'
 
 const routes = [
   {
@@ -53,14 +54,7 @@ const routes = [
         meta: {requiresAuth: true},
         // Guard direct navigation to users admin page
         beforeEnter(to, from, next) {
-          store.dispatch('users/setIsAdmin').then((res) => {
-            if (!store.getters.isAdmin) {
-              // Maybe take the user to 404?
-              next('/')
-            } else {
-              next()
-            }
-          })
+          enterAdminOnly(store, next)
         },
       },
       {
@@ -229,6 +223,26 @@ const routes = [
         meta: {requiresAuth: true},
         props: true,
         component: () => import('pages/TestRepositoryConfigurator'),
+      },
+      {
+        path: 'build-nodes',
+        name: 'BuildNodes',
+        meta: {requiresAuth: true},
+        // The build nodes pages are for superusers only
+        beforeEnter(to, from, next) {
+          enterAdminOnly(store, next)
+        },
+        component: () => import('pages/BuildNodes.vue'),
+      },
+      {
+        path: 'build-nodes/:nodeId',
+        name: 'BuildNodeDetails',
+        meta: {requiresAuth: true},
+        beforeEnter(to, from, next) {
+          enterAdminOnly(store, next)
+        },
+        props: true,
+        component: () => import('pages/BuildNodeDetails.vue'),
       },
       {
         path: '/documentation/:chapter/:article/',

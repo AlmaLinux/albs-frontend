@@ -38,6 +38,16 @@ npm run lint
 ```
 
 
+Run the unit tests
+---
+
+Pure helper modules (for example `src/buildNodeUtils.js`) are covered by unit tests in `test/`. They use the built-in Node.js test runner, so no extra packages are needed. The runner works on Node.js 16.17+, including the Node.js 16 of the Docker image; `test/esm-loader.mjs` loads the files of `src/` as ES modules.
+
+```
+npm test
+```
+
+
 Build the app for production
 ---
 The following command works almost like `quasar dev`, but this one doesn't update the Build System's design face in case of changes. If the update is needed, a user has to do it manually by himself.
